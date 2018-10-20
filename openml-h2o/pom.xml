@@ -174,9 +174,6 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>
-                                false
-                            </createDependencyReducedPom>
                             <relocations>
                                 <relocation>
                                     <pattern>org.eclipse.jetty</pattern>
