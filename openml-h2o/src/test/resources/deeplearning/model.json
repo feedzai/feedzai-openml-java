@@ -1,0 +1,33 @@
+{
+   "targetIndex":2,
+   "fieldSchemas":[
+      {
+         "fieldIndex":0,
+         "fieldName":"date",
+         "valueSchema":{
+            "@type":"numeric",
+            "allowMissing":false
+         }
+      },
+      {
+         "fieldIndex":1,
+         "fieldName":"amount",
+         "valueSchema":{
+            "@type":"numeric",
+            "allowMissing":false
+         }
+      },
+      {
+         "fieldIndex":2,
+         "fieldName":"fraud",
+         "valueSchema":{
+            "@type":"categorical",
+            "allowMissing":false,
+            "nominalValues":[
+               "false",
+               "true"
+            ]
+         }
+      }
+   ]
+}

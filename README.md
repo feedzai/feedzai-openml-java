@@ -12,3 +12,35 @@ This is a Maven project which you can build using the following command:
 ```bash
 mvn clean install
 ```
+
+## Modules
+
+### H2O
+[![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/feedzai/openml-h2o/maven-metadata.xml.svg)](https://mvnrepository.com/artifact/com.feedzai/openml-h2o)
+
+The `openml-h2o` module contains a provider that allows to load and train models with [H2O](https://www.h2o.ai/).
+
+Pull the provider from Maven Central:
+```xml
+<dependency>
+  <groupId>com.feedzai</groupId>
+  <artifactId>openml-h2o</artifactId>
+  <!-- See project tags for latest version -->
+  <version>0.5.0/version>
+</dependency>
+```
+
+### DataRobot
+[![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/feedzai/openml-datarobot/maven-metadata.xml.svg)](https://mvnrepository.com/artifact/com.feedzai/openml-datarobot)
+
+The `openml-datarobot` module contains a provider that allows to load models trained with [DataRobot](https://www.datarobot.com/).
+
+Pull this module from Maven Central:
+```xml
+<dependency>
+  <groupId>com.feedzai</groupId>
+  <artifactId>openml-datarobot</artifactId>
+  <!-- See project tags for latest version -->
+  <version>0.5.0</version>
+</dependency>
+```
