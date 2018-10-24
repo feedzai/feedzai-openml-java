@@ -77,6 +77,17 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
         ClassificationValidationUtils.validateParamsModelToLoad(this, modelPath, schema, ImmutableMap.of());
 
         final Pair<Predictor, URLClassLoader> predictorPair = createPredictorInstance(modelPath);
+        final int predictorSize = predictorPair.getKey().get_double_predictors().length + predictorPair.getKey().get_string_predictors().length;
+        // We ignore the target variable in the schema for schema matching purposes.
+        if (predictorSize != schema.getFieldSchemas().size() - 1) {
+            final String errorMsg = String.format(
+                    "Wrong number of fields in the given schema. The model expected %d but the schema had %d.",
+                    predictorSize,
+                    schema.getFieldSchemas().size()
+            );
+            logger.error(errorMsg);
+            throw new ModelLoadingException(errorMsg);
+        }
 
         final String[] targetModelValues = getTargetModelValues(predictorPair.getKey());
         final SortedSet<String> nominalValues = checkTargetModelValuesWithSchema(schema, targetModelValues);
