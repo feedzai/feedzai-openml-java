@@ -77,12 +77,30 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
         ClassificationValidationUtils.validateParamsModelToLoad(this, modelPath, schema, ImmutableMap.of());
 
         final Pair<Predictor, URLClassLoader> predictorPair = createPredictorInstance(modelPath);
+        final Predictor predictor = predictorPair.getKey();
 
-        final String[] targetModelValues = getTargetModelValues(predictorPair.getKey());
+        final int predictorSize = predictor.get_double_predictors().length + predictor.get_string_predictors().length;
+        // We ignore the target variable in the schema for schema matching purposes.
+        if (predictorSize != schema.getFieldSchemas().size() - 1) {
+            final String errorMsg = String.format(
+                    "Wrong number of fields in the given schema. The model expected %d fields but the schema had %d fields.",
+                    predictorSize,
+                    schema.getFieldSchemas().size()
+            );
+            final String extraMsg = String.format(
+                    " Schema expected by the model %s. Schema provided %s.",
+                    predictor2Str(predictor),
+                    schema
+            );
+            logger.error(errorMsg + extraMsg);
+            throw new ModelLoadingException(errorMsg);
+        }
+
+        final String[] targetModelValues = getTargetModelValues(predictor);
         final SortedSet<String> nominalValues = checkTargetModelValuesWithSchema(schema, targetModelValues);
 
         final ClassificationBinaryDataRobotModel resultingModel = new ClassificationBinaryDataRobotModel(
-                predictorPair.getKey(),
+                predictor,
                 nominalValues.first().equals(targetModelValues[0]),
                 modelPath,
                 schema,
@@ -93,6 +111,29 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
 
         logger.info("Model in path [{}] loaded successfully.", modelPath);
         return resultingModel;
+    }
+
+    /**
+     * Converts a predictor to string.
+     *
+     * @param predictor The predictor.
+     * @return The string.
+     * @since 0.5.1
+     */
+    private String predictor2Str(final Predictor predictor) {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        for (final String doublePredName : predictor.get_double_predictors()) {
+            stringBuilder.append(doublePredName);
+            stringBuilder.append(",");
+        }
+
+        for (final String strPredName : predictor.get_string_predictors()) {
+            stringBuilder.append(strPredName);
+            stringBuilder.append(",");
+        }
+
+        return stringBuilder.toString();
     }
 
     /**
