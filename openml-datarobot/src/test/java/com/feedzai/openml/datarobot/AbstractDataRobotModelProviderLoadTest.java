@@ -44,13 +44,13 @@ public abstract class AbstractDataRobotModelProviderLoadTest extends
      * Name of the directory that contains a dummy model trained with DataRobot (RandomForest Classifier). The model was
      * created with a schema similar to {@link #createDatasetSchema(Set)} ()};
      */
-    private static final String FIRST_MODEL_FILE = "valid_classifier";
+    protected static final String FIRST_MODEL_FILE = "valid_classifier";
 
     /**
      * Similar to {@link #FIRST_MODEL_FILE} but with a different dummy model, DataRobot (eXtreme Gradient Boosted Trees
      * Classifier).
      */
-    private static final String SECOND_MODEL_FILE = "second_valid_classifier";
+    protected static final String SECOND_MODEL_FILE = "second_valid_classifier";
 
     /**
      * The values of the target variable.

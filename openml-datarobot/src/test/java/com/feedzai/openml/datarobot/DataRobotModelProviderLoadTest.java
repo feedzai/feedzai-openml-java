@@ -17,9 +17,14 @@
 
 package com.feedzai.openml.datarobot;
 
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
+import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
@@ -33,6 +38,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for loading models with {@link DataRobotModelProvider}.
@@ -111,7 +117,7 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     }
 
     /**
-     * Checks that is possible to use Jar files to import DataRobot models..
+     * Checks that is possible to use Jar files to import DataRobot models.
      */
     @Test
     public void validModelFileFormatTest() {
@@ -125,7 +131,7 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     }
 
     /**
-     * Checks that is not possible to use invalid file formats to import DataRobot models..
+     * Checks that is not possible to use invalid file formats to import DataRobot models.
      */
     @Test
     public void invalidModelFileFormatTest() throws IOException {
@@ -138,5 +144,27 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
         assertThat(validationErrors)
                 .as("list of errors")
                 .hasSize(1);
+    }
+
+    /**
+     * Checks that it is possible to get debug information for the user in the error yielded when there is a schema
+     * mis-match in the load of a model.
+     *
+     * @since 0.5.1
+     */
+    @Test
+    public void schemaMismatchDebugInfoTest() {
+        final String modelPath = this.getClass().getResource("/" + SECOND_MODEL_FILE).getPath();
+
+        final DatasetSchema datasetSchema = new DatasetSchema(0, ImmutableList.of(
+                new FieldSchema("field0", 0, new CategoricalValueSchema(false, ImmutableSet.of("0", "1"))),
+                new FieldSchema("field1", 1, new NumericValueSchema(false)))
+        );
+
+        assertThatThrownBy(() -> this.getMachineLearningModelLoader(getValidAlgorithm()).loadModel(Paths.get(modelPath), datasetSchema))
+                .isInstanceOf(ModelLoadingException.class)
+                .hasMessageContaining("Wrong number of fields")
+                .hasMessageContaining("expected 33")
+                .hasMessageContaining("had 2");
     }
 }
