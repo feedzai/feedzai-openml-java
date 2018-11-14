@@ -83,7 +83,8 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
         // We ignore the target variable in the schema for schema matching purposes.
         if (predictorSize != schema.getFieldSchemas().size() - 1) {
             final String errorMsg = String.format(
-                    "Wrong number of fields in the given schema. The model expected %d fields but the schema had %d fields.",
+                    "Wrong number of fields in the given schema. The model expected %d feature fields + 1 target field," +
+                            " but the schema had a total of %d fields only (encompassing both features and target fields).",
                     predictorSize,
                     schema.getFieldSchemas().size()
             );
