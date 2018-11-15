@@ -22,16 +22,22 @@ import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
+import com.feedzai.openml.mocks.MockInstance;
+import com.feedzai.openml.model.ClassificationMLModel;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -47,6 +53,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @since 0.1.0
  */
 public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProviderLoadTest {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(DataRobotModelProviderLoadTest.class);
 
     /**
      * Checks that is possible to use compatible target values with the values used to train the model.
@@ -117,6 +128,95 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     }
 
     /**
+     * Checks that it is possible to use a DataRobot binary classification model with various data-sets that have
+     * different representations for the boolean target field.
+     *
+     * @throws ModelLoadingException If the model cannot be loaded.
+     *
+     * @since 0.5.2
+     */
+    @Test
+    public void booleanTargetFieldTest() throws ModelLoadingException {
+        final String modelPath = this.getClass().getResource("/boolean_classifier").getPath();
+        final DataRobotModelCreator loader = getMachineLearningModelLoader(getValidAlgorithm());
+        final DatasetSchema baseSchema = loader.loadSchema(Paths.get(modelPath));
+
+        ImmutableList.of(
+                ImmutableSet.of("True", "False"),
+                ImmutableSet.of("False", "True"),
+                ImmutableSet.of("true", "false"),
+                ImmutableSet.of("false", "true"),
+                ImmutableSet.of("True", "false"),
+                ImmutableSet.of("false", "True"),
+                ImmutableSet.of("true", "False"),
+                ImmutableSet.of("False", "true"),
+                ImmutableSet.of("TrUe", "FAlsE"),
+                ImmutableSet.of("FAlsE", "TrUe"),
+                ImmutableSet.of("TRUE", "FALSE"),
+                ImmutableSet.of("FALSE", "TRUE")
+        ).forEach(possibleClasses -> testPossibleBinaryValues(modelPath, loader, baseSchema, possibleClasses));
+    }
+
+    /**
+     * Tests the possible given target values in a classification model.
+     *
+     * @param modelPath  The path to the model.
+     * @param loader     The loader for the model.
+     * @param baseSchema The schema to modify for the given target values.
+     * @param classes    The possible target classes.
+     * @since 0.5.2
+     */
+    private void testPossibleBinaryValues(final String modelPath,
+                                          final DataRobotModelCreator loader,
+                                          final DatasetSchema baseSchema,
+                                          final Set<String> classes) {
+        logger.debug("Testing DR model for possible binary target values {}", classes);
+        final DatasetSchema schema = cloneSchemaWithTarget(baseSchema, classes);
+        try {
+            testScoreModel(loader.loadModel(Paths.get(modelPath), schema), schema);
+        } catch (final ModelLoadingException e) {
+            throw new RuntimeException("Unexpected error doing test.", e);
+        }
+    }
+
+    /**
+     * Tests the score of a model with the given schema.
+     *
+     * @param model The model to test.
+     * @param schema The schema to use.
+     *
+     * @since 0.5.2
+     */
+    private void testScoreModel(final ClassificationMLModel model, final DatasetSchema schema) {
+        final double[] scores = model.getClassDistribution(new MockInstance(schema, new Random(321)));
+        assertThat(Arrays.stream(scores).sum())
+                .as("sum of the class distribution")
+                .isCloseTo(1.0, Assertions.within(0.01));
+    }
+
+    /**
+     * Clones the given schema to have a new target variable.
+     *
+     * @param oldSchema     The old schema to clone.
+     * @param newTargetVals The values of the new target variable.
+     * @return The new schema.
+     * @since 0.5.2
+     */
+    private DatasetSchema cloneSchemaWithTarget(final DatasetSchema oldSchema, final Set<String> newTargetVals) {
+        final FieldSchema oldTargetVar = oldSchema.getTargetFieldSchema();
+        final FieldSchema newTargetVar =
+                new FieldSchema(oldTargetVar.getFieldName(), 0, new CategoricalValueSchema(false, newTargetVals));
+
+        return new DatasetSchema(
+                0,
+                ImmutableList.<FieldSchema>builder()
+                        .add(newTargetVar)
+                        .addAll(oldSchema.getFieldSchemas().subList(1, oldSchema.getFieldSchemas().size()))
+                        .build()
+        );
+    }
+
+    /**
      * Checks that is possible to use Jar files to import DataRobot models.
      */
     @Test
@@ -165,6 +265,6 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
                 .isInstanceOf(ModelLoadingException.class)
                 .hasMessageContaining("Wrong number of fields")
                 .hasMessageContaining("expected 33")
-                .hasMessageContaining("had 2");
+                .hasMessageContaining("2 fields only");
     }
 }
