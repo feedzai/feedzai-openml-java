@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -155,7 +156,16 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
                 ImmutableSet.of("FAlsE", "TrUe"),
                 ImmutableSet.of("TRUE", "FALSE"),
                 ImmutableSet.of("FALSE", "TRUE")
-        ).forEach(possibleClasses -> Assert.assertTrue(testPossibleBinaryValues(modelPath, loader, baseSchema, possibleClasses)));
+        ).forEach(possibleClasses ->
+                assertThatCode(() -> testPossibleBinaryValues(modelPath, loader, baseSchema, possibleClasses))
+                        .doesNotThrowAnyException()
+        );
+
+        assertThatThrownBy(() -> testPossibleBinaryValues(modelPath, loader, baseSchema, ImmutableSet.of("banana", "laranja")))
+                .as("The error thrown by the load")
+                .isInstanceOf(ModelLoadingException.class)
+                .hasMessageContaining("Incompatible target values")
+                .hasMessageContaining("model is binary");
     }
 
     /**
@@ -165,22 +175,16 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
      * @param loader     The loader for the model.
      * @param baseSchema The schema to modify for the given target values.
      * @param classes    The possible target classes.
-     * @return {@code true} if successful
+     * @throws ModelLoadingException If any error occurs.
      * @since 0.5.2
      */
-    private boolean testPossibleBinaryValues(final String modelPath,
+    private void testPossibleBinaryValues(final String modelPath,
                                           final DataRobotModelCreator loader,
                                           final DatasetSchema baseSchema,
-                                          final Set<String> classes) {
+                                          final Set<String> classes) throws ModelLoadingException {
         logger.debug("Testing DR model for possible binary target values {}", classes);
         final DatasetSchema schema = cloneSchemaWithTarget(baseSchema, classes);
-        try {
-            testScoreModel(loader.loadModel(Paths.get(modelPath), schema), schema);
-            return true;
-        } catch (final ModelLoadingException e) {
-            Assert.fail("Error during model loading: " + e.getMessage());
-            return false;
-        }
+        testScoreModel(loader.loadModel(Paths.get(modelPath), schema), schema);
     }
 
     /**
