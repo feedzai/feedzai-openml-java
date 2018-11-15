@@ -29,6 +29,7 @@ import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +155,7 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
                 ImmutableSet.of("FAlsE", "TrUe"),
                 ImmutableSet.of("TRUE", "FALSE"),
                 ImmutableSet.of("FALSE", "TRUE")
-        ).forEach(possibleClasses -> testPossibleBinaryValues(modelPath, loader, baseSchema, possibleClasses));
+        ).forEach(possibleClasses -> Assert.assertTrue(testPossibleBinaryValues(modelPath, loader, baseSchema, possibleClasses)));
     }
 
     /**
@@ -164,9 +165,10 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
      * @param loader     The loader for the model.
      * @param baseSchema The schema to modify for the given target values.
      * @param classes    The possible target classes.
+     * @return {@code true} if successful
      * @since 0.5.2
      */
-    private void testPossibleBinaryValues(final String modelPath,
+    private boolean testPossibleBinaryValues(final String modelPath,
                                           final DataRobotModelCreator loader,
                                           final DatasetSchema baseSchema,
                                           final Set<String> classes) {
@@ -174,8 +176,10 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
         final DatasetSchema schema = cloneSchemaWithTarget(baseSchema, classes);
         try {
             testScoreModel(loader.loadModel(Paths.get(modelPath), schema), schema);
+            return true;
         } catch (final ModelLoadingException e) {
-            throw new RuntimeException("Unexpected error doing test.", e);
+            Assert.fail("Error during model loading: " + e.getMessage());
+            return false;
         }
     }
 
