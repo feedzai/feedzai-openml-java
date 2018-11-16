@@ -77,7 +77,7 @@ public final class H2OUtils {
 
         try (final CsvListWriter csvWriter = new CsvListWriter(
                 new FileWriter(datasetPath.toFile()),
-                new CsvPreference.Builder(CsvPreference.STANDARD_PREFERENCE).build()
+                new CsvPreference.Builder('"', ',', "\r\n").build()
         )) {
 
             StreamSupport.stream(((Iterable<Instance>) dataset::getInstances).spliterator(), false)
