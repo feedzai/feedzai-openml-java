@@ -1,8 +1,8 @@
 # DataRobot API
 
-This module contains the classes and logic that allow to import models generated in [DataRobot](https://www.datarobot.com/).
+This module contains the classes and logic that allow to import models generated in [DataRobot](https://www.datarobot.com/) version 4.1.1 or higher.
 
-You can use the current implementation to import a binary classification model exported in a Jar file.
+You can use the current implementation to import a binary classification model __exported in a Jar file__.
 
 ## Model File Structure
 
