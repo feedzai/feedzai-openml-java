@@ -58,9 +58,9 @@ Place the model in the following folder structure, and optionally provide a sche
 If you don't provide a "model.json" file for a model, you will need to create the schema and add it during the model import steps in the UI.
 
 Notes:
-- The field indexes ("fieldIndex") for fieldSchemas are required and start at 0.
-- Field schemas must be ordered by ascending field index.
-- The target index ("targetIndex") must be a valid index pointing to the field schema of the target variable of the model.
-- The available value schema types for DataRobot models are, as shown, "categorical", "string" and "numeric".
-- "allowMissing" is a boolean value that indicates whether a field can be missing in a valid instance.
-- In a categorical value schema, the possible categories (nominal values) are listed in an array on the "nominalValues" property.
+-   The field indexes ("fieldIndex") for fieldSchemas are required and start at 0.
+-   Field schemas must be ordered by ascending field index.
+-   The target index ("targetIndex") must be a valid index pointing to the field schema of the target variable of the model.
+-   The available value schema types for DataRobot models are, as shown, "categorical", "string" and "numeric".
+-   "allowMissing" is a boolean value that indicates whether a field can be missing in a valid instance.
+-   In a categorical value schema, the possible categories (nominal values) are listed in an array on the "nominalValues" property.
