@@ -26,7 +26,7 @@ Pull the provider from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-h2o</artifactId>
   <!-- See project tags for latest version -->
-  <version>0.5.0/version>
+  <version>0.5.7</version>
 </dependency>
 ```
 
