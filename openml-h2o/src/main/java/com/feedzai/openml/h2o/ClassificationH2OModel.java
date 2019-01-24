@@ -17,14 +17,15 @@
 
 package com.feedzai.openml.h2o;
 
-import com.feedzai.openml.util.data.encoding.EncodingHelper;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.model.ClassificationMLModel;
 import com.feedzai.openml.model.MachineLearningModel;
+import com.feedzai.openml.util.data.encoding.EncodingHelper;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import hex.ModelCategory;
 import hex.genmodel.GenModel;
@@ -32,6 +33,7 @@ import hex.genmodel.easy.EasyPredictModelWrapper;
 import hex.genmodel.easy.RowData;
 import hex.genmodel.easy.exception.PredictException;
 import hex.genmodel.easy.prediction.AbstractPrediction;
+import hex.genmodel.easy.prediction.AnomalyDetectionPrediction;
 import hex.genmodel.easy.prediction.BinomialModelPrediction;
 import hex.genmodel.easy.prediction.MultinomialModelPrediction;
 import org.apache.commons.io.FileUtils;
@@ -106,6 +108,14 @@ public class ClassificationH2OModel implements ClassificationMLModel {
     public double[] getClassDistribution(final Instance instance) {
         final AbstractPrediction abstractPrediction = predictInstance(instance);
 
+        if (isAnomalyDetection()) {
+            final double score = getCompressedNormalizedScore((AnomalyDetectionPrediction) abstractPrediction);
+
+            // TODO confirm this
+            // [not fraud, fraud]
+            return new double[]{1 - score, score};
+        }
+
         final double[] classDistribution;
         if (isMultiClassification()) {
             classDistribution = ((MultinomialModelPrediction) abstractPrediction).classProbabilities;
@@ -115,9 +125,39 @@ public class ClassificationH2OModel implements ClassificationMLModel {
         return convertDistribution(classDistribution);
     }
 
+    /**
+     * Converts the score from the {@link AnomalyDetectionPrediction H2O prediction} into the OpenML score.
+     *
+     * Note that due the fact that H2O's score might ocasionally go over the limits (either to 1 or -1), we apply bound compression,
+     * as the OpenML score semantic does allow scores over the limits.
+     *
+     * @param abstractPrediction The H2O Prediction, where the scores are kept.
+     * @return A value between [0..1], where 0 represents certain genuineness and 1 represents certain fraud.
+     * @implNote This method assumes H2O's score to be between -1 and 1 (and occasionally slight out-of-bounds), where -1 represents certain genuineness and 1 represents certain
+     * fraud.
+     */
+    private double getCompressedNormalizedScore(final AnomalyDetectionPrediction abstractPrediction) {
+        // TODO confirm this method
+        final double rawScore = abstractPrediction.normalizedScore;
+        if (rawScore > 1) {
+            return 1;
+        }
+        else if (rawScore < -1) {
+            return 0;
+        }
+        return rawScore / 2 + 0.5;
+    }
+
     @Override
     public int classify(final Instance instance) {
         final AbstractPrediction abstractPrediction = predictInstance(instance);
+
+        if (isAnomalyDetection()) {
+            final double normalizedScore = getCompressedNormalizedScore((AnomalyDetectionPrediction) abstractPrediction);
+
+            //TODO confirm
+            return normalizedScore > 0 ? 1 : 0;
+        }
 
         final int predictedClass;
         if (isMultiClassification()) {
@@ -181,8 +221,11 @@ public class ClassificationH2OModel implements ClassificationMLModel {
      * @return a list with the target values used by the model.
      */
     private SortedSet<String> getTargetValues() {
-        final FieldSchema targetField = this.schema.getTargetFieldSchema();
-        return ((CategoricalValueSchema) targetField.getValueSchema()).getNominalValues();
+        return this.schema.getTargetFieldSchema()
+                .map(FieldSchema::getValueSchema)
+                .map(CategoricalValueSchema.class::cast)
+                .map(CategoricalValueSchema::getNominalValues)
+                .orElse(ImmutableSortedSet.of());
     }
 
     /**
@@ -258,7 +301,16 @@ public class ClassificationH2OModel implements ClassificationMLModel {
     }
 
     /**
-     * Identifies the model is multi classifier or not. A multi classifier model allows to predict the value of a
+     * Identifies if the model is an anomaly detection model. Anomaly detection models do not work with the notion of tartget variable.
+     *
+     * @return {@code true} is this model is an Anomaly Detection model, and {@code false} otherwise.
+     */
+    private boolean isAnomalyDetection() {
+        return this.modelWrapper.getModelCategory() == ModelCategory.AnomalyDetection;
+    }
+
+    /**
+     * Identifies if the model is multi classifier or not. A multi classifier model allows to predict the value of a
      * categorical field with more than two domain values.
      *
      * @return True if the model is multi classifier, false otherwise.

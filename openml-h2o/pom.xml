@@ -158,6 +158,24 @@
         </dependency>
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.feedzai</groupId>
+                <artifactId>openml-api</artifactId>
+                <version>${openml-api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.feedzai</groupId>
+                <artifactId>openml-utils</artifactId>
+                <scope>test</scope>
+                <version>${openml-api.version}</version>
+                <type>test-jar</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
    <build>
         <plugins>
             <plugin>

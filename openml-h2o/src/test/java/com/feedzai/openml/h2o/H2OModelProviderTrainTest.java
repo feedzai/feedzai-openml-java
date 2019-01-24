@@ -20,19 +20,26 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderModelTrainTest;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -46,6 +53,33 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
      * Logger.
      */
     private static final Logger logger = LoggerFactory.getLogger(H2OModelProviderTrainTest.class);
+
+    private MockDataset dataset;
+
+    /**
+     * Creates the dataset to be used in these tests.
+     *
+     * <p>
+     *     Due to an Isolation Forest nuance, the dataset size must be bigger than the sample_size param, otherwise Isolation forest will not be able to detect instances
+     *     as anomalous.
+     * </p>
+     */
+    @Before
+    public void createDataset() {
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
+                .map(Integer::parseInt)
+                .orElse(256);
+        final Random random = new Random(234);
+
+        final DatasetSchema schema = SCHEMA_NO_TARGET_VARIABLE;
+        final int datasetSize = sampleSize + 100;
+        logger.info("Using dataset size of {}", datasetSize);
+        final List<Instance> instances = IntStream.range(0, datasetSize)
+                .mapToObj(index -> new MockInstance(schema, random))
+                .collect(Collectors.toList());
+        this.dataset = new MockDataset(schema, instances);
+    }
 
     @Override
     public ClassificationH2OModel getFirstModel() throws ModelTrainingException {
@@ -120,9 +154,28 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
         builder.put(H2OAlgorithm.NAIVE_BAYES_CLASSIFIER, H2OAlgorithmTestParams.getBayes());
         builder.put(H2OAlgorithm.XG_BOOST, H2OAlgorithmTestParams.getXgboost());
         builder.put(H2OAlgorithm.GENERALIZED_LINEAR_MODEL, H2OAlgorithmTestParams.getGlm());
+        builder.put(H2OAlgorithm.ISOLATION_FOREST, H2OAlgorithmTestParams.getIsolationForest());
 
         return builder.build();
     }
 
+    /**
+     * Tests that the model loaded by {@link H2OModelCreator#fit(Dataset, Random, Map)} is able to score instances, based on a schema
+     * with no target variable.
+     */
+    @Test
+    public final void testIsolationForestWithDatasetWithoutTargetVariable() throws ModelTrainingException {
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+
+        final Random random = new Random(234);
+
+        final ClassificationH2OModel model = loader.fit(this.dataset, random, params);
+
+        final MockInstance dummyInstance = new MockInstance(this.dataset.getSchema(), random);
+        assertThatCode(() -> model.getClassDistribution(dummyInstance))
+                .as("Scoring instance '%s' succeeds", dummyInstance)
+                .doesNotThrowAnyException();
+    }
 
 }

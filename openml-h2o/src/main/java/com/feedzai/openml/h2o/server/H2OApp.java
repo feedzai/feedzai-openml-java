@@ -26,10 +26,12 @@ import com.feedzai.openml.h2o.algos.H2ODeepLearningUtils;
 import com.feedzai.openml.h2o.algos.H2ODrfUtils;
 import com.feedzai.openml.h2o.algos.H2OGbmUtils;
 import com.feedzai.openml.h2o.algos.H2OGeneralizedLinearModelUtils;
+import com.feedzai.openml.h2o.algos.H2OIsolationForestUtils;
 import com.feedzai.openml.h2o.algos.H2OXgboostUtils;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
+import com.feedzai.openml.provider.descriptor.MachineLearningAlgorithmType;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import hex.Model;
@@ -40,10 +42,14 @@ import hex.schemas.DRFV3;
 import hex.schemas.DeepLearningV3;
 import hex.schemas.GBMV3;
 import hex.schemas.GLMV3;
+import hex.schemas.IsolationForestV3;
 import hex.schemas.NaiveBayesV3;
 import hex.schemas.XGBoostV3;
 import hex.tree.drf.DRF;
 import hex.tree.gbm.GBM;
+import hex.tree.isofor.IsolationForest;
+import hex.tree.isofor.IsolationForestModel;
+import hex.tree.isofor.IsolationForestModel.IsolationForestOutput;
 import hex.tree.xgboost.XGBoost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,7 +158,17 @@ public class H2OApp<M extends Model> {
                        final long randomSeed) throws ModelTrainingException {
         logger.info("Training {} algorithm from dataset in {}. TargetIdx: {}, params: {}", algorithm, datasetPath, schema.getTargetIndex(), params);
         final Frame dataset = parseDataSetFile(datasetPath, schema);
-        return train(algorithm, dataset, schema.getTargetFieldSchema(), params, randomSeed);
+
+        if (algorithm.getAlgorithmType() == MachineLearningAlgorithmType.ANOMALY_DETECTION) {
+            return trainAnomalyDetection(algorithm, dataset, params, randomSeed, schema);
+        }
+
+
+        final Optional<FieldSchema> targetFieldSchema = schema.getTargetFieldSchema();
+        if (!targetFieldSchema.isPresent()) {
+            throw new ModelTrainingException("In order to train a supervised model, please provide a schema with a target field.");
+        }
+        return trainSupervised(algorithm, dataset, targetFieldSchema.get(), params, randomSeed);
     }
 
     /**
@@ -168,6 +184,9 @@ public class H2OApp<M extends Model> {
                        final Path exportDir) throws IOException, ModelTrainingException {
         logger.info("Exporting model {} to {}", model._output._job._result.toString(), exportDir.toAbsolutePath().toString());
         if (model.haveMojo()) {
+            if (model instanceof IsolationForestModel && ((IsolationForestModel) model)._output._min_path_length == Long.MAX_VALUE) {
+                ((IsolationForestModel) model)._output._min_path_length = Integer.MAX_VALUE;
+            }
             new MojoExported().save(exportDir, model);
         } else {
             new PojoExported().save(exportDir, model);
@@ -176,8 +195,38 @@ public class H2OApp<M extends Model> {
         return exportDir;
     }
 
+    private Model trainAnomalyDetection(final MLAlgorithmDescriptor algorithmDescriptor,
+                                        final Frame trainingFrame,
+                                        final Map<String, String> params,
+                                        final long randomSeed, final DatasetSchema datasetSchema) throws ModelTrainingException {
+        final Job<M> modelJob;
+
+        final H2OAlgorithm h2OAlgorithm = getH2OAlgorithm(algorithmDescriptor);
+
+        switch (h2OAlgorithm) {
+            case ISOLATION_FOREST:
+                final IsolationForestV3.IsolationForestParametersV3 isolationForestParams = new H2OIsolationForestUtils().parseParams(trainingFrame, params, randomSeed, datasetSchema);
+
+                modelJob = train(() -> new IsolationForest(isolationForestParams.createAndFillImpl()).trainModel())
+                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
+                break;
+
+            default:
+                logger.error("Training not supported for algorithm {}", algorithmDescriptor.getAlgorithmName());
+                throw new IllegalArgumentException("Unsupported anomaly detection algorithm: " + algorithmDescriptor);
+        }
+
+        final M model = waitForModelTrained(modelJob);
+        return model;
+    }
+
+    private H2OAlgorithm getH2OAlgorithm(final MLAlgorithmDescriptor algorithmDescriptor) {
+        return MLAlgorithmEnum.getByName(H2OAlgorithm.values(), algorithmDescriptor.getAlgorithmName())
+                .orElseThrow(() -> new IllegalArgumentException("Unknown algorithm: " + algorithmDescriptor));
+    }
+
     /**
-     * Trains the specified algorithm in the H2O platform.
+     * Trains the specified supervised algorithm in the H2O platform.
      *
      * @param algorithmDescriptor The algorithm to train.
      * @param trainingFrame       The {@link Frame dataset} to use during training.
@@ -188,21 +237,18 @@ public class H2OApp<M extends Model> {
      * @throws ModelTrainingException If any problem occurred during the train of the model,
      *                                such as problems connecting to the H2O server.
      */
-    private Model train(final MLAlgorithmDescriptor algorithmDescriptor,
-                final Frame trainingFrame,
-                final FieldSchema targetField,
-                final Map<String, String> params,
-                final long randomSeed) throws ModelTrainingException {
-        logger.info("Training model for {} with params: {}", algorithmDescriptor, params);
-
+    private Model trainSupervised(final MLAlgorithmDescriptor algorithmDescriptor,
+                                  final Frame trainingFrame,
+                                  final FieldSchema targetField,
+                                  final Map<String, String> params,
+                                  final long randomSeed) throws ModelTrainingException {
         final Job<M> modelJob;
 
-        final H2OAlgorithm algorithm = MLAlgorithmEnum.getByName(H2OAlgorithm.values(), algorithmDescriptor.getAlgorithmName())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown algorithm: " + algorithmDescriptor));
+        final H2OAlgorithm h2OAlgorithm = getH2OAlgorithm(algorithmDescriptor);
 
         final int targetIndex = targetField.getFieldIndex();
 
-        switch (algorithm) {
+        switch (h2OAlgorithm) {
             case DISTRIBUTED_RANDOM_FOREST:
                 final DRFV3.DRFParametersV3 drfParams = new H2ODrfUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
 
@@ -246,7 +292,7 @@ public class H2OApp<M extends Model> {
 
             default:
                 logger.error("Training not supported for algorithm {}", algorithmDescriptor.getAlgorithmName());
-                throw new IllegalArgumentException("Unsupported algorithm: " + algorithmDescriptor);
+                throw new IllegalArgumentException("Unsupported supervised algorithm: " + algorithmDescriptor);
         }
 
         return waitForModelTrained(modelJob);

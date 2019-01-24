@@ -42,6 +42,11 @@ public interface H2ODatasetMixin {
     DatasetSchema SCHEMA = MockDataset.generateDefaultSchema(TARGET_VALUES, 4);
 
     /**
+     * Example schema that does not use target variable.
+     */
+    DatasetSchema SCHEMA_NO_TARGET_VARIABLE = new DatasetSchema(SCHEMA.getFieldSchemas());
+
+    /**
      * Number of instances to have in the train dataset.
      */
     int TRAIN_DATASET_SIZE = 50;

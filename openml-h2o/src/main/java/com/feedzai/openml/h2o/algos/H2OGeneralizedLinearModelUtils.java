@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * @since 0.1.0
  * @author Nuno Diegues (nuno.diegues@feedzai.com)
  */
-public final class H2OGeneralizedLinearModelUtils extends AbstractH2OParamUtils<GLMParametersV3> {
+public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OParamUtils<GLMParametersV3> {
 
     /**
      * Logger for this class.

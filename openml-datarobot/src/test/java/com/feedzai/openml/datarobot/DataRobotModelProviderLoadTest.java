@@ -29,7 +29,6 @@ import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +39,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
@@ -82,6 +82,21 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     }
 
     /**
+     * Tests that a schema without target variable cannot be used in {@link DataRobotModelCreator#checkTargetModelValuesWithSchema(DatasetSchema, String[])}.
+     */
+    @Test
+    public final void testCompatibleTargetValuesWithSchemaWithoutTargetVariable() {
+        final Set<String> nominalValues = getFirstModelTargetNominalValues();
+        final String[] targetModelValues = nominalValues.toArray(new String[]{});
+        final DataRobotModelCreator modelCreator = getFirstMachineLearningModelLoader();
+        final DatasetSchema schema = createDatasetSchema(nominalValues);
+
+        assertThatThrownBy(() -> modelCreator.checkTargetModelValuesWithSchema(new DatasetSchema(schema.getFieldSchemas()), targetModelValues))
+                .as("Checking target values against a schema with no target variable should fail.")
+                .isInstanceOf(ModelLoadingException.class);
+    }
+
+    /**
      * Checks that is not possible to use incompatible target values with the values used to train the model.
      *
      * @throws ModelLoadingException If the target are incompatible.
@@ -101,10 +116,13 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
      */
     @Test
     public void targetIsBinaryTest() {
-        final List<ParamValidationError> validationErrors = getFirstMachineLearningModelLoader()
-                .validateTargetIsBinary(createDatasetSchema(getFirstModelTargetNominalValues()));
+        final Optional<List<ParamValidationError>> validationErrors = Optional.of(getFirstModelTargetNominalValues())
+                .map(this::createDatasetSchema)
+                .flatMap(DatasetSchema::getTargetFieldSchema)
+                .map(FieldSchema::getValueSchema)
+                .map(getFirstMachineLearningModelLoader()::validateTargetIsBinary);
 
-        assertThat(validationErrors)
+        assertThat(validationErrors.get())
                 .as("list of errors")
                 .isEmpty();
     }
@@ -121,12 +139,27 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
                 new Random(123)
         );
 
-        final List<ParamValidationError> validationErrors = getFirstMachineLearningModelLoader()
-                .validateTargetIsBinary(mockDataset.getSchema());
+        final Optional<List<ParamValidationError>> validationErrors = mockDataset.getSchema().getTargetFieldSchema()
+                .map(FieldSchema::getValueSchema)
+                .map(getFirstMachineLearningModelLoader()::validateTargetIsBinary);
 
-        assertThat(validationErrors)
+        assertThat(validationErrors.get())
                 .as("list of errors")
                 .hasSize(1);
+    }
+
+    /**
+     * Tests that Data Robot provider does not support models whose schema has no target variable.
+     */
+    @Test
+    public final void testLoadModelWithNoTargetVariableFails() throws ModelLoadingException {
+        final String modelPath = this.getClass().getResource("/boolean_classifier").getPath();
+        final DataRobotModelCreator loader = getMachineLearningModelLoader(getValidAlgorithm());
+        final DatasetSchema baseSchema = new DatasetSchema(loader.loadSchema(Paths.get(modelPath)).getFieldSchemas());
+
+        assertThatThrownBy(() -> loader.loadModel(Paths.get(modelPath), baseSchema))
+                .as("Loading a model by using a schema with no target variable will fail, as this is not supported by datarobot")
+                .isInstanceOf(ModelLoadingException.class);
     }
 
     /**
@@ -211,7 +244,8 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
      * @since 0.5.2
      */
     private DatasetSchema cloneSchemaWithTarget(final DatasetSchema oldSchema, final Set<String> newTargetVals) {
-        final FieldSchema oldTargetVar = oldSchema.getTargetFieldSchema();
+        final FieldSchema oldTargetVar = oldSchema.getTargetFieldSchema()
+                .orElseThrow(() -> new IllegalArgumentException("This schema must contain a target field"));
         final FieldSchema newTargetVar =
                 new FieldSchema(oldTargetVar.getFieldName(), 0, new CategoricalValueSchema(false, newTargetVals));
 

@@ -131,12 +131,6 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
             );
         }
 
-        if (!genModel.isSupervised()) {
-            final String errorMsg = String.format("The model stored in [%s] is not supervised.", modelFilePath);
-            logger.error(errorMsg);
-            throw new ModelLoadingException(errorMsg);
-        }
-
         final ClassificationH2OModel resultingModel = new ClassificationH2OModel(genModel, modelPath, schema, closeable);
         ClassificationValidationUtils.validateClassificationModel(schema, resultingModel);
 
@@ -160,7 +154,9 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
         errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
         errorBuilder.addAll(ValidationUtils.checkNoFieldsOfType(schema, StringValueSchema.class));
 
-        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        if (schema.getTargetIndex().isPresent()) {
+            ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        }
 
         return errorBuilder.build();
     }
@@ -197,7 +193,9 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
         errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, params));
-        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        if (schema.getTargetIndex().isPresent()) {
+            ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        }
 
         return errorBuilder.build();
     }

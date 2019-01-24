@@ -31,7 +31,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OGbmUtils extends AbstractH2OParamUtils<GBMParametersV3> {
+public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParametersV3> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O GBM model.

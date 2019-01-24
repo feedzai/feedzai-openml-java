@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2ODeepLearningUtils extends AbstractH2OParamUtils<DeepLearningParametersV3> {
+public final class H2ODeepLearningUtils extends AbstractSupervisedH2OParamUtils<DeepLearningParametersV3> {
 
     /**
      * H2O naming for hidden param.
