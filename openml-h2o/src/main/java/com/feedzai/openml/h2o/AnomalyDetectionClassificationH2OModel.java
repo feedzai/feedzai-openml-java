@@ -30,6 +30,7 @@ import java.nio.file.Path;
  * A classification model representation for an Anomaly Detection algorithm.
  *
  * @author Joao Sousa (joao.sousa@feedzai.com)
+ * @since 1.0.0
  */
 public class AnomalyDetectionClassificationH2OModel extends AbstractClassificationH2OModel {
 

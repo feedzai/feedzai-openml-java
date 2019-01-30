@@ -26,7 +26,7 @@ import water.fvec.Frame;
 import java.util.Map;
 
 /**
- * Abstract class to parse H2O supervised algorithm params.
+ * Abstract class to parse H2O unsupervised algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
  * @author Joao Sousa (joao.sousa@feedzai.com)
@@ -61,7 +61,7 @@ public abstract class AbstractUnsupervisedH2OParamUtils<T extends ModelParameter
      * @param trainingFrame The dataset to be used.
      * @param params        The raw training params.
      * @param randomSeed    The source of randomness.
-     * @param datasetSchema
+     * @param datasetSchema The dataset schema.
      * @return The modified version of the given {@code h2oParams}.
      */
     public final T parseParams(final Frame trainingFrame,

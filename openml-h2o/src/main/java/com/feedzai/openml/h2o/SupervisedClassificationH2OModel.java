@@ -21,6 +21,7 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import hex.ModelCategory;
@@ -56,6 +57,7 @@ public class SupervisedClassificationH2OModel extends AbstractClassificationH2OM
      */
     SupervisedClassificationH2OModel(final GenModel genModel, final Path modelPath, final DatasetSchema schema, final Closeable closeable) {
         super(genModel, modelPath, schema, closeable);
+        Preconditions.checkArgument(schema.getTargetFieldSchema().isPresent(), "Supervised models require a schema with target field.");
     }
 
     @Override

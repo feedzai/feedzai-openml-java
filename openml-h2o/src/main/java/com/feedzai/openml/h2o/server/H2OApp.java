@@ -183,7 +183,7 @@ public class H2OApp<M extends Model> {
                        final Path exportDir) throws IOException, ModelTrainingException {
         logger.info("Exporting model {} to {}", model._output._job._result.toString(), exportDir.toAbsolutePath().toString());
         if (model.haveMojo()) {
-            // this prevents this parameter deserialization from failing when it is deserialized as an integer value.
+            // this workaround prevents an H2O bug where this parameter deserialization fails when it is deserialized as an integer value.
             if (model instanceof IsolationForestModel && ((IsolationForestModel) model)._output._min_path_length == Long.MAX_VALUE) {
                 ((IsolationForestModel) model)._output._min_path_length = Integer.MAX_VALUE;
             }

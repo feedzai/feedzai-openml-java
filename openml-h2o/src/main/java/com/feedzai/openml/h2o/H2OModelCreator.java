@@ -52,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -148,9 +149,15 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
      * @param closeable A resource to be closed when the created model is closed.
      * @return A new H2O classification model, created based on the model category.
      */
-    private AbstractClassificationH2OModel createModel(final Path modelPath, final DatasetSchema schema, final GenModel genModel, final Closeable closeable) {
+    private AbstractClassificationH2OModel createModel(final Path modelPath, final DatasetSchema schema, final GenModel genModel, final Closeable closeable)
+            throws ModelLoadingException {
         if (genModel.getModelCategory() == ModelCategory.AnomalyDetection) {
             return new AnomalyDetectionClassificationH2OModel(genModel, modelPath, schema, closeable);
+        }
+        // Assumes that models multiple classification at worst, i.e. categorical target field
+        final Optional<ParamValidationError> validationError = ValidationUtils.validateCategoricalSchema(schema);
+        if (validationError.isPresent()) {
+            throw new ModelLoadingException(validationError.get().getMessage());
         }
         return new SupervisedClassificationH2OModel(genModel, modelPath, schema, closeable);
     }
@@ -210,6 +217,7 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
         errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, params));
+
         if (schema.getTargetIndex().isPresent()) {
             ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
         }
