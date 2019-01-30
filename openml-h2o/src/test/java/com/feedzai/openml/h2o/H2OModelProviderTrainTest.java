@@ -185,17 +185,19 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
 
         final AbstractClassificationH2OModel model = loader.fit(dataset, random, params);
 
-        final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
-        final double[] classDistribution = model.getClassDistribution(dummyInstance);
-        assertThat(classDistribution)
-                .as("Scoring instance '%s' succeeds", dummyInstance)
-                .hasSize(2)
-                .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
+        for (int i = 0; i < 1000; i++) {
+            final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
+            final double[] classDistribution = model.getClassDistribution(dummyInstance);
+            assertThat(classDistribution)
+                    .as("Scoring instance '%s' succeeds", dummyInstance)
+                    .hasSize(2)
+                    .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
 
-        final int classIndex = model.classify(dummyInstance);
-        assertThat(classDistribution[classIndex])
-                .as("The classify method returns the index of the greatest score in the class distribution")
-                .isGreaterThan(classDistribution[1 - classIndex]);
+            final int classIndex = model.classify(dummyInstance);
+            assertThat(classDistribution[classIndex])
+                    .as("The classify method returns the index of the greatest score in the class distribution")
+                    .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
+        }
     }
 
 }

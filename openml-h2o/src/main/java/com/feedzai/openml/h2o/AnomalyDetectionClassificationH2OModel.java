@@ -32,6 +32,12 @@ import java.nio.file.Path;
  * @author Joao Sousa (joao.sousa@feedzai.com)
  */
 public class AnomalyDetectionClassificationH2OModel extends AbstractClassificationH2OModel {
+
+    /**
+     * The score in between the top and bottom score bounds.
+     */
+    private static final double MID_SCORE = 0.5;
+
     /**
      * Constructor for a {@link AbstractClassificationH2OModel}.
      *
@@ -49,7 +55,7 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
         final AbstractPrediction abstractPrediction = predictInstance(instance);
         final double score = getCompressedNormalizedScore((AnomalyDetectionPrediction) abstractPrediction);
 
-        // TODO confirm this
+        System.out.println("Normalized: " + score);
         // [not anomaly, anomaly]
         return new double[]{1 - score, score};
     }
@@ -66,15 +72,14 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
      * anomaly.
      */
     private double getCompressedNormalizedScore(final AnomalyDetectionPrediction prediction) {
-        // TODO confirm this method
         final double rawScore = prediction.normalizedScore;
         if (rawScore > 1) {
             return 1;
         }
-        else if (rawScore < -1) {
+        else if (rawScore < 0) {
             return 0;
         }
-        return rawScore / 2 + 0.5;
+        return rawScore;
     }
 
     @Override
@@ -83,7 +88,6 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
 
         final double normalizedScore = getCompressedNormalizedScore((AnomalyDetectionPrediction) abstractPrediction);
 
-        //TODO confirm
-        return normalizedScore > 0 ? 1 : 0;
+        return normalizedScore > MID_SCORE ? 1 : 0;
     }
 }
