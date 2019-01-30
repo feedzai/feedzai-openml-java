@@ -54,7 +54,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
      */
     private static final Logger logger = LoggerFactory.getLogger(H2OModelProviderTrainTest.class);
 
-    private MockDataset dataset;
+    private Dataset dataset;
 
     /**
      * Creates the dataset to be used in these tests.
@@ -66,19 +66,22 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
      */
     @Before
     public void createDataset() {
+        this.dataset = createDataset(SCHEMA);
+    }
+
+    private Dataset createDataset(final DatasetSchema schema) {
         final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
         final int sampleSize = Optional.ofNullable(params.get("sample_size"))
                 .map(Integer::parseInt)
                 .orElse(256);
         final Random random = new Random(234);
 
-        final DatasetSchema schema = SCHEMA_NO_TARGET_VARIABLE;
         final int datasetSize = sampleSize + 100;
         logger.info("Using dataset size of {}", datasetSize);
         final List<Instance> instances = IntStream.range(0, datasetSize)
                 .mapToObj(index -> new MockInstance(schema, random))
                 .collect(Collectors.toList());
-        this.dataset = new MockDataset(schema, instances);
+        return new MockDataset(schema, instances);
     }
 
     @Override
@@ -169,10 +172,11 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
         final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
 
         final Random random = new Random(234);
+        final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE);
 
-        final ClassificationH2OModel model = loader.fit(this.dataset, random, params);
+        final ClassificationH2OModel model = loader.fit(dataset, random, params);
 
-        final MockInstance dummyInstance = new MockInstance(this.dataset.getSchema(), random);
+        final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
         assertThatCode(() -> model.getClassDistribution(dummyInstance))
                 .as("Scoring instance '%s' succeeds", dummyInstance)
                 .doesNotThrowAnyException();
