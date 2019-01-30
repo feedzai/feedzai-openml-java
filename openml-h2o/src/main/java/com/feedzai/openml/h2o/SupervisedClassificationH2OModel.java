@@ -89,7 +89,7 @@ public class SupervisedClassificationH2OModel extends AbstractClassificationH2OM
             if (indexModelTargetValue == -1) {
                 final String errorMsg = String.format("Unexpected value found: %s. Feature domain: %s", targetFeatureValue, targetValues);
                 logger.error(errorMsg);
-                throw new RuntimeException(errorMsg);
+                throw new IllegalStateException(errorMsg);
             }
 
             distributionRealSchema[indexModelTargetValue] = distributionValuesModel[i];

@@ -55,7 +55,7 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
     /**
      * A wrapper for the model generated in H2O.
      */
-    final EasyPredictModelWrapper modelWrapper;
+    protected final EasyPredictModelWrapper modelWrapper;
 
     /**
      * The path from where the model was initially loaded.
@@ -65,7 +65,7 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
     /**
      * The {@link DatasetSchema} the model uses.
      */
-    final DatasetSchema schema;
+    protected final DatasetSchema schema;
 
     /**
      * A {@link Closeable} that needs to be closed upon {@link #close()}.
@@ -125,7 +125,7 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
      * @param instance The {@link Instance} to be classified.
      * @return the results of the classification.
      */
-     <P extends AbstractPrediction> P predictInstance(final Instance instance) {
+     protected <P extends AbstractPrediction> P predictInstance(final Instance instance) {
         final RowData convertedInstance = convertInstanceToRowData(instance);
         final AbstractPrediction predict;
         try {

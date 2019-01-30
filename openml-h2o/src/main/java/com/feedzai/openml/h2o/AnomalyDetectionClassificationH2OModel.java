@@ -55,7 +55,6 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
         final AbstractPrediction abstractPrediction = predictInstance(instance);
         final double score = getCompressedNormalizedScore((AnomalyDetectionPrediction) abstractPrediction);
 
-        System.out.println("Normalized: " + score);
         // [not anomaly, anomaly]
         return new double[]{1 - score, score};
     }

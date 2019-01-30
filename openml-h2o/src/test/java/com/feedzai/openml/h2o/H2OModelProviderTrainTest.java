@@ -40,8 +40,6 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
@@ -185,19 +183,17 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
 
         final AbstractClassificationH2OModel model = loader.fit(dataset, random, params);
 
-        for (int i = 0; i < 1000; i++) {
-            final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
-            final double[] classDistribution = model.getClassDistribution(dummyInstance);
-            assertThat(classDistribution)
-                    .as("Scoring instance '%s' succeeds", dummyInstance)
-                    .hasSize(2)
-                    .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
+        final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
+        final double[] classDistribution = model.getClassDistribution(dummyInstance);
+        assertThat(classDistribution)
+                .as("Scoring instance '%s' succeeds", dummyInstance)
+                .hasSize(2)
+                .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
 
-            final int classIndex = model.classify(dummyInstance);
-            assertThat(classDistribution[classIndex])
-                    .as("The classify method returns the index of the greatest score in the class distribution")
-                    .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
-        }
+        final int classIndex = model.classify(dummyInstance);
+        assertThat(classDistribution[classIndex])
+                .as("The classify method returns the index of the greatest score in the class distribution")
+                .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
     }
 
 }
