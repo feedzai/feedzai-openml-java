@@ -62,7 +62,7 @@ public final class H2OBayesUtils extends AbstractSupervisedH2OParamUtils<NaiveBa
      * @return An empty representation of the algorithm specific parameters.
      */
     @Override
-    NaiveBayesParametersV3 getEmptyParams() {
+    protected NaiveBayesParametersV3 getEmptyParams() {
         return new NaiveBayesParametersV3().fillFromImpl();
     }
 }

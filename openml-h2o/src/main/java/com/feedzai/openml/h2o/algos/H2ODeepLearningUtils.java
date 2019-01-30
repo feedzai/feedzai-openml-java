@@ -75,7 +75,7 @@ public final class H2ODeepLearningUtils extends AbstractSupervisedH2OParamUtils<
     }
 
     @Override
-    DeepLearningParametersV3 getEmptyParams() {
+    protected DeepLearningParametersV3 getEmptyParams() {
         return new DeepLearningParametersV3().fillFromImpl();
     }
 }

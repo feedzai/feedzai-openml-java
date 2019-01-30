@@ -62,7 +62,7 @@ public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParame
      * @return An empty representation of the algorithm specific parameters.
      */
     @Override
-    GBMParametersV3 getEmptyParams() {
+    protected GBMParametersV3 getEmptyParams() {
         return new GBMParametersV3().fillFromImpl();
     }
 }

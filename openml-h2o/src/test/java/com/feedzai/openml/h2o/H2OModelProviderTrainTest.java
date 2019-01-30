@@ -37,9 +37,12 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -47,7 +50,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
  * @author Luis Reis (luis.reis@feedzai.com)
  * @since 0.1.0
  */
-public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<ClassificationH2OModel, H2OModelCreator, H2OModelProvider> implements H2ODatasetMixin {
+public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<AbstractClassificationH2OModel, H2OModelCreator, H2OModelProvider> implements H2ODatasetMixin {
 
     /**
      * Logger.
@@ -69,6 +72,12 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
         this.dataset = createDataset(SCHEMA);
     }
 
+    /**
+     * Creates a dataset to be used on the tests, based on the provided schema.
+     *
+     * @param schema The schema that dataset will comply to.
+     * @return A new dataset.
+     */
     private Dataset createDataset(final DatasetSchema schema) {
         final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
         final int sampleSize = Optional.ofNullable(params.get("sample_size"))
@@ -85,13 +94,13 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
     }
 
     @Override
-    public ClassificationH2OModel getFirstModel() throws ModelTrainingException {
+    public AbstractClassificationH2OModel getFirstModel() throws ModelTrainingException {
         final H2OModelCreator modelCreator = getMachineLearningModelLoader(H2OAlgorithm.DEEP_LEARNING);
         return modelCreator.fit(TRAIN_DATASET, new Random(0), ImmutableMap.of());
     }
 
     @Override
-    public ClassificationH2OModel getSecondModel() throws ModelTrainingException {
+    public AbstractClassificationH2OModel getSecondModel() throws ModelTrainingException {
         // Naive Bayes is used to exercise POJO logic as it is the only one that doesn't support MOJOs
         final H2OModelCreator modelCreator = getMachineLearningModelLoader(H2OAlgorithm.NAIVE_BAYES_CLASSIFIER);
         return modelCreator.fit(TRAIN_DATASET, new Random(1), ImmutableMap.of());
@@ -174,12 +183,19 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
         final Random random = new Random(234);
         final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE);
 
-        final ClassificationH2OModel model = loader.fit(dataset, random, params);
+        final AbstractClassificationH2OModel model = loader.fit(dataset, random, params);
 
         final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
-        assertThatCode(() -> model.getClassDistribution(dummyInstance))
+        final double[] classDistribution = model.getClassDistribution(dummyInstance);
+        assertThat(classDistribution)
                 .as("Scoring instance '%s' succeeds", dummyInstance)
-                .doesNotThrowAnyException();
+                .hasSize(2)
+                .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
+
+        final int classIndex = model.classify(dummyInstance);
+        assertThat(classDistribution[classIndex])
+                .as("The classify method returns the index of the greatest score in the class distribution")
+                .isGreaterThan(classDistribution[1 - classIndex]);
     }
 
 }

@@ -49,7 +49,6 @@ import hex.tree.drf.DRF;
 import hex.tree.gbm.GBM;
 import hex.tree.isofor.IsolationForest;
 import hex.tree.isofor.IsolationForestModel;
-import hex.tree.isofor.IsolationForestModel.IsolationForestOutput;
 import hex.tree.xgboost.XGBoost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,6 +183,7 @@ public class H2OApp<M extends Model> {
                        final Path exportDir) throws IOException, ModelTrainingException {
         logger.info("Exporting model {} to {}", model._output._job._result.toString(), exportDir.toAbsolutePath().toString());
         if (model.haveMojo()) {
+            // this prevents this parameter deserialization from failing when it is deserialized as an integer value.
             if (model instanceof IsolationForestModel && ((IsolationForestModel) model)._output._min_path_length == Long.MAX_VALUE) {
                 ((IsolationForestModel) model)._output._min_path_length = Integer.MAX_VALUE;
             }
@@ -195,6 +195,17 @@ public class H2OApp<M extends Model> {
         return exportDir;
     }
 
+    /**
+     * Trains the specific anomaly detection algorithm in the H2O platform.
+     *
+     * @param algorithmDescriptor The algorithm to train.
+     * @param trainingFrame       The {@link Frame dataset} to use during training.
+     * @param params              The algorithm parameters.
+     * @param randomSeed          A source of randomness.
+     * @param datasetSchema       The schema for the dataset.
+     * @return The trained model.
+     * @throws ModelTrainingException If any problem occurs in the process of training the model.
+     */
     private Model trainAnomalyDetection(final MLAlgorithmDescriptor algorithmDescriptor,
                                         final Frame trainingFrame,
                                         final Map<String, String> params,
@@ -212,14 +223,21 @@ public class H2OApp<M extends Model> {
                 break;
 
             default:
-                logger.error("Training not supported for algorithm {}", algorithmDescriptor.getAlgorithmName());
-                throw new IllegalArgumentException("Unsupported anomaly detection algorithm: " + algorithmDescriptor);
+                final String errorMessage = String.format("Unsupported anomaly detection algorithm: %s", algorithmDescriptor.getAlgorithmName());
+                logger.error(errorMessage);
+                throw new IllegalArgumentException(errorMessage);
         }
 
         final M model = waitForModelTrained(modelJob);
         return model;
     }
 
+    /**
+     * Resolves the H2O algorithm from the provided descriptor.
+     *
+     * @param algorithmDescriptor The algorithm descriptor from which the {@link H2OAlgorithm} is resolved.
+     * @return The resolve {@link H2OAlgorithm}.
+     */
     private H2OAlgorithm getH2OAlgorithm(final MLAlgorithmDescriptor algorithmDescriptor) {
         return MLAlgorithmEnum.getByName(H2OAlgorithm.values(), algorithmDescriptor.getAlgorithmName())
                 .orElseThrow(() -> new IllegalArgumentException("Unknown algorithm: " + algorithmDescriptor));

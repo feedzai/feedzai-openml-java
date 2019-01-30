@@ -102,7 +102,7 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OP
     }
 
     @Override
-    GLMParametersV3 getEmptyParams() {
+    protected GLMParametersV3 getEmptyParams() {
         return new GLMParametersV3().fillFromImpl();
     }
 }

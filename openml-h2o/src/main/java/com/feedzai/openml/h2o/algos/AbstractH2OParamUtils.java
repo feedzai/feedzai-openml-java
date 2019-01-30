@@ -1,10 +1,18 @@
 /*
- * The copyright of this file belongs to Feedzai. The file cannot be
- * reproduced in whole or in part, stored in a retrieval system,
- * transmitted in any form, or by any means electronic, mechanical,
- * photocopying, or otherwise, without the prior permission of the owner.
+ * Copyright 2019 Feedzai
  *
- * © 2019 Feedzai, Strictly Confidential
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package com.feedzai.openml.h2o.algos;
@@ -16,7 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Abstract class to parse H2O supervised algorithm params.
+ * Abstract class to parse H2O algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
  * @since 1.0.0
@@ -46,12 +54,12 @@ public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3> {
      * @param randomSeed The source of randomness.
      * @return The modified version of the given {@code h2oParams}.
      */
-    abstract T parseSpecificParams(final T h2oParams, final Map<String, String> params, final long randomSeed);
+    protected abstract T parseSpecificParams(final T h2oParams, final Map<String, String> params, final long randomSeed);
 
     /**
      * Returns an empty representation of the algorithm specific parameters.
      *
      * @return An empty representation of the algorithm specific parameters.
      */
-    abstract T getEmptyParams();
+    protected abstract T getEmptyParams();
 }

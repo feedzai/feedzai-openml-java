@@ -39,6 +39,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import hex.Model;
+import hex.ModelCategory;
 import hex.genmodel.GenModel;
 import hex.genmodel.MojoModel;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ import java.util.Random;
  * @author Paulo Pereira (paulo.pereira@feedzai.com)
  * @since 0.1.0
  */
-public class H2OModelCreator implements MachineLearningModelTrainer<ClassificationH2OModel> {
+public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClassificationH2OModel> {
 
     /**
      * Logger for this class.
@@ -94,8 +95,8 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
      * This provider assumes the {@code modelPath} is a directory.
      */
     @Override
-    public ClassificationH2OModel loadModel(final Path modelPath,
-                                            final DatasetSchema schema) throws ModelLoadingException {
+    public AbstractClassificationH2OModel loadModel(final Path modelPath,
+                                                    final DatasetSchema schema) throws ModelLoadingException {
 
         logger.info("Trying to load a model in path [{}]...", modelPath);
         ClassificationValidationUtils.validateParamsModelToLoad(this, modelPath, schema, ImmutableMap.of());
@@ -108,7 +109,7 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
         if (isPojo(fileExtension)) {
             final URLClassLoader urlClassLoader = JavaFileUtils.getUrlClassLoader(
                     modelFilePath,
-                    ClassificationH2OModel.class.getClassLoader()
+                    AbstractClassificationH2OModel.class.getClassLoader()
             );
             genModel = (GenModel) JavaFileUtils.createNewInstanceFromClassLoader(
                     modelFilePath,
@@ -131,11 +132,27 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
             );
         }
 
-        final ClassificationH2OModel resultingModel = new ClassificationH2OModel(genModel, modelPath, schema, closeable);
+        final AbstractClassificationH2OModel resultingModel = createModel(modelPath, schema, genModel, closeable);
         ClassificationValidationUtils.validateClassificationModel(schema, resultingModel);
 
         logger.info("Model loaded successfully.");
         return resultingModel;
+    }
+
+    /**
+     * Creates an {@link AbstractClassificationH2OModel} based on the {@link ModelCategory}.
+     *
+     * @param modelPath The path from where the model was loaded.
+     * @param schema    The schema that the model recognizes.
+     * @param genModel  The H2O model object.
+     * @param closeable A resource to be closed when the created model is closed.
+     * @return A new H2O classification model, created based on the model category.
+     */
+    private AbstractClassificationH2OModel createModel(final Path modelPath, final DatasetSchema schema, final GenModel genModel, final Closeable closeable) {
+        if (genModel.getModelCategory() == ModelCategory.AnomalyDetection) {
+            return new AnomalyDetectionClassificationH2OModel(genModel, modelPath, schema, closeable);
+        }
+        return new SupervisedClassificationH2OModel(genModel, modelPath, schema, closeable);
     }
 
     @Override
@@ -162,9 +179,9 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
     }
 
     @Override
-    public ClassificationH2OModel fit(final Dataset dataset,
-                                      final Random random,
-                                      final Map<String, String> params) throws ModelTrainingException {
+    public AbstractClassificationH2OModel fit(final Dataset dataset,
+                                              final Random random,
+                                              final Map<String, String> params) throws ModelTrainingException {
         try {
 
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);

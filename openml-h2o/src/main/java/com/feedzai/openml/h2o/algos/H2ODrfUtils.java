@@ -54,7 +54,8 @@ public final class H2ODrfUtils extends AbstractSupervisedH2OParamUtils<DRFParame
         return h2oParams;
     }
 
-    @Override DRFParametersV3 getEmptyParams() {
+    @Override
+    protected DRFParametersV3 getEmptyParams() {
         return new DRFParametersV3().fillFromImpl();
     }
 }

@@ -270,7 +270,7 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
      * @param targetValue The target value of a given {@link DatasetSchema} (fetched through {@link DatasetSchema#getTargetFieldSchema()}).
      * @return A list of {@link ParamValidationError} with the problems/error found during the validation.
      */
-    List<ParamValidationError> validateTargetIsBinary(final AbstractValueSchema targetValue) {
+    public List<ParamValidationError> validateTargetIsBinary(final AbstractValueSchema targetValue) {
         final ImmutableList.Builder<ParamValidationError> validationErrors = ImmutableList.builder();
 
         if (targetValue instanceof CategoricalValueSchema) {

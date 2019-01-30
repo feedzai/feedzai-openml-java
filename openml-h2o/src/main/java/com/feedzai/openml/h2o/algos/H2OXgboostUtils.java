@@ -63,7 +63,7 @@ public final class H2OXgboostUtils extends AbstractSupervisedH2OParamUtils<XGBoo
     }
 
     @Override
-    XGBoostParametersV3 getEmptyParams() {
+    protected XGBoostParametersV3 getEmptyParams() {
         return new XGBoostParametersV3().fillFromImpl();
     }
 }
