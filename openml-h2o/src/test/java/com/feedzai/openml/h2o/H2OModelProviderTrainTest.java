@@ -141,7 +141,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
 
     @Override
     protected Dataset getTrainDataset() {
-        return TRAIN_DATASET;
+        return this.dataset;
     }
 
     @Override
