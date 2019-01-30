@@ -41,6 +41,7 @@ import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -73,7 +74,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
     /**
      * Creates a dataset to be used on the tests, based on the provided schema.
      *
-     * @param schema The schema that dataset will comply to.
+     * @param schema The schema that the dataset will comply to.
      * @return A new dataset.
      */
     private Dataset createDataset(final DatasetSchema schema) {
@@ -81,11 +82,22 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
         final int sampleSize = Optional.ofNullable(params.get("sample_size"))
                 .map(Integer::parseInt)
                 .orElse(256);
+
+        return createDataset(schema, sampleSize + 100);
+    }
+
+    /**
+     * Creates a dataset to be used on the tests, based on the provided schema and set.
+     *
+     * @param schema The schema that the dataset will comply to.
+     * @param size   The number of instances of the dataset.
+     * @return A new dataset.
+     */
+    private Dataset createDataset(final DatasetSchema schema, final int size) {
         final Random random = new Random(234);
 
-        final int datasetSize = sampleSize + 100;
-        logger.info("Using dataset size of {}", datasetSize);
-        final List<Instance> instances = IntStream.range(0, datasetSize)
+        logger.info("Using dataset size of {}", size);
+        final List<Instance> instances = IntStream.range(0, size)
                 .mapToObj(index -> new MockInstance(schema, random))
                 .collect(Collectors.toList());
         return new MockDataset(schema, instances);
@@ -194,6 +206,26 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
         assertThat(classDistribution[classIndex])
                 .as("The classify method returns the index of the greatest score in the class distribution")
                 .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
+    }
+
+    /**
+     * Tests the handling of a bug in H2O where a serialized Isolation Forest model trained without out-of-bag instances fails
+     * its deserialization due to a {@link NumberFormatException}.
+     */
+    @Test
+    public final void testIsolationForestWithNotEnoughInstances() {
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
+                .map(Integer::parseInt)
+                .orElse(256);
+
+        final Random random = new Random(234);
+        final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE, sampleSize / 2);
+
+        assertThatCode(() -> loader.fit(dataset, random, params))
+                .as("The training of a model with no out of bag instances")
+                .doesNotThrowAnyException();
     }
 
 }
