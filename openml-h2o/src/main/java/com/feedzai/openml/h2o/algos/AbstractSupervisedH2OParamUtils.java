@@ -23,8 +23,6 @@ import water.api.schemas3.KeyV3;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.fvec.Frame;
 
-import java.util.Map;
-
 /**
  * Abstract class to parse H2O supervised algorithm params.
  *
