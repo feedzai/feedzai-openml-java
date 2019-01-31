@@ -29,6 +29,10 @@ import java.nio.file.Path;
 /**
  * A classification model representation for an Anomaly Detection algorithm.
  *
+ * <p>
+ *     Anomaly Detection models can work with or without target field.
+ * </p>
+ *
  * @author Joao Sousa (joao.sousa@feedzai.com)
  * @since 1.0.0
  */
@@ -82,6 +86,11 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
         return rawScore;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Classification done with anomaly detection models uses a threshold of 0.5 (see {@link #MID_SCORE}).
+     */
     @Override
     public int classify(final Instance instance) {
         final AbstractPrediction abstractPrediction = predictInstance(instance);

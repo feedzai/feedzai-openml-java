@@ -23,14 +23,12 @@ import water.api.schemas3.KeyV3;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.fvec.Frame;
 
-import java.util.Map;
-
 /**
  * Abstract class to parse H2O unsupervised algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
- * @author Joao Sousa (joao.sousa@feedzai.com)
  * @since 1.0.0
+ * @author Joao Sousa (joao.sousa@feedzai.com)
  */
 public abstract class AbstractUnsupervisedH2OParamUtils<T extends ModelParametersSchemaV3> extends AbstractH2OParamUtils<T> {
 

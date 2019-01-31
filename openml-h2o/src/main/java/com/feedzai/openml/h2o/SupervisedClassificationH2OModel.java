@@ -38,6 +38,10 @@ import java.util.SortedSet;
 /**
  * A Classification Model representation for supervised algorithms.
  *
+ * <p>
+ *     Supervised Models require a {@link DatasetSchema schema} with target field.
+ * </p>
+ *
  * @author Joao Sousa (joao.sousa@feedzai.com)
  */
 public class SupervisedClassificationH2OModel extends AbstractClassificationH2OModel {

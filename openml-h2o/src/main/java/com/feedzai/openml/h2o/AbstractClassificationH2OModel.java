@@ -40,7 +40,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Classification object used to represent a {@link MachineLearningModel model} generated in H2O.
+ * Classification model used to represent a {@link MachineLearningModel model} generated in H2O.
  *
  * @author Paulo Pereira (paulo.pereira@feedzai.com)
  * @since 0.1.0

@@ -29,8 +29,8 @@ import java.util.Map;
  * Abstract class to parse H2O supervised algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
- * @since 0.1.0
- * @author Pedro Rijo (pedro.rijo@feedzai.com)
+ * @since 1.0.0
+ * @author Joao Sousa (joao.sousa@feedzai.com)
  */
 public abstract class AbstractSupervisedH2OParamUtils<T extends ModelParametersSchemaV3> extends AbstractH2OParamUtils<T> {
 

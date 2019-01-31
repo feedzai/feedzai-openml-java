@@ -29,8 +29,8 @@ import java.util.Optional;
  * Abstract class to parse H2O algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
- * @since 1.0.0
- * @author Joao Sousa (joao.sousa@feedzai.com)
+ * @since 0.1.0
+ * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
 public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3> {
 
