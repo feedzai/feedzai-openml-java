@@ -137,4 +137,16 @@ public final class H2OAlgorithmTestParams {
                 .build();
 
     }
+
+    /**
+     * Test parameters used to train {@link H2OAlgorithm#ISOLATION_FOREST} models.
+     *
+     * @return Map of test parameter value.
+     */
+    public static Map<String, String> getIsolationForest() {
+        return ImmutableMap.<String, String>builder()
+                .put("ntrees", "100")
+                .put("sample_size", "100")
+                .build();
+    }
 }

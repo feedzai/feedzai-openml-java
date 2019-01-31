@@ -39,7 +39,7 @@ import java.util.stream.IntStream;
  * @author Paulo Pereira (paulo.pereira@feedzai.com)
  * @since 0.1.0
  */
-public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetTest<ClassificationH2OModel, H2OModelCreator, H2OModelProvider> {
+public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetTest<AbstractClassificationH2OModel, H2OModelCreator, H2OModelProvider> {
 
     /**
      * Name of the directory that contains a dummy model imported in MOJO format. The model was created with a schema
@@ -69,12 +69,12 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
     }
 
     @Override
-    public ClassificationH2OModel getFirstModel() throws ModelLoadingException {
+    public AbstractClassificationH2OModel getFirstModel() throws ModelLoadingException {
         return loadModel(H2OAlgorithm.DEEP_LEARNING, MOJO_MODEL_FILE, TARGET_VALUES);
     }
 
     @Override
-    public ClassificationH2OModel getSecondModel() throws ModelLoadingException {
+    public AbstractClassificationH2OModel getSecondModel() throws ModelLoadingException {
         return loadModel(H2OAlgorithm.DISTRIBUTED_RANDOM_FOREST, POJO_MODEL_FILE, TARGET_VALUES);
     }
 

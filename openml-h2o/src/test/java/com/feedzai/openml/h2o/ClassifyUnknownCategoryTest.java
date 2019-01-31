@@ -41,7 +41,7 @@ public class ClassifyUnknownCategoryTest {
                 new MockInstance(ImmutableList.of(0.0, 0.0)),
                 new MockInstance(ImmutableList.of(1.0, 0.0))
         ));
-        final ClassificationH2OModel model = new H2OModelCreator(H2OAlgorithm.XG_BOOST.getAlgorithmDescriptor())
+        final AbstractClassificationH2OModel model = new H2OModelCreator(H2OAlgorithm.XG_BOOST.getAlgorithmDescriptor())
                 .fit(dataset, new Random(0), H2OAlgorithmTestParams.getXgboost());
 
         final int score = model.classify(

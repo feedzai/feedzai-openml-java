@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OXgboostUtils extends AbstractH2OParamUtils<XGBoostParametersV3> {
+public final class H2OXgboostUtils extends AbstractSupervisedH2OParamUtils<XGBoostParametersV3> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O XGBoost model.
@@ -63,7 +63,7 @@ public final class H2OXgboostUtils extends AbstractH2OParamUtils<XGBoostParamete
     }
 
     @Override
-    XGBoostParametersV3 getEmptyParams() {
+    protected XGBoostParametersV3 getEmptyParams() {
         return new XGBoostParametersV3().fillFromImpl();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Feedzai
+ * Copyright 2019 Feedzai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,35 +20,33 @@ package com.feedzai.openml.h2o.algos;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
-import hex.schemas.GBMV3.GBMParametersV3;
+import hex.schemas.IsolationForestV3.IsolationForestParametersV3;
 
 import java.util.Map;
 import java.util.Set;
 
 /**
- * Utility class to hold relevant information to train H2O GBM models.
+ * Parameter inspector for H2O's isolation forest algorithm.
  *
- * @since 0.1.0
- * @author Pedro Rijo (pedro.rijo@feedzai.com)
+ * @author Joao Sousa (joao.sousa@feedzai.com)
+ * @since 1.0.0
  */
-public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParametersV3> {
+public class H2OIsolationForestUtils extends AbstractUnsupervisedH2OParamUtils<IsolationForestParametersV3> {
 
     /**
-     * The set of parameters that are possible to define during the creation of an H2O GBM model.
+     * The set of parameters that are possible to define during the creation of an H2O Isolation forest model.
      */
     public static final Set<ModelParameter> PARAMETERS =
-            ParametersBuilderUtil.getParametersFor(GBMParametersV3.class, water.bindings.pojos.GBMParametersV3.class);
+            ParametersBuilderUtil.getParametersFor(IsolationForestParametersV3.class, water.bindings.pojos.IsolationForestParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.
      */
-    private static final ParamsValueSetter<GBMParametersV3> PARAMS_SETTER =
-            ParametersBuilderUtil.getParamSetters(GBMParametersV3.class);
+    private static final ParamsValueSetter<IsolationForestParametersV3> PARAMS_SETTER =
+            ParametersBuilderUtil.getParamSetters(IsolationForestParametersV3.class);
 
     @Override
-    protected GBMParametersV3 parseSpecificParams(final GBMParametersV3 h2oParams,
-                                                  final Map<String, String> params,
-                                                  final long randomSeed) {
+    protected IsolationForestParametersV3 parseSpecificParams(final IsolationForestParametersV3 h2oParams, final Map<String, String> params, final long randomSeed) {
         h2oParams.seed = randomSeed;
         params.forEach((paramName, value) -> cleanParam(value).ifPresent(paramValue ->
                 PARAMS_SETTER.setValueIn(h2oParams, paramName, paramValue))
@@ -56,13 +54,9 @@ public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParame
         return h2oParams;
     }
 
-    /**
-     * Returns an empty representation of the algorithm specific parameters.
-     *
-     * @return An empty representation of the algorithm specific parameters.
-     */
     @Override
-    protected GBMParametersV3 getEmptyParams() {
-        return new GBMParametersV3().fillFromImpl();
+    protected IsolationForestParametersV3 getEmptyParams() {
+        return new IsolationForestParametersV3().fillFromImpl();
     }
+
 }

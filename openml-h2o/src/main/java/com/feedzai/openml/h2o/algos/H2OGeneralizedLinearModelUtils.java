@@ -18,6 +18,7 @@
 package com.feedzai.openml.h2o.algos;
 
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
+import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
@@ -27,6 +28,7 @@ import hex.schemas.GLMV3.GLMParametersV3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,7 +39,7 @@ import java.util.stream.Collectors;
  * @since 0.1.0
  * @author Nuno Diegues (nuno.diegues@feedzai.com)
  */
-public final class H2OGeneralizedLinearModelUtils extends AbstractH2OParamUtils<GLMParametersV3> {
+public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OParamUtils<GLMParametersV3> {
 
     /**
      * Logger for this class.
@@ -79,10 +81,15 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractH2OParamUtils<
     /**
      * Creates the utility bound to a target field.
      *
-     * @param targetField The target field.
+     * @param schema The target field.
      */
-    public H2OGeneralizedLinearModelUtils(final FieldSchema targetField) {
-        this.numberClasses = ((CategoricalValueSchema) targetField.getValueSchema()).getNominalValues().size();
+    public H2OGeneralizedLinearModelUtils(final DatasetSchema schema) {
+        this.numberClasses = schema.getTargetFieldSchema()
+                .map(FieldSchema::getValueSchema)
+                .map(CategoricalValueSchema.class::cast)
+                .map(CategoricalValueSchema::getNominalValues)
+                .map(Collection::size)
+                .orElseThrow(() -> new IllegalArgumentException("Generalized Linear Models require a target field, which is not preset in the schema provided."));
     }
 
     @Override
@@ -102,7 +109,7 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractH2OParamUtils<
     }
 
     @Override
-    GLMParametersV3 getEmptyParams() {
+    protected GLMParametersV3 getEmptyParams() {
         return new GLMParametersV3().fillFromImpl();
     }
 }

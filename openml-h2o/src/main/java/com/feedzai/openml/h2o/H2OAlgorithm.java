@@ -22,6 +22,7 @@ import com.feedzai.openml.h2o.algos.H2ODeepLearningUtils;
 import com.feedzai.openml.h2o.algos.H2ODrfUtils;
 import com.feedzai.openml.h2o.algos.H2OGbmUtils;
 import com.feedzai.openml.h2o.algos.H2OGeneralizedLinearModelUtils;
+import com.feedzai.openml.h2o.algos.H2OIsolationForestUtils;
 import com.feedzai.openml.h2o.algos.H2OXgboostUtils;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.MachineLearningAlgorithmType;
@@ -102,7 +103,17 @@ public enum H2OAlgorithm implements MLAlgorithmEnum {
             H2OGeneralizedLinearModelUtils.PARAMETERS,
             MachineLearningAlgorithmType.MULTI_CLASSIFICATION,
             "http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/glm.html"
-    )),;
+    )),
+
+    /**
+     * Isolation Forest is an Anomaly Detection algorithm similar to Random Forest and built on the basis of decision trees.
+     */
+    ISOLATION_FOREST(createDescriptor(
+            "Isolation Forest",
+            H2OIsolationForestUtils.PARAMETERS,
+            MachineLearningAlgorithmType.ANOMALY_DETECTION,
+            "http://docs.h2o.ai/h2o/latest-stable/h2o-docs/data-science/if.html"
+    ));
 
     /**
      * {@link MLAlgorithmDescriptor} for this algorithm.

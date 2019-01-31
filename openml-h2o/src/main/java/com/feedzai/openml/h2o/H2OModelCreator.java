@@ -39,6 +39,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import hex.Model;
+import hex.ModelCategory;
 import hex.genmodel.GenModel;
 import hex.genmodel.MojoModel;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 /**
@@ -61,7 +63,7 @@ import java.util.Random;
  * @author Paulo Pereira (paulo.pereira@feedzai.com)
  * @since 0.1.0
  */
-public class H2OModelCreator implements MachineLearningModelTrainer<ClassificationH2OModel> {
+public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClassificationH2OModel> {
 
     /**
      * Logger for this class.
@@ -94,8 +96,8 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
      * This provider assumes the {@code modelPath} is a directory.
      */
     @Override
-    public ClassificationH2OModel loadModel(final Path modelPath,
-                                            final DatasetSchema schema) throws ModelLoadingException {
+    public AbstractClassificationH2OModel loadModel(final Path modelPath,
+                                                    final DatasetSchema schema) throws ModelLoadingException {
 
         logger.info("Trying to load a model in path [{}]...", modelPath);
         ClassificationValidationUtils.validateParamsModelToLoad(this, modelPath, schema, ImmutableMap.of());
@@ -108,7 +110,7 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
         if (isPojo(fileExtension)) {
             final URLClassLoader urlClassLoader = JavaFileUtils.getUrlClassLoader(
                     modelFilePath,
-                    ClassificationH2OModel.class.getClassLoader()
+                    AbstractClassificationH2OModel.class.getClassLoader()
             );
             genModel = (GenModel) JavaFileUtils.createNewInstanceFromClassLoader(
                     modelFilePath,
@@ -131,17 +133,33 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
             );
         }
 
-        if (!genModel.isSupervised()) {
-            final String errorMsg = String.format("The model stored in [%s] is not supervised.", modelFilePath);
-            logger.error(errorMsg);
-            throw new ModelLoadingException(errorMsg);
-        }
-
-        final ClassificationH2OModel resultingModel = new ClassificationH2OModel(genModel, modelPath, schema, closeable);
+        final AbstractClassificationH2OModel resultingModel = createModel(modelPath, schema, genModel, closeable);
         ClassificationValidationUtils.validateClassificationModel(schema, resultingModel);
 
         logger.info("Model loaded successfully.");
         return resultingModel;
+    }
+
+    /**
+     * Creates an {@link AbstractClassificationH2OModel} based on the {@link ModelCategory}.
+     *
+     * @param modelPath The path from where the model was loaded.
+     * @param schema    The schema that the model recognizes.
+     * @param genModel  The H2O model object.
+     * @param closeable A resource to be closed when the created model is closed.
+     * @return A new H2O classification model, created based on the model category.
+     */
+    private AbstractClassificationH2OModel createModel(final Path modelPath, final DatasetSchema schema, final GenModel genModel, final Closeable closeable)
+            throws ModelLoadingException {
+        if (genModel.getModelCategory() == ModelCategory.AnomalyDetection) {
+            return new AnomalyDetectionClassificationH2OModel(genModel, modelPath, schema, closeable);
+        }
+        // Assumes that models multiple classification at worst, i.e. categorical target field
+        final Optional<ParamValidationError> validationError = ValidationUtils.validateCategoricalSchema(schema);
+        if (validationError.isPresent()) {
+            throw new ModelLoadingException(validationError.get().getMessage());
+        }
+        return new SupervisedClassificationH2OModel(genModel, modelPath, schema, closeable);
     }
 
     @Override
@@ -160,17 +178,18 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
         errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
         errorBuilder.addAll(ValidationUtils.checkNoFieldsOfType(schema, StringValueSchema.class));
 
-        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        if (schema.getTargetIndex().isPresent()) {
+            ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        }
 
         return errorBuilder.build();
     }
 
     @Override
-    public ClassificationH2OModel fit(final Dataset dataset,
-                                      final Random random,
-                                      final Map<String, String> params) throws ModelTrainingException {
+    public AbstractClassificationH2OModel fit(final Dataset dataset,
+                                              final Random random,
+                                              final Map<String, String> params) throws ModelTrainingException {
         try {
-
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);
             final Model model = this.h2OApp.train(this.algorithm, datasetPath, dataset.getSchema(), params, random.nextLong());
 
@@ -197,7 +216,10 @@ public class H2OModelCreator implements MachineLearningModelTrainer<Classificati
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
         errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, params));
-        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+
+        if (schema.getTargetIndex().isPresent()) {
+            ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        }
 
         return errorBuilder.build();
     }

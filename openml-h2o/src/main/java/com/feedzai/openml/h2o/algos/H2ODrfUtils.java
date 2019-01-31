@@ -31,7 +31,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2ODrfUtils extends AbstractH2OParamUtils<DRFParametersV3> {
+public final class H2ODrfUtils extends AbstractSupervisedH2OParamUtils<DRFParametersV3> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O Distributed Random Forest model.
@@ -54,7 +54,8 @@ public final class H2ODrfUtils extends AbstractH2OParamUtils<DRFParametersV3> {
         return h2oParams;
     }
 
-    @Override DRFParametersV3 getEmptyParams() {
+    @Override
+    protected DRFParametersV3 getEmptyParams() {
         return new DRFParametersV3().fillFromImpl();
     }
 }

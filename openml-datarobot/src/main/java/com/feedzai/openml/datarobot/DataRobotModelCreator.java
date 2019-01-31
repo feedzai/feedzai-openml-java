@@ -21,6 +21,7 @@ import com.datarobot.prediction.Predictor;
 import com.feedzai.openml.data.schema.AbstractValueSchema;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.java.utils.JavaFileUtils;
 import com.feedzai.openml.model.MachineLearningModel;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
@@ -97,7 +98,9 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
     @Override
     public ClassificationBinaryDataRobotModel loadModel(final Path modelPath,
                                                         final DatasetSchema schema) throws ModelLoadingException {
-
+        if (!schema.getTargetIndex().isPresent()) {
+            throw new ModelLoadingException("Cannot load a model with a schema that has no target variable.");
+        }
         logger.info("Trying to load a model in path [{}]...", modelPath);
         ClassificationValidationUtils.validateParamsModelToLoad(this, modelPath, schema, ImmutableMap.of());
 
@@ -218,9 +221,11 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
      */
     SortedSet<String> checkTargetModelValuesWithSchema(final DatasetSchema schema,
                                                        final String[] targetModelValues) throws ModelLoadingException {
-
-        final SortedSet<String> nominalValues = ((CategoricalValueSchema) schema.getTargetFieldSchema().getValueSchema())
-                .getNominalValues();
+        final SortedSet<String> nominalValues = schema.getTargetFieldSchema()
+                .map(FieldSchema::getValueSchema)
+                .map(CategoricalValueSchema.class::cast)
+                .map(CategoricalValueSchema::getNominalValues)
+                .orElseThrow(() -> new ModelLoadingException("Cannot load a model with a schema that has no target variable."));
 
         if (IS_BOOLEAN_MODEL.test(targetModelValues)) {
             if (Objects.equals(
@@ -262,14 +267,14 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
     /**
      * Validates that the target field only has two possible values.
      *
-     * @param schema The {@link DatasetSchema} the model uses.
+     * @param targetValue The target value of a given {@link DatasetSchema} (fetched through {@link DatasetSchema#getTargetFieldSchema()}).
      * @return A list of {@link ParamValidationError} with the problems/error found during the validation.
      */
-    List<ParamValidationError> validateTargetIsBinary(final DatasetSchema schema) {
+    public List<ParamValidationError> validateTargetIsBinary(final AbstractValueSchema targetValue) {
         final ImmutableList.Builder<ParamValidationError> validationErrors = ImmutableList.builder();
-        final AbstractValueSchema valueSchema = schema.getTargetFieldSchema().getValueSchema();
-        if (valueSchema instanceof CategoricalValueSchema) {
-            final int nominalValuesSize = ((CategoricalValueSchema) valueSchema).getNominalValues().size();
+
+        if (targetValue instanceof CategoricalValueSchema) {
+            final int nominalValuesSize = ((CategoricalValueSchema) targetValue).getNominalValues().size();
             if (nominalValuesSize != 2) {
                 validationErrors.add(
                         new ParamValidationError("At the moment only binary classification models are supported")
@@ -316,16 +321,34 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
     public List<ParamValidationError> validateForLoad(final Path modelPath,
                                                       final DatasetSchema schema,
                                                       final Map<String, String> params) {
-
         final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
 
         errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, params));
-        errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
 
-        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        final List<ParamValidationError> targetRelatedErrors = schema.getTargetFieldSchema()
+                .map(target -> validateForLoad(schema, target))
+                .orElse(ImmutableList.of(new ParamValidationError("Cannot load a model with a schema that has no target variable.")));
+        errorBuilder.addAll(targetRelatedErrors);
 
         errorBuilder.addAll(validateModelFileFormat(modelPath));
-        errorBuilder.addAll(validateTargetIsBinary(schema));
+        errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
+
+        return errorBuilder.build();
+    }
+
+    /**
+     * Validates the state of a dataset schema for a load operation. Assumes that the schema has a target field, which is passed through {@code target}.
+     *
+     * @param schema The dataset schema, which must include a target variable.
+     * @param target The target field of the schema. Must match {@code schema.getTargetFieldSchema()}.
+     * @return A list of validation errors detected. If empty, then the load operation is safe from the perspective of this method.
+     */
+    private List<ParamValidationError> validateForLoad(final DatasetSchema schema,
+                                                       final FieldSchema target) {
+        final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
+
+        ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        errorBuilder.addAll(validateTargetIsBinary(target.getValueSchema()));
 
         return errorBuilder.build();
     }

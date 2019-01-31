@@ -31,7 +31,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OBayesUtils extends AbstractH2OParamUtils<NaiveBayesParametersV3> {
+public final class H2OBayesUtils extends AbstractSupervisedH2OParamUtils<NaiveBayesParametersV3> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O Bayes model.
@@ -62,7 +62,7 @@ public final class H2OBayesUtils extends AbstractH2OParamUtils<NaiveBayesParamet
      * @return An empty representation of the algorithm specific parameters.
      */
     @Override
-    NaiveBayesParametersV3 getEmptyParams() {
+    protected NaiveBayesParametersV3 getEmptyParams() {
         return new NaiveBayesParametersV3().fillFromImpl();
     }
 }

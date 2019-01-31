@@ -40,7 +40,7 @@ public enum DataRobotAlgorithm implements MLAlgorithmEnum {
     GENERIC_BINARY_CLASSIFICATION(createDescriptor(
             "Generic Binary Classification",
             ImmutableSet.of(),
-            MachineLearningAlgorithmType.BINARY_CLASSIFICATION,
+            MachineLearningAlgorithmType.SUPERVISED_BINARY_CLASSIFICATION,
             "https://www.datarobot.com/wiki/algorithm/"
     ));
 

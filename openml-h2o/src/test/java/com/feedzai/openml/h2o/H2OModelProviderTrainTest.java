@@ -20,19 +20,28 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderModelTrainTest;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Before;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -40,21 +49,68 @@ import java.util.stream.IntStream;
  * @author Luis Reis (luis.reis@feedzai.com)
  * @since 0.1.0
  */
-public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<ClassificationH2OModel, H2OModelCreator, H2OModelProvider> implements H2ODatasetMixin {
+public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<AbstractClassificationH2OModel, H2OModelCreator, H2OModelProvider> implements H2ODatasetMixin {
 
     /**
      * Logger.
      */
     private static final Logger logger = LoggerFactory.getLogger(H2OModelProviderTrainTest.class);
 
+    private Dataset dataset;
+
+    /**
+     * Creates the dataset to be used in these tests.
+     *
+     * <p>
+     *     Due to an Isolation Forest nuance, the dataset size must be bigger than the sample_size param, otherwise Isolation forest will not be able to detect instances
+     *     as anomalous.
+     * </p>
+     */
+    @Before
+    public void createDataset() {
+        this.dataset = createDataset(SCHEMA);
+    }
+
+    /**
+     * Creates a dataset to be used on the tests, based on the provided schema.
+     *
+     * @param schema The schema that the dataset will comply to.
+     * @return A new dataset.
+     */
+    private Dataset createDataset(final DatasetSchema schema) {
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
+                .map(Integer::parseInt)
+                .orElse(256);
+
+        return createDataset(schema, sampleSize + 100);
+    }
+
+    /**
+     * Creates a dataset to be used on the tests, based on the provided schema and set.
+     *
+     * @param schema The schema that the dataset will comply to.
+     * @param size   The number of instances of the dataset.
+     * @return A new dataset.
+     */
+    private Dataset createDataset(final DatasetSchema schema, final int size) {
+        final Random random = new Random(234);
+
+        logger.info("Using dataset size of {}", size);
+        final List<Instance> instances = IntStream.range(0, size)
+                .mapToObj(index -> new MockInstance(schema, random))
+                .collect(Collectors.toList());
+        return new MockDataset(schema, instances);
+    }
+
     @Override
-    public ClassificationH2OModel getFirstModel() throws ModelTrainingException {
+    public AbstractClassificationH2OModel getFirstModel() throws ModelTrainingException {
         final H2OModelCreator modelCreator = getMachineLearningModelLoader(H2OAlgorithm.DEEP_LEARNING);
         return modelCreator.fit(TRAIN_DATASET, new Random(0), ImmutableMap.of());
     }
 
     @Override
-    public ClassificationH2OModel getSecondModel() throws ModelTrainingException {
+    public AbstractClassificationH2OModel getSecondModel() throws ModelTrainingException {
         // Naive Bayes is used to exercise POJO logic as it is the only one that doesn't support MOJOs
         final H2OModelCreator modelCreator = getMachineLearningModelLoader(H2OAlgorithm.NAIVE_BAYES_CLASSIFIER);
         return modelCreator.fit(TRAIN_DATASET, new Random(1), ImmutableMap.of());
@@ -107,7 +163,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
 
     @Override
     protected Dataset getTrainDataset() {
-        return TRAIN_DATASET;
+        return this.dataset;
     }
 
     @Override
@@ -120,9 +176,56 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
         builder.put(H2OAlgorithm.NAIVE_BAYES_CLASSIFIER, H2OAlgorithmTestParams.getBayes());
         builder.put(H2OAlgorithm.XG_BOOST, H2OAlgorithmTestParams.getXgboost());
         builder.put(H2OAlgorithm.GENERALIZED_LINEAR_MODEL, H2OAlgorithmTestParams.getGlm());
+        builder.put(H2OAlgorithm.ISOLATION_FOREST, H2OAlgorithmTestParams.getIsolationForest());
 
         return builder.build();
     }
 
+    /**
+     * Tests that the model loaded by {@link H2OModelCreator#fit(Dataset, Random, Map)} is able to score instances, based on a schema
+     * with no target variable.
+     */
+    @Test
+    public final void testIsolationForestWithDatasetWithoutTargetVariable() throws ModelTrainingException {
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+
+        final Random random = new Random(234);
+        final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE);
+
+        final AbstractClassificationH2OModel model = loader.fit(dataset, random, params);
+
+        final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
+        final double[] classDistribution = model.getClassDistribution(dummyInstance);
+        assertThat(classDistribution)
+                .as("Scoring instance '%s' succeeds", dummyInstance)
+                .hasSize(2)
+                .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
+
+        final int classIndex = model.classify(dummyInstance);
+        assertThat(classDistribution[classIndex])
+                .as("The classify method returns the index of the greatest score in the class distribution")
+                .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
+    }
+
+    /**
+     * Tests the handling of a bug in H2O where a serialized Isolation Forest model trained without out-of-bag instances fails
+     * its deserialization due to a {@link NumberFormatException}.
+     */
+    @Test
+    public final void testIsolationForestWithNotEnoughInstances() {
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
+                .map(Integer::parseInt)
+                .orElse(256);
+
+        final Random random = new Random(234);
+        final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE, sampleSize / 2);
+
+        assertThatCode(() -> loader.fit(dataset, random, params))
+                .as("The training of a model with no out of bag instances")
+                .doesNotThrowAnyException();
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Feedzai
+ * Copyright 2019 Feedzai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 
 package com.feedzai.openml.h2o.algos;
 
+import com.feedzai.openml.data.schema.DatasetSchema;
 import org.apache.commons.lang3.StringUtils;
-import water.api.schemas3.FrameV3;
-import water.api.schemas3.KeyV3;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.fvec.Frame;
 
@@ -33,7 +32,7 @@ import java.util.Optional;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3>  {
+public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3> {
 
     /**
      * Cleans a parameter value.
@@ -50,25 +49,6 @@ public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3>  
     }
 
     /**
-     * Auxiliary method to setup the common training params to all algorithms/models.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param targetIndex   The index of the target variable.
-     * @return A modified version of the provided params object.
-     */
-    private T commonParams(final Frame trainingFrame, final int targetIndex) {
-        final T baseParams = getEmptyParams();
-        baseParams.training_frame = new KeyV3.FrameKeyV3(trainingFrame._key);
-        baseParams.ignore_const_cols = false;
-
-        final FrameV3.ColSpecifierV3 targetVar = new FrameV3.ColSpecifierV3();
-        targetVar.column_name = trainingFrame.name(targetIndex);
-        baseParams.response_column = targetVar;
-
-        return baseParams;
-    }
-
-    /**
      * Parses algorithm specific parameters from the raw params.
      *
      * @param h2oParams The {@link ModelParametersSchemaV3} to be filled.
@@ -76,29 +56,40 @@ public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3>  
      * @param randomSeed The source of randomness.
      * @return The modified version of the given {@code h2oParams}.
      */
-    abstract T parseSpecificParams(final T h2oParams, final Map<String, String> params, final long randomSeed);
-
-    /**
-     * Template method to parse H2O algorithm params.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param targetIndex   The index of the target variable.
-     * @param params        The raw training params.
-     * @param randomSeed    The source of randomness.
-     * @return The modified version of the given {@code h2oParams}.
-     */
-    public final T parseParams(final Frame trainingFrame,
-                               final int targetIndex,
-                               final Map<String, String> params,
-                               final long randomSeed) {
-        final T baseParams = commonParams(trainingFrame, targetIndex);
-        return parseSpecificParams(baseParams, params, randomSeed);
-    }
+    protected abstract T parseSpecificParams(final T h2oParams, final Map<String, String> params, final long randomSeed);
 
     /**
      * Returns an empty representation of the algorithm specific parameters.
      *
      * @return An empty representation of the algorithm specific parameters.
      */
-    abstract T getEmptyParams();
+    protected abstract T getEmptyParams();
+
+
+    /**
+     * Template method to parse H2O algorithm params.
+     *
+     * @param trainingFrame The dataset to be used.
+     * @param params        The raw training params.
+     * @param randomSeed    The source of randomness.
+     * @param datasetSchema The dataset schema.
+     * @return The modified version of the given {@code h2oParams}.
+     */
+    public final T parseParams(final Frame trainingFrame,
+                               final Map<String, String> params,
+                               final long randomSeed,
+                               final DatasetSchema datasetSchema) {
+        final T baseParams = commonParams(trainingFrame, datasetSchema);
+        return parseSpecificParams(baseParams, params, randomSeed);
+    }
+
+    /**
+     * Auxiliary method to setup the common training params to all algorithms/models.
+     *
+     * @param trainingFrame The dataset to be used.
+     * @param datasetSchema The index of the target variable.
+     * @return A modified version of the provided params object.
+     */
+    protected abstract T  commonParams(Frame trainingFrame, DatasetSchema datasetSchema);
+
 }
