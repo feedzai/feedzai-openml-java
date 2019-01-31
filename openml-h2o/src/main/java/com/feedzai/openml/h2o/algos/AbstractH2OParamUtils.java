@@ -17,8 +17,10 @@
 
 package com.feedzai.openml.h2o.algos;
 
+import com.feedzai.openml.data.schema.DatasetSchema;
 import org.apache.commons.lang3.StringUtils;
 import water.api.schemas3.ModelParametersSchemaV3;
+import water.fvec.Frame;
 
 import java.util.Map;
 import java.util.Optional;
@@ -62,4 +64,32 @@ public abstract class AbstractH2OParamUtils<T extends ModelParametersSchemaV3> {
      * @return An empty representation of the algorithm specific parameters.
      */
     protected abstract T getEmptyParams();
+
+
+    /**
+     * Template method to parse H2O algorithm params.
+     *
+     * @param trainingFrame The dataset to be used.
+     * @param params        The raw training params.
+     * @param randomSeed    The source of randomness.
+     * @param datasetSchema The dataset schema.
+     * @return The modified version of the given {@code h2oParams}.
+     */
+    public final T parseParams(final Frame trainingFrame,
+                               final Map<String, String> params,
+                               final long randomSeed,
+                               final DatasetSchema datasetSchema) {
+        final T baseParams = commonParams(trainingFrame, datasetSchema);
+        return parseSpecificParams(baseParams, params, randomSeed);
+    }
+
+    /**
+     * Auxiliary method to setup the common training params to all algorithms/models.
+     *
+     * @param trainingFrame The dataset to be used.
+     * @param datasetSchema The index of the target variable.
+     * @return A modified version of the provided params object.
+     */
+    protected abstract T  commonParams(Frame trainingFrame, DatasetSchema datasetSchema);
+
 }

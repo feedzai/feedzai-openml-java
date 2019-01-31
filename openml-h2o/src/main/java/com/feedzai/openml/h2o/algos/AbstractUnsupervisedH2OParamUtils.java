@@ -41,7 +41,8 @@ public abstract class AbstractUnsupervisedH2OParamUtils<T extends ModelParameter
      * @param datasetSchema The schema correspondent to the training frame used.
      * @return A modified version of the provided params object.
      */
-    private T commonParams(final Frame trainingFrame, final DatasetSchema datasetSchema) {
+    @Override
+    protected T commonParams(final Frame trainingFrame, final DatasetSchema datasetSchema) {
         final T baseParams = getEmptyParams();
         baseParams.training_frame = new KeyV3.FrameKeyV3(trainingFrame._key);
         baseParams.ignore_const_cols = false;
@@ -53,23 +54,6 @@ public abstract class AbstractUnsupervisedH2OParamUtils<T extends ModelParameter
         });
 
         return baseParams;
-    }
-
-    /**
-     * Template method to parse H2O algorithm params.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param params        The raw training params.
-     * @param randomSeed    The source of randomness.
-     * @param datasetSchema The dataset schema.
-     * @return The modified version of the given {@code h2oParams}.
-     */
-    public final T parseParams(final Frame trainingFrame,
-                               final Map<String, String> params,
-                               final long randomSeed,
-                               final DatasetSchema datasetSchema) {
-        final T baseParams = commonParams(trainingFrame, datasetSchema);
-        return parseSpecificParams(baseParams, params, randomSeed);
     }
 
 }

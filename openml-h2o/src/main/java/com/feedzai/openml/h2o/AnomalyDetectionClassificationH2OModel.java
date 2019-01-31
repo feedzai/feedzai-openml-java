@@ -63,12 +63,12 @@ public class AnomalyDetectionClassificationH2OModel extends AbstractClassificati
     /**
      * Converts the score from the {@link AnomalyDetectionPrediction H2O prediction} into the OpenML score.
      *
-     * Note that due the fact that H2O's score might ocasionally go over the limits (either to 1 or -1), we apply bound compression,
+     * Note that due the fact that H2O's score might occasionally go over the limits (either to 1 or 0), we apply bound compression,
      * as the OpenML score semantic doesn't allow scores over the limits.
      *
      * @param prediction The H2O Prediction, where the scores are kept.
      * @return A value between [0..1], where 0 represents certain normality and 1 represents certain anomaly.
-     * @implNote This method assumes H2O's score to be between -1 and 1 (and occasionally slight out-of-bounds), where -1 represents certain genuineness and 1 represents certain
+     * @implNote This method assumes H2O's score to be between 0 and 1 (and occasionally slight out-of-bounds), where 0 represents certain genuineness and 1 represents certain
      * anomaly.
      */
     private double getCompressedNormalizedScore(final AnomalyDetectionPrediction prediction) {

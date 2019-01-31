@@ -18,7 +18,6 @@
 package com.feedzai.openml.h2o.server;
 
 import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.h2o.H2OAlgorithm;
 import com.feedzai.openml.h2o.H2OConverter;
 import com.feedzai.openml.h2o.algos.H2OBayesUtils;
@@ -158,16 +157,11 @@ public class H2OApp<M extends Model> {
         logger.info("Training {} algorithm from dataset in {}. TargetIdx: {}, params: {}", algorithm, datasetPath, schema.getTargetIndex(), params);
         final Frame dataset = parseDataSetFile(datasetPath, schema);
 
-        if (algorithm.getAlgorithmType() == MachineLearningAlgorithmType.ANOMALY_DETECTION) {
-            return trainAnomalyDetection(algorithm, dataset, params, randomSeed, schema);
-        }
-
-
-        final Optional<FieldSchema> targetFieldSchema = schema.getTargetFieldSchema();
-        if (!targetFieldSchema.isPresent()) {
+        if (algorithm.getAlgorithmType() != MachineLearningAlgorithmType.ANOMALY_DETECTION && !schema.getTargetFieldSchema().isPresent()) {
             throw new ModelTrainingException("In order to train a supervised model, please provide a schema with a target field.");
         }
-        return trainSupervised(algorithm, dataset, targetFieldSchema.get(), params, randomSeed);
+
+        return train(algorithm, dataset, schema, params, randomSeed);
     }
 
     /**
@@ -196,43 +190,6 @@ public class H2OApp<M extends Model> {
     }
 
     /**
-     * Trains the specific anomaly detection algorithm in the H2O platform.
-     *
-     * @param algorithmDescriptor The algorithm to train.
-     * @param trainingFrame       The {@link Frame dataset} to use during training.
-     * @param params              The algorithm parameters.
-     * @param randomSeed          A source of randomness.
-     * @param datasetSchema       The schema for the dataset.
-     * @return The trained model.
-     * @throws ModelTrainingException If any problem occurs in the process of training the model.
-     */
-    private Model trainAnomalyDetection(final MLAlgorithmDescriptor algorithmDescriptor,
-                                        final Frame trainingFrame,
-                                        final Map<String, String> params,
-                                        final long randomSeed, final DatasetSchema datasetSchema) throws ModelTrainingException {
-        final Job<M> modelJob;
-
-        final H2OAlgorithm h2OAlgorithm = getH2OAlgorithm(algorithmDescriptor);
-
-        switch (h2OAlgorithm) {
-            case ISOLATION_FOREST:
-                final IsolationForestV3.IsolationForestParametersV3 isolationForestParams = new H2OIsolationForestUtils().parseParams(trainingFrame, params, randomSeed, datasetSchema);
-
-                modelJob = train(() -> new IsolationForest(isolationForestParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            default:
-                final String errorMessage = String.format("Unsupported anomaly detection algorithm: %s", algorithmDescriptor.getAlgorithmName());
-                logger.error(errorMessage);
-                throw new IllegalArgumentException(errorMessage);
-        }
-
-        final M model = waitForModelTrained(modelJob);
-        return model;
-    }
-
-    /**
      * Resolves the H2O algorithm from the provided descriptor.
      *
      * @param algorithmDescriptor The algorithm descriptor from which the {@link H2OAlgorithm} is resolved.
@@ -244,73 +201,79 @@ public class H2OApp<M extends Model> {
     }
 
     /**
-     * Trains the specified supervised algorithm in the H2O platform.
+     * Trains the specified algorithm in the H2O platform.
      *
      * @param algorithmDescriptor The algorithm to train.
      * @param trainingFrame       The {@link Frame dataset} to use during training.
-     * @param targetField         The target field.
+     * @param schema              The schema for the model to be trained.
      * @param params              The algorithm params.
      * @param randomSeed          The source of randomness.
      * @return The {@link Model model}.
      * @throws ModelTrainingException If any problem occurred during the train of the model,
      *                                such as problems connecting to the H2O server.
      */
-    private Model trainSupervised(final MLAlgorithmDescriptor algorithmDescriptor,
-                                  final Frame trainingFrame,
-                                  final FieldSchema targetField,
-                                  final Map<String, String> params,
-                                  final long randomSeed) throws ModelTrainingException {
+    private Model train(final MLAlgorithmDescriptor algorithmDescriptor,
+                        final Frame trainingFrame,
+                        final DatasetSchema schema,
+                        final Map<String, String> params,
+                        final long randomSeed) throws ModelTrainingException {
         final Job<M> modelJob;
 
         final H2OAlgorithm h2OAlgorithm = getH2OAlgorithm(algorithmDescriptor);
 
-        final int targetIndex = targetField.getFieldIndex();
-
         switch (h2OAlgorithm) {
             case DISTRIBUTED_RANDOM_FOREST:
-                final DRFV3.DRFParametersV3 drfParams = new H2ODrfUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final DRFV3.DRFParametersV3 drfParams = new H2ODrfUtils().parseParams(trainingFrame, params, randomSeed, schema);
 
                 modelJob = train(() -> new DRF(drfParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
             case XG_BOOST:
-                final XGBoostV3.XGBoostParametersV3 xgboostParams = new H2OXgboostUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final XGBoostV3.XGBoostParametersV3 xgboostParams = new H2OXgboostUtils().parseParams(trainingFrame, params, randomSeed, schema);
 
                 modelJob = train(() -> new XGBoost(xgboostParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
             case DEEP_LEARNING:
-                final DeepLearningV3.DeepLearningParametersV3 deepLearningParams = new H2ODeepLearningUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final DeepLearningV3.DeepLearningParametersV3 deepLearningParams = new H2ODeepLearningUtils().parseParams(trainingFrame, params, randomSeed, schema);
 
                 modelJob = train(() -> new DeepLearning(deepLearningParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
             case GRADIENT_BOOSTING_MACHINE:
-                final GBMV3.GBMParametersV3 gbmParams = new H2OGbmUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final GBMV3.GBMParametersV3 gbmParams = new H2OGbmUtils().parseParams(trainingFrame, params, randomSeed, schema);
 
                 modelJob = train(() -> new GBM(gbmParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
             case NAIVE_BAYES_CLASSIFIER:
-                final NaiveBayesV3.NaiveBayesParametersV3 naiveBayesParams = new H2OBayesUtils().parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final NaiveBayesV3.NaiveBayesParametersV3 naiveBayesParams = new H2OBayesUtils().parseParams(trainingFrame, params, randomSeed, schema);
                 modelJob = train(() -> new NaiveBayes(naiveBayesParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
             case GENERALIZED_LINEAR_MODEL:
-                final GLMV3.GLMParametersV3 glmParams = new H2OGeneralizedLinearModelUtils(targetField).parseParams(trainingFrame, targetIndex, params, randomSeed);
+                final GLMV3.GLMParametersV3 glmParams = new H2OGeneralizedLinearModelUtils(schema).parseParams(trainingFrame, params, randomSeed, schema);
 
                 modelJob = train(() -> new GLM(glmParams.createAndFillImpl()).trainModel())
                         .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
                 break;
 
+            case ISOLATION_FOREST:
+                final IsolationForestV3.IsolationForestParametersV3 isolationForestParams = new H2OIsolationForestUtils().parseParams(trainingFrame, params, randomSeed, schema);
+
+                modelJob = train(() -> new IsolationForest(isolationForestParams.createAndFillImpl()).trainModel())
+                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
+                break;
+
             default:
-                logger.error("Training not supported for algorithm {}", algorithmDescriptor.getAlgorithmName());
-                throw new IllegalArgumentException("Unsupported supervised algorithm: " + algorithmDescriptor);
+                final String errorMessage = String.format("Unsupported algorithm: %s", algorithmDescriptor.getAlgorithmName());
+                logger.error(errorMessage);
+                throw new IllegalArgumentException(errorMessage);
         }
 
         return waitForModelTrained(modelJob);

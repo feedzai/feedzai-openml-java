@@ -17,6 +17,7 @@
 
 package com.feedzai.openml.h2o.algos;
 
+import com.feedzai.openml.data.schema.DatasetSchema;
 import water.api.schemas3.FrameV3;
 import water.api.schemas3.KeyV3;
 import water.api.schemas3.ModelParametersSchemaV3;
@@ -33,40 +34,20 @@ import java.util.Map;
  */
 public abstract class AbstractSupervisedH2OParamUtils<T extends ModelParametersSchemaV3> extends AbstractH2OParamUtils<T> {
 
-    /**
-     * Auxiliary method to setup the common training params to all algorithms/models.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param targetIndex   The index of the target variable.
-     * @return A modified version of the provided params object.
-     */
-    private T commonParams(final Frame trainingFrame, final int targetIndex) {
+    @Override
+    protected T commonParams(final Frame trainingFrame, final DatasetSchema schema) {
         final T baseParams = getEmptyParams();
         baseParams.training_frame = new KeyV3.FrameKeyV3(trainingFrame._key);
         baseParams.ignore_const_cols = false;
+
+        final int targetIndex = schema.getTargetIndex()
+                .orElseThrow(() -> new IllegalArgumentException("Supervised algorithms require a target field."));
 
         final FrameV3.ColSpecifierV3 targetVar = new FrameV3.ColSpecifierV3();
         targetVar.column_name = trainingFrame.name(targetIndex);
         baseParams.response_column = targetVar;
 
         return baseParams;
-    }
-
-    /**
-     * Template method to parse H2O algorithm params.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param targetIndex   The index of the target variable.
-     * @param params        The raw training params.
-     * @param randomSeed    The source of randomness.
-     * @return The modified version of the given {@code h2oParams}.
-     */
-    public final T parseParams(final Frame trainingFrame,
-                               final int targetIndex,
-                               final Map<String, String> params,
-                               final long randomSeed) {
-        final T baseParams = commonParams(trainingFrame, targetIndex);
-        return parseSpecificParams(baseParams, params, randomSeed);
     }
 
 }

@@ -190,7 +190,6 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                               final Random random,
                                               final Map<String, String> params) throws ModelTrainingException {
         try {
-
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);
             final Model model = this.h2OApp.train(this.algorithm, datasetPath, dataset.getSchema(), params, random.nextLong());
 
