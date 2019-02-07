@@ -257,14 +257,19 @@ public class ClassificationBinaryDataRobotModel implements ClassificationMLModel
      * @return A string with the values of the {@link Instance}.
      */
     private String convertInstanceToString(final Instance instance) {
-        return getSchema().getFieldSchemas()
-                .stream()
-                .map(fieldSchema -> {
-                    if (fieldSchema.getValueSchema() instanceof StringValueSchema) {
-                        return instance.getStringValue(fieldSchema.getFieldIndex());
-                    }
-                    return String.valueOf(instance.getValue(fieldSchema.getFieldIndex()));
-                })
-                .collect(Collectors.joining( "," ));
+        try {
+            return getSchema().getFieldSchemas()
+                    .stream()
+                    .map(fieldSchema -> {
+                        if (fieldSchema.getValueSchema() instanceof StringValueSchema) {
+                            return instance.getStringValue(fieldSchema.getFieldIndex());
+                        }
+                        return String.valueOf(instance.getValue(fieldSchema.getFieldIndex()));
+                    })
+                    .collect(Collectors.joining(","));
+        } catch (final Exception e) {
+            logger.warn("Could not stringify instance (that failed to score) for printing it: {}", instance, e);
+            return "Could not render instance. Probably has wrong number of features or wrong types";
+        }
     }
 }
