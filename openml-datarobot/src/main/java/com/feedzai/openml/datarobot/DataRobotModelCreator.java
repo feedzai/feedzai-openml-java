@@ -31,6 +31,7 @@ import com.feedzai.openml.util.load.LoadModelUtils;
 import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.feedzai.openml.util.validate.ClassificationValidationUtils;
 import com.feedzai.openml.util.validate.ValidationUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -193,21 +194,22 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
      *
      * @param predictor Predictor for the binary model generated in DataRobot.
      * @return The target values used to train the model.
-     * @throws ModelLoadingException If the binary of the model is an older non-supported DataRobot model.
      */
-    private String[] getTargetModelValues(final Predictor predictor) throws ModelLoadingException {
+    @VisibleForTesting
+    String[] getTargetModelValues(final Predictor predictor) {
         final String targetVarField = "classLabels";
         try {
             return (String[]) FieldUtils.readField(predictor, targetVarField, true);
         } catch (final Exception e) {
             final String errorMsg = String.format(
-                    "Jar file of the DataRobot model is not supported. A possible cause is that the model might be to " +
+                    "Jar file of the DataRobot model may not be supported. A possible cause is that the model might be to " +
                             "old and a newer version is required because it lacks the \"%s\" field with the target " +
-                            "values. If that is the cause create a new project on DataRobot and train new models.",
+                            "values. Ideally, you should create a new project on DataRobot and train new models. " +
+                            "As a workaround, the load will assume the target variable values to be 0 and 1, in that order.",
                     targetVarField
             );
-            logger.error(errorMsg, e);
-            throw new ModelLoadingException(errorMsg, e);
+            logger.warn(errorMsg, e);
+            return new String[] { "0", "1" };
         }
     }
 

@@ -17,6 +17,7 @@
 
 package com.feedzai.openml.datarobot;
 
+import com.datarobot.prediction.Predictor;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
@@ -28,6 +29,7 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import mockit.Mocked;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -43,6 +45,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -308,5 +311,59 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
                 .hasMessageContaining("Wrong number of fields")
                 .hasMessageContaining("expected 33")
                 .hasMessageContaining("2 fields only");
+    }
+
+    /**
+     * Tests that the failure to score generates an error.
+     *
+     * @throws ModelLoadingException If the model cannot be loaded.
+     *
+     * @since 0.5.8
+     */
+    @Test
+    public void failedScoringTest() throws ModelLoadingException {
+        final ClassificationBinaryDataRobotModel model = getFirstModel();
+
+        // This causes the scoring to fail but also the logging to fail to decode the instance.
+        final double[] mockedValues = model.getSchema().getFieldSchemas().stream()
+                .map(field -> ThreadLocalRandom.current().nextDouble())
+                .mapToDouble(val -> val)
+                .toArray();
+
+        assertThatThrownBy(() -> model.getClassDistribution(new MockInstance(mockedValues)))
+                .as("The expected error during scoring")
+                .hasMessageContaining("failed to classify")
+                .hasMessageContaining("wrong number of features or wrong types");
+
+        // Now we do the same but with an instance that is decodable for logging of the failure.
+        final double mockedValue = 308120381203801238.0;
+        final MockInstance correctSchemaInstance = new MockInstance(model.getSchema(), ThreadLocalRandom.current()) {
+            @Override
+            public double getValue(final int index) {
+                if (index == 24) {
+                    return mockedValue;  // Not a valid categorical for this field.
+                }
+                return super.getValue(index);
+            }
+        };
+
+        assertThatThrownBy(() -> model.getClassDistribution(correctSchemaInstance))
+                .as("The expected error during scoring")
+                .hasMessageContaining("failed to classify")
+                .hasMessageContaining(String.valueOf(mockedValue));
+    }
+
+    /**
+     * Tests that fetching the labels from a model that does not contain them yields a default value.
+     *
+     * @param mockedPredictor The mocked predictor.
+     *
+     * @since 0.5.8
+     */
+    @Test
+    public void readUnexistingTargetLabelsTest(final @Mocked Predictor mockedPredictor) {
+        assertThat(new DataRobotModelCreator().getTargetModelValues(mockedPredictor))
+                .as("The target labels")
+                .containsExactlyInAnyOrder("0", "1");
     }
 }
