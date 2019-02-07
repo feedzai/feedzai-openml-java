@@ -31,6 +31,7 @@ import com.feedzai.openml.util.load.LoadModelUtils;
 import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.feedzai.openml.util.validate.ClassificationValidationUtils;
 import com.feedzai.openml.util.validate.ValidationUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -194,7 +195,8 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
      * @param predictor Predictor for the binary model generated in DataRobot.
      * @return The target values used to train the model.
      */
-    private String[] getTargetModelValues(final Predictor predictor) {
+    @VisibleForTesting
+    String[] getTargetModelValues(final Predictor predictor) {
         final String targetVarField = "classLabels";
         try {
             return (String[]) FieldUtils.readField(predictor, targetVarField, true);
