@@ -23,12 +23,20 @@ import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
+import com.feedzai.openml.model.ClassificationMLModel;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderCategoricalTargetTest;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
+import org.assertj.core.util.Lists;
+import org.junit.Test;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -141,5 +149,55 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
                         )
                         .build()
         );
+    }
+
+    /**
+     * Tests that when loading a model with a given field set A that is linked to a given {@link DatasetSchema} B, where both schemas are not compatible,
+     * the loading fails with a {@link ModelLoadingException}.
+     */
+    @Test
+    public final void testLoadModelWithPartialSchema() {
+        final DatasetSchema fullSchema = createDatasetSchema(TARGET_VALUES);
+        final DatasetSchema partialSchema = removeNonTargetVariable(fullSchema);
+
+        final H2OModelCreator modelLoader = getMachineLearningModelLoader(H2OAlgorithm.DISTRIBUTED_RANDOM_FOREST);
+        final String modelPath = this.getClass().getResource("/" + POJO_MODEL_FILE).getPath();
+        Assertions.assertThatThrownBy(() -> modelLoader.loadModel(Paths.get(modelPath), partialSchema))
+                .isInstanceOf(ModelLoadingException.class);
+
+    }
+
+    /**
+     * Returns a {@link DatasetSchema} copied from the schema provided, where one of the fields is removed. The removed field is never the one
+     * assigned as target variable.
+     *
+     * @param fullSchema The schema from which the new copy is generated.
+     * @return The schema with one less field.
+     */
+    private DatasetSchema removeNonTargetVariable(final DatasetSchema fullSchema) {
+        final List<FieldSchema> fullFields = Lists.newArrayList(fullSchema.getFieldSchemas());
+        if (fullFields.size() < 2) {
+            throw new RuntimeException("This schema does not have enough fields for this test to work.");
+        }
+        final int lastIndex = fullFields.size() - 1;
+
+        final int indexToRemove = fullSchema.getTargetIndex()
+                .map(targetIndex -> targetIndex == lastIndex ? lastIndex - 1 : lastIndex)
+                .orElse(0);
+
+        int index = 0;
+        final List<FieldSchema> fields = new ArrayList<>(fullFields.size() - 1);
+        for (int i = 0; i < fullFields.size(); i++) {
+            if (i != indexToRemove) {
+                final FieldSchema field = fullFields.get(i);
+                fields.add(new FieldSchema(field.getFieldName(), index++, field.getValueSchema()));
+            }
+        }
+
+        return fullSchema.getTargetIndex()
+                // calculate the new target index
+                .map(targetIndex -> targetIndex == 0 ? 0 : targetIndex - 1)
+                .map(targetIndex -> new DatasetSchema(targetIndex, fields))
+                .orElseGet(() -> new DatasetSchema(fields));
     }
 }

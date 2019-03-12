@@ -19,6 +19,7 @@ package com.feedzai.openml.h2o;
 
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.h2o.server.H2OApp;
 import com.feedzai.openml.h2o.server.export.MojoExported;
@@ -36,24 +37,33 @@ import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.feedzai.openml.util.validate.ClassificationValidationUtils;
 import com.feedzai.openml.util.validate.ValidationUtils;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import hex.Model;
 import hex.ModelCategory;
 import hex.genmodel.GenModel;
 import hex.genmodel.MojoModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import water.genmodel.IGeneratedModel;
+import water.util.CollectionUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link MachineLearningModelLoader}.
@@ -133,11 +143,40 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
             );
         }
 
+        validateSchema(genModel, schema);
         final AbstractClassificationH2OModel resultingModel = createModel(modelPath, schema, genModel, closeable);
         ClassificationValidationUtils.validateClassificationModel(schema, resultingModel);
 
         logger.info("Model loaded successfully.");
         return resultingModel;
+    }
+
+    /**
+     * Performs a validation from the H2O model against the schema provided.
+     *
+     * <p>
+     *     Note that the field names stored in the {@link IGeneratedModel provided model} do not include the target variable (i.e. response field/column).
+     *     As such, if the {@link DatasetSchema schema provided} contains a target variable, it is not taken into consideration upon this validation
+     *     and correspondent error message (it case the schemas are not compatible.
+     * </p>
+     *
+     * @param genModel H2O model to validate.
+     * @param schema   The schema which the model will be bound to.
+     * @throws ModelLoadingException thrown if the schema from the model is not compatible with the one provided.
+     */
+    private void validateSchema(final IGeneratedModel genModel, final DatasetSchema schema) throws ModelLoadingException {
+        final Set<String> expectedFields = Sets.newHashSet(genModel.getNames());
+        final Optional<FieldSchema> targetOpt = schema.getTargetFieldSchema();
+        final Set<String> schemaFields = schema.getFieldSchemas().stream()
+                .filter(field -> !targetOpt.isPresent() || Objects.equals(targetOpt.get().getFieldName(), field.getFieldName()))
+                .map(FieldSchema::getFieldName)
+                .collect(Collectors.toSet());
+
+        if (!Objects.equals(expectedFields, schemaFields)) {
+            final String errMsg = String.format("The model contains fields '%s' (size %d), but the schema contains '%s' (size %d).", expectedFields, expectedFields.size(),
+                    schemaFields, schemaFields.size());
+            throw new ModelLoadingException(errMsg);
+        }
     }
 
     /**
