@@ -18,19 +18,17 @@
 package com.feedzai.openml.h2o;
 
 import com.feedzai.openml.data.Instance;
-import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
-import com.feedzai.openml.model.ClassificationMLModel;
+import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderCategoricalTargetTest;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 
@@ -162,6 +160,7 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
 
         final H2OModelCreator modelLoader = getMachineLearningModelLoader(H2OAlgorithm.DISTRIBUTED_RANDOM_FOREST);
         final String modelPath = this.getClass().getResource("/" + POJO_MODEL_FILE).getPath();
+
         Assertions.assertThatThrownBy(() -> modelLoader.loadModel(Paths.get(modelPath), partialSchema))
                 .isInstanceOf(ModelLoadingException.class);
 
@@ -177,7 +176,7 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
     private DatasetSchema removeNonTargetVariable(final DatasetSchema fullSchema) {
         final List<FieldSchema> fullFields = Lists.newArrayList(fullSchema.getFieldSchemas());
         if (fullFields.size() < 2) {
-            throw new RuntimeException("This schema does not have enough fields for this test to work.");
+            throw new IllegalStateException("This schema does not have enough fields for this test to work.");
         }
         final int lastIndex = fullFields.size() - 1;
 
