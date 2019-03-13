@@ -196,7 +196,7 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
 
         return fullSchema.getTargetIndex()
                 // calculate the new target index
-                .map(targetIndex -> targetIndex == 0 ? 0 : targetIndex - 1)
+                .map(targetIndex -> targetIndex == lastIndex ? lastIndex - 1 : lastIndex)
                 .map(targetIndex -> new DatasetSchema(targetIndex, fields))
                 .orElseGet(() -> new DatasetSchema(fields));
     }

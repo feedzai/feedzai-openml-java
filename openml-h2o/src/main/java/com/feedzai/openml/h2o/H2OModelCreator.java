@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -155,9 +156,10 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
      * Performs a validation from the H2O model against the schema provided.
      *
      * <p>
-     *     Note that the field names stored in the {@link IGeneratedModel provided model} do not include the target variable (i.e. response field/column).
-     *     As such, if the {@link DatasetSchema schema provided} contains a target variable, it is not taken into consideration upon this validation
-     *     and correspondent error message (it case the schemas are not compatible.
+     *     Note that the field names stored in the {@link IGeneratedModel provided model} might not necessarily include the target variable
+     *     (i.e. response field/column).
+     *     As such, this validation step is adaptation in that sense (i.e. it allows the expected schema from the provided model to either have or
+     *     not have the target variable referenced. Any other divergence between schema names is not accepted and will result in a {@link ModelLoadingException}.
      * </p>
      *
      * @param genModel H2O model to validate.
@@ -165,16 +167,17 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
      * @throws ModelLoadingException thrown if the schema from the model is not compatible with the one provided.
      */
     private void validateSchema(final IGeneratedModel genModel, final DatasetSchema schema) throws ModelLoadingException {
-        final Set<String> expectedFields = Sets.newHashSet(genModel.getNames());
-        final Optional<FieldSchema> targetOpt = schema.getTargetFieldSchema();
+        final String[] originalExpectedFields = genModel.getNames();
+        final Set<String> expectedFields = Sets.newHashSet(originalExpectedFields);
         final Set<String> schemaFields = schema.getFieldSchemas().stream()
-                .filter(field -> !targetOpt.isPresent() || Objects.equals(targetOpt.get().getFieldName(), field.getFieldName()))
                 .map(FieldSchema::getFieldName)
                 .collect(Collectors.toSet());
 
-        if (!Objects.equals(expectedFields, schemaFields)) {
-            final String errMsg = String.format("The model contains fields '%s' (size %d), but the schema contains '%s' (size %d).", expectedFields, expectedFields.size(),
-                    schemaFields, schemaFields.size());
+        expectedFields.removeAll(schemaFields);
+        if (!expectedFields.isEmpty()) {
+            final String errMsg = String.format("The model contains fields '%s' (size %d), but the schema contains '%s' (size %d).", Arrays.toString(originalExpectedFields),
+                    originalExpectedFields.length, schemaFields, schemaFields.size());
+            logger.error(errMsg);
             throw new ModelLoadingException(errMsg);
         }
     }
