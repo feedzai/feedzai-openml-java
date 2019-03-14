@@ -19,10 +19,12 @@ package com.feedzai.openml.h2o;
 
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.h2o.server.H2OApp;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
+import com.feedzai.openml.java.utils.JavaFileUtils;
 import com.feedzai.openml.model.MachineLearningModel;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
@@ -30,7 +32,6 @@ import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.provider.model.MachineLearningModelLoader;
 import com.feedzai.openml.provider.model.MachineLearningModelTrainer;
-import com.feedzai.openml.java.utils.JavaFileUtils;
 import com.feedzai.openml.util.load.LoadModelUtils;
 import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.feedzai.openml.util.validate.ClassificationValidationUtils;
@@ -38,22 +39,27 @@ import com.feedzai.openml.util.validate.ValidationUtils;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import hex.Model;
 import hex.ModelCategory;
 import hex.genmodel.GenModel;
 import hex.genmodel.MojoModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import water.genmodel.IGeneratedModel;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of the {@link MachineLearningModelLoader}.
@@ -133,11 +139,42 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
             );
         }
 
+        validateSchema(genModel, schema);
         final AbstractClassificationH2OModel resultingModel = createModel(modelPath, schema, genModel, closeable);
         ClassificationValidationUtils.validateClassificationModel(schema, resultingModel);
 
         logger.info("Model loaded successfully.");
         return resultingModel;
+    }
+
+    /**
+     * Performs a validation from the H2O model against the schema provided.
+     *
+     * <p>
+     *     Note that the field names stored in the {@link IGeneratedModel provided model} might not necessarily include the target variable
+     *     (i.e. response field/column).
+     *     As such, this validation step is adaptation in that sense (i.e. it allows the expected schema from the provided model to either have or
+     *     not have the target variable referenced. Any other divergence between schema names is not accepted and will result in a {@link ModelLoadingException}.
+     * </p>
+     *
+     * @param genModel H2O model to validate.
+     * @param schema   The schema which the model will be bound to.
+     * @throws ModelLoadingException thrown if the schema from the model is not compatible with the one provided.
+     */
+    private void validateSchema(final IGeneratedModel genModel, final DatasetSchema schema) throws ModelLoadingException {
+        final String[] originalExpectedFields = genModel.getNames();
+        final Set<String> expectedFields = Sets.newHashSet(originalExpectedFields);
+        final Set<String> schemaFields = schema.getFieldSchemas().stream()
+                .map(FieldSchema::getFieldName)
+                .collect(Collectors.toSet());
+
+        expectedFields.removeAll(schemaFields);
+        if (!expectedFields.isEmpty()) {
+            final String errMsg = String.format("The model contains fields '%s' (size %d), but the schema contains '%s' (size %d).", Arrays.toString(originalExpectedFields),
+                    originalExpectedFields.length, schemaFields, schemaFields.size());
+            logger.error(errMsg);
+            throw new ModelLoadingException(errMsg);
+        }
     }
 
     /**
