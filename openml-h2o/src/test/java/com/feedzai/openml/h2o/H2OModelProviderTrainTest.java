@@ -28,6 +28,7 @@ import com.feedzai.openml.util.provider.AbstractProviderModelTrainTest;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.internal.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -228,4 +230,19 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
                 .doesNotThrowAnyException();
     }
 
+    /**
+     * Tests that the right exception is thrown when the dataset is empty
+     * @since 1.0.9
+     */
+    @Test
+    public final void testExceptionIsThrownWhenDatasetIsEmpty() {
+        final Dataset dataset = createDataset(SCHEMA, 0);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Random random = new Random(234);
+        final Throwable thrown = catchThrowable(() -> loader.fit(dataset, random, params));
+
+        assertThat(thrown).isInstanceOf(ModelTrainingException.class)
+                          .hasMessageContaining("In order to generate the model the dataset cannot be empty");
+    }
 }
