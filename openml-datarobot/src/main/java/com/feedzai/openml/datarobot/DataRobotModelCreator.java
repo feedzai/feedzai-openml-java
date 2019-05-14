@@ -34,9 +34,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import javafx.util.Pair;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -176,7 +176,7 @@ public class DataRobotModelCreator implements MachineLearningModelLoader<Classif
                 modelFilePath,
                 ClassificationBinaryDataRobotModel.class.getClassLoader()
         );
-        return new Pair<>(
+        return Pair.of(
                 (Predictor) JavaFileUtils.createNewInstanceFromClassLoader(
                         modelFilePath,
                         MODEL_PACKAGE_TEMPLATE,
