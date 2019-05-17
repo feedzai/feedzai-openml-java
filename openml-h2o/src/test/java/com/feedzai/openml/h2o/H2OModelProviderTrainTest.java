@@ -42,6 +42,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -62,8 +63,8 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
      * Creates the dataset to be used in these tests.
      *
      * <p>
-     *     Due to an Isolation Forest nuance, the dataset size must be bigger than the sample_size param, otherwise Isolation forest will not be able to detect instances
-     *     as anomalous.
+     * Due to an Isolation Forest nuance, the dataset size must be bigger than the sample_size param, otherwise
+     * Isolation forest will not be able to detect instances as anomalous.
      * </p>
      */
     @Before
@@ -79,9 +80,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
      */
     private Dataset createDataset(final DatasetSchema schema) {
         final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
-        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
-                .map(Integer::parseInt)
-                .orElse(256);
+        final int sampleSize = Optional.ofNullable(params.get("sample_size")).map(Integer::parseInt).orElse(256);
 
         return createDataset(schema, sampleSize + 100);
     }
@@ -182,8 +181,8 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
     }
 
     /**
-     * Tests that the model loaded by {@link H2OModelCreator#fit(Dataset, Random, Map)} is able to score instances, based on a schema
-     * with no target variable.
+     * Tests that the model loaded by {@link H2OModelCreator#fit(Dataset, Random, Map)} is able to score instances,
+     * based on a schema with no target variable.
      */
     @Test
     public final void testIsolationForestWithDatasetWithoutTargetVariable() throws ModelTrainingException {
@@ -197,35 +196,48 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
 
         final MockInstance dummyInstance = new MockInstance(dataset.getSchema(), random);
         final double[] classDistribution = model.getClassDistribution(dummyInstance);
-        assertThat(classDistribution)
-                .as("Scoring instance '%s' succeeds", dummyInstance)
+        assertThat(classDistribution).as("Scoring instance '%s' succeeds", dummyInstance)
                 .hasSize(2)
                 .matches(predictions -> DoubleStream.of(predictions).sum() == 1.0);
 
         final int classIndex = model.classify(dummyInstance);
-        assertThat(classDistribution[classIndex])
-                .as("The classify method returns the index of the greatest score in the class distribution")
+        assertThat(classDistribution[classIndex]).as(
+                "The classify method returns the index of the greatest score in the class distribution")
                 .isGreaterThanOrEqualTo(classDistribution[1 - classIndex]);
     }
 
     /**
-     * Tests the handling of a bug in H2O where a serialized Isolation Forest model trained without out-of-bag instances fails
-     * its deserialization due to a {@link NumberFormatException}.
+     * Tests the handling of a bug in H2O where a serialized Isolation Forest model trained without out-of-bag instances
+     * fails its deserialization due to a {@link NumberFormatException}.
      */
     @Test
     public final void testIsolationForestWithNotEnoughInstances() {
         final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
         final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
-        final int sampleSize = Optional.ofNullable(params.get("sample_size"))
-                .map(Integer::parseInt)
-                .orElse(256);
+        final int sampleSize = Optional.ofNullable(params.get("sample_size")).map(Integer::parseInt).orElse(256);
 
         final Random random = new Random(234);
         final Dataset dataset = createDataset(SCHEMA_NO_TARGET_VARIABLE, sampleSize / 2);
 
         assertThatCode(() -> loader.fit(dataset, random, params))
-                .as("The training of a model with no out of bag instances")
-                .doesNotThrowAnyException();
+                .as("The training of a model with no out of bag instances").doesNotThrowAnyException();
     }
 
+    /**
+     * Tests that the right exception is thrown when the dataset is empty
+     *
+     * @since 1.0.9
+     */
+    @Test
+    public final void testExceptionIsThrownWhenDatasetIsEmpty() {
+        final Dataset dataset = createDataset(SCHEMA, 0);
+        final Map<String, String> params = H2OAlgorithmTestParams.getIsolationForest();
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.ISOLATION_FOREST);
+        final Random random = new Random(234);
+
+        assertThatThrownBy(() -> loader.fit(dataset, random, params))
+                .isInstanceOf(ModelTrainingException.class)
+                .hasMessageContaining("In order to generate the model the dataset cannot be empty")
+                .hasMessageContaining("/tmp/"); //just to check that the URI is present in the message
+    }
 }
