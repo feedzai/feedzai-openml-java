@@ -45,6 +45,7 @@ import hex.schemas.XGBoostV3;
 import hex.tree.drf.DRF;
 import hex.tree.gbm.GBM;
 import hex.tree.xgboost.XGBoost;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import water.ExtensionManager;
@@ -295,11 +296,19 @@ public class H2OApp<M extends Model> {
      * @param dataSetFile DataSet filename.
      * @param schema The {@link DatasetSchema}-
      * @return Frame or NPE.
+     * @throws ModelTrainingException if the dataset file is empty
      *
      * @implNote This method needs to be synchronized. While we can't really pinpoint the exact reason, the experience
      * with tests training multiple models concurrently shows that this method is not thread safe.
      */
-    private synchronized Frame parseDataSetFile(final Path dataSetFile, final DatasetSchema schema) {
+    private synchronized Frame parseDataSetFile(final Path dataSetFile,
+                                                final DatasetSchema schema) throws ModelTrainingException{
+        if (FileUtils.sizeOf(dataSetFile.toFile()) == 0) {
+            logger.info("The file: {} is empty. Cannot generate the model.", dataSetFile);
+            throw new ModelTrainingException(
+                    String.format("In order to generate the model the dataset cannot be empty. File: %s is empty.", dataSetFile));
+        }
+
         final NFSFileVec nfs = NFSFileVec.make(dataSetFile.toFile());
 
         final ParseSetup userSetup = new ParseSetup();

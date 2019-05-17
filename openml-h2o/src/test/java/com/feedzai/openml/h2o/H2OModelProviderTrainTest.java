@@ -20,19 +20,24 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderModelTrainTest;
 import com.google.common.collect.ImmutableMap;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 /**
  * Tests for training models with {@link H2OModelProvider}.
@@ -46,6 +51,23 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
      * Logger.
      */
     private static final Logger logger = LoggerFactory.getLogger(H2OModelProviderTrainTest.class);
+
+    /**
+     * Creates a dataset to be used on the tests, based on the provided schema and set.
+     *
+     * @param schema The schema that the dataset will comply to.
+     * @param size   The number of instances of the dataset.
+     * @return A new dataset.
+     */
+    private Dataset createDataset(final DatasetSchema schema, final int size) {
+        final Random random = new Random(234);
+
+        logger.info("Using dataset size of {}", size);
+        final List<Instance> instances = IntStream.range(0, size)
+                .mapToObj(index -> new MockInstance(schema, random))
+                .collect(Collectors.toList());
+        return new MockDataset(schema, instances);
+    }
 
     @Override
     public ClassificationH2OModel getFirstModel() throws ModelTrainingException {
@@ -125,4 +147,21 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
     }
 
 
+    /**
+     * Tests that the right exception is thrown when the dataset is empty
+     *
+     * @since 1.0.9
+     */
+    @Test
+    public final void testExceptionIsThrownWhenDatasetIsEmpty() {
+        final Dataset dataset = createDataset(SCHEMA, 0);
+        final Map<String, String> params = H2OAlgorithmTestParams.getDeepLearning();
+        final H2OModelCreator loader = getMachineLearningModelLoader(H2OAlgorithm.DEEP_LEARNING);
+        final Random random = new Random(234);
+
+        assertThatThrownBy(() -> loader.fit(dataset, random, params))
+                .isInstanceOf(ModelTrainingException.class)
+                .hasMessageContaining("In order to generate the model the dataset cannot be empty")
+                .hasMessageContaining("/tmp/"); //just to check that the URI is present in the message
+    }
 }
