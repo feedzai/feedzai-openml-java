@@ -152,16 +152,17 @@
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+        </dependency>
 
+        <!--Testing-->
         <dependency>
             <groupId>com.feedzai</groupId>
             <artifactId>openml-utils</artifactId>
             <scope>test</scope>
             <type>test-jar</type>
-        </dependency>
-        <dependency>
-            <groupId>com.google.auto.service</groupId>
-            <artifactId>auto-service</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
