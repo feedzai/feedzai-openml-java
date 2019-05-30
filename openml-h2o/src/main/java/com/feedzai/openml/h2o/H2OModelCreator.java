@@ -213,7 +213,6 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
 
         errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, params));
         errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
-        errorBuilder.addAll(ValidationUtils.checkNoFieldsOfType(schema, StringValueSchema.class));
 
         if (schema.getTargetIndex().isPresent()) {
             ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);

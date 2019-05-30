@@ -57,7 +57,7 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
      * Name of the directory that contains a dummy model imported in POJO format. The model was created with a schema
      * similar to {@link #createDatasetSchema(Set)} ()};
      */
-    private static final String POJO_MODEL_FILE = "drf";
+    static final String POJO_MODEL_FILE = "drf";
 
     /**
      * The values of the target variable.
