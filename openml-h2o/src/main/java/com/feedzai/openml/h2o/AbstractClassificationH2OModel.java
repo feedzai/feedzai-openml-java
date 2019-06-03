@@ -21,6 +21,7 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.model.ClassificationMLModel;
 import com.feedzai.openml.model.MachineLearningModel;
 import com.feedzai.openml.util.data.encoding.EncodingHelper;
@@ -167,8 +168,10 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
                         (CategoricalValueSchema) fieldSchema.getValueSchema()
                 );
                 rowData.put(fieldSchema.getFieldName(), instanceValue);
-            } else {
+            } else if (fieldSchema.getValueSchema() instanceof NumericValueSchema) {
                 rowData.put(fieldSchema.getFieldName(), instance.getValue(i));
+            } else {
+                rowData.put(fieldSchema.getFieldName(), instance.getStringValue(i));
             }
         }
         return rowData;
