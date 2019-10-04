@@ -24,10 +24,12 @@ import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderCategoricalTargetTest;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import hex.genmodel.MojoModel;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
@@ -38,6 +40,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests for loading models with {@link H2OModelProvider}.
@@ -198,5 +202,29 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
                 .map(targetIndex -> targetIndex == lastIndex ? lastIndex - 1 : lastIndex)
                 .map(targetIndex -> new DatasetSchema(targetIndex, fields))
                 .orElseGet(() -> new DatasetSchema(fields));
+    }
+
+    /**
+     * Checks the method #classify() to ensure that H2O classifies correctly the index of maximum value of the scores' list using the _defaultThreshold.
+     *
+     * @throws ModelLoadingException  If anything goes wrong during loading.
+     * @throws ModelTrainingException If anything goes wrong during training.
+     */
+    @Override
+    @Test
+    public void classifyIndexOfMaxScoresValue() throws ModelLoadingException, ModelTrainingException {
+        final AbstractClassificationH2OModel model = getFirstModel();
+        final Instance instance = getDummyInstance();
+        final int classificationIndex = model.classify(instance);
+        final double[] scores = model.getClassDistribution(instance);
+        final double threshold;
+        if (model.modelWrapper.m instanceof MojoModel)
+            threshold = ((MojoModel) model.modelWrapper.m)._defaultThreshold;
+        else
+            threshold = 0.5;
+
+        assertThat(scores[classificationIndex])
+                .as("The index of maximum value with threshold applied")
+                .isGreaterThanOrEqualTo(threshold);
     }
 }

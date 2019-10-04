@@ -27,6 +27,7 @@ import com.feedzai.openml.model.MachineLearningModel;
 import com.feedzai.openml.util.data.encoding.EncodingHelper;
 import com.google.common.base.Preconditions;
 import hex.genmodel.GenModel;
+import hex.genmodel.MojoModel;
 import hex.genmodel.easy.EasyPredictModelWrapper;
 import hex.genmodel.easy.RowData;
 import hex.genmodel.easy.exception.PredictException;
@@ -57,6 +58,11 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
      * A wrapper for the model generated in H2O.
      */
     protected final EasyPredictModelWrapper modelWrapper;
+
+    /**
+     * The threshold is used to classify the target value, it is presented in all models that are extended from {@link MojoModel}.
+     */
+    protected final double threshold;
 
     /**
      * The path from where the model was initially loaded.
@@ -96,6 +102,11 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
         this.modelPath = Preconditions.checkNotNull(modelPath, "path of the model cannot be null");
         this.schema = Preconditions.checkNotNull(schema, "dataset schema cannot be null");
         this.closeable = Preconditions.checkNotNull(closeable, "the closeable cannot be null");
+
+        if(this.modelWrapper.m instanceof MojoModel)
+            this.threshold = ((MojoModel)this.modelWrapper.m)._defaultThreshold;
+        else
+            this.threshold = 0.5;
     }
 
     @Override
