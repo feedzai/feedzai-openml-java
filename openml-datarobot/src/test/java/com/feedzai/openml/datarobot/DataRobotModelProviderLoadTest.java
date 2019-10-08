@@ -18,6 +18,7 @@
 package com.feedzai.openml.datarobot;
 
 import com.datarobot.prediction.Predictor;
+import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
@@ -63,6 +64,20 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
      * Logger for this class.
      */
     private static final Logger logger = LoggerFactory.getLogger(DataRobotModelProviderLoadTest.class);
+
+    /**
+     * Checks the method #classify() to ensure that DataRobot classifies correctly the index of maximum value of the scores' list.
+     */
+    @Test
+    public void canGetClassDistributionMaxValueIndex() throws ModelLoadingException {
+
+        final ClassificationBinaryDataRobotModel model = getFirstModel();
+
+        final Instance instance = getDummyInstance();
+
+        this.canGetClassDistributionMaxValueIndex(model, instance);
+
+    }
 
     /**
      * Checks that is possible to use compatible target values with the values used to train the model.
