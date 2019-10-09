@@ -66,10 +66,14 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     private static final Logger logger = LoggerFactory.getLogger(DataRobotModelProviderLoadTest.class);
 
     /**
-     * Checks the method #classify() to ensure that DataRobot classifies correctly the index of maximum value of the scores' list.
+     * Verifies that the {@link ClassificationMLModel#classify(Instance)} " returns the index of the greatest value in
+     * the class probability distribution produced by the calling
+     * {@link ClassificationMLModel#getClassDistribution(Instance)} on the model
+     *
+     * @see ClassificationMLModel
      */
     @Test
-    public void canGetClassDistributionMaxValueIndex() throws ModelLoadingException {
+    public void canGetClassDistributionMaxValueIndex() throws Exception {
 
         final ClassificationBinaryDataRobotModel model = getFirstModel();
 

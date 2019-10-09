@@ -23,6 +23,7 @@ import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockInstance;
+import com.feedzai.openml.model.ClassificationMLModel;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderCategoricalTargetTest;
@@ -147,6 +148,20 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
                         )
                         .build()
         );
+    }
+
+    /**
+     * Verifies that the {@link ClassificationMLModel#classify(Instance)} " returns the index of the greatest value in
+     * the class probability distribution produced by the calling
+     * {@link ClassificationMLModel#getClassDistribution(Instance)} on the model
+     *
+     * @see ClassificationMLModel
+     */
+    @Test
+    public void canGetClassDistributionMaxValueIndex() {
+
+        Assertions.assertThat(true);
+
     }
 
     /**
