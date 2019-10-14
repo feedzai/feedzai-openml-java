@@ -195,4 +195,5 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
         final int newTargetIndex = fullSchema.getTargetIndex() == lastIndex ? lastIndex - 1 : lastIndex;
         return new DatasetSchema(newTargetIndex, fields);
     }
+
 }

@@ -55,7 +55,7 @@
         <project.source>1.8</project.source>
         <junit.version>4.12</junit.version>
         <assertj.version>3.7.0</assertj.version>
-        <openml-api.version>0.4.2</openml-api.version>
+        <openml-api.version>0.4.3</openml-api.version>
         <jackson.version>2.6.7</jackson.version>
         <jackson-databind.version>2.6.7</jackson-databind.version>
         <commons-io.version>2.4</commons-io.version>
