@@ -96,6 +96,7 @@ abstract class AbstractClassificationH2OModel implements ClassificationMLModel {
         this.modelPath = Preconditions.checkNotNull(modelPath, "path of the model cannot be null");
         this.schema = Preconditions.checkNotNull(schema, "dataset schema cannot be null");
         this.closeable = Preconditions.checkNotNull(closeable, "the closeable cannot be null");
+
     }
 
     @Override
