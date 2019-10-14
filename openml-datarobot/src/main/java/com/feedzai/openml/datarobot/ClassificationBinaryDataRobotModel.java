@@ -165,7 +165,7 @@ public class ClassificationBinaryDataRobotModel implements ClassificationMLModel
     @Override
     public int classify(final Instance instance) {
         final double score = predictProbOfFirstTargetValue(instance);
-        return (int) Math.round(score);
+        return 1 - (int) Math.round(score);
     }
 
     @Override

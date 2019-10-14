@@ -199,4 +199,5 @@ public class H2OModelProviderLoadTest extends AbstractProviderCategoricalTargetT
                 .map(targetIndex -> new DatasetSchema(targetIndex, fields))
                 .orElseGet(() -> new DatasetSchema(fields));
     }
+
 }
