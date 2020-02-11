@@ -38,11 +38,7 @@ public final class H2OXgboostUtils extends AbstractSupervisedH2OParamUtils<XGBoo
      * The set of parameters that are possible to define during the creation of an H2O XGBoost model.
      */
     public static final Set<ModelParameter> PARAMETERS =
-            ParametersBuilderUtil.getParametersFor(XGBoostParametersV3.class, water.bindings.pojos.XGBoostParametersV3.class)
-                    .stream()
-                    // This is the same as "ntrees" so it is redundant to have 2 mandatory fields that are the same.
-                    .filter(modelParam -> !"n_estimators".equals(modelParam.getName()))
-                    .collect(Collectors.toSet());
+            ParametersBuilderUtil.getParametersFor(XGBoostParametersV3.class, water.bindings.pojos.XGBoostParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.
