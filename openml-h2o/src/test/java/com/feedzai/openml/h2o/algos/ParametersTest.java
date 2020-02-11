@@ -25,9 +25,11 @@ import com.feedzai.openml.h2o.H2OAlgorithm;
 import com.feedzai.openml.h2o.algos.mocks.BindingFieldsNotArrayParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingNoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingPrivateFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.BindingRegularParameters;
 import com.feedzai.openml.h2o.algos.mocks.FieldsNotArrayParameters;
 import com.feedzai.openml.h2o.algos.mocks.NoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.PrivateFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.RegularParameters;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import org.junit.Test;
@@ -76,6 +78,31 @@ public class ParametersTest {
     }
 
     /**
+     * Tests that a class with 3 fields declared but 2 in the fields array is filtered to return only the 2 fields in
+     * the array.
+     */
+    @Test
+    public void fieldNotInFieldsIsFiltered() {
+        final Set<ModelParameter> parameters = ParametersBuilderUtil.getParametersFor(
+                RegularParameters.class,
+                BindingRegularParameters.class
+        );
+
+        assertThat(parameters)
+                .as("The parameters found")
+                .hasSize(2);
+
+        final long parametersWithoutField3 = parameters.stream()
+                .map(ModelParameter::getName)
+                .filter(parameter -> !"field_3".equalsIgnoreCase(parameter))
+                .count();
+
+        assertThat(parametersWithoutField3)
+                .as("Parameters filtered without field_3 are still 2")
+                .isEqualTo(2);
+    }
+
+    /**
      * Tests that nothing is filtered if the {@link water.api.schemas3.ModelParametersSchemaV3} contains no static field
      * named {@code fields}.
      *
@@ -90,11 +117,7 @@ public class ParametersTest {
 
         assertThat(parameters)
                 .as("The parameters found")
-                .isNotEmpty();
-
-        assertThat(parameters.size())
-                .as("The number of parameters")
-                .isEqualTo(2);
+                .hasSize(2);
     }
 
     /**

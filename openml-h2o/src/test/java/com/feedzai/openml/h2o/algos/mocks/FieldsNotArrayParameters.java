@@ -1,6 +1,5 @@
 package com.feedzai.openml.h2o.algos.mocks;
 
-import com.google.common.collect.ImmutableList;
 import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 

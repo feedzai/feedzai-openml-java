@@ -4,18 +4,17 @@ import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 
 /**
- * Mocked class that extends {@link water.bindings.pojos.ModelParametersSchemaV3} having a private static field named
- * {@code fields}.
+ * FIXME
  *
  * @author Miguel Cruz (miguel.cruz@feedzai.com)
- * @since 1.0.7
+ * @since @@@feedzai.next.release@@@
  */
-public class PrivateFieldsFieldParameters extends ModelParametersSchemaV3 {
+public class RegularParameters extends ModelParametersSchemaV3 {
 
     /**
      * Private field used for tests.
      */
-    private static final String[] fields = new String[]{"field_1", "field_2"};
+    public static final String[] fields = new String[]{"field_1", "field_2"};
 
     @API(
             level = API.Level.critical,
@@ -32,4 +31,12 @@ public class PrivateFieldsFieldParameters extends ModelParametersSchemaV3 {
             help = "field 2"
     )
     public int field_2;
+
+    @API(
+            level = API.Level.secondary,
+            direction = API.Direction.INPUT,
+            gridable = true,
+            help = "field 3"
+    )
+    public int field_3;
 }

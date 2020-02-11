@@ -24,7 +24,7 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.SerializedName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +81,13 @@ public final class ParametersBuilderUtil {
                     (field.getType().isArray() && H2ODeepLearningUtils.HIDDEN.equals(field.getName()));
 
     /**
+     * The name of the {@link Field} that contains an array with the name of the useful fields.
+     *
+     * @since 1.0.7
+     */
+    private static final String FIELDS = "fields";
+
+    /**
      * Private constructor for utility class.
      */
     private ParametersBuilderUtil() { }
@@ -128,7 +135,7 @@ public final class ParametersBuilderUtil {
 
         final Map<String, String> paramName2FieldName = getParamNameToFieldNameMapping(paramsClass);
 
-        final List<String> usefulFields = getUsefulFields(algorithmClass, paramName2FieldName.keySet());
+        final Set<String> usefulFields = getUsefulFields(algorithmClass, paramName2FieldName.keySet());
 
         return Arrays.stream(algorithmClass.getFields())
                 .filter(ALLOW_ONLY_INPUT_PARAMS)
@@ -155,23 +162,16 @@ public final class ParametersBuilderUtil {
      * @return The {@link List} with the useful fields for the given algorithm class.
      * @since 1.0.7
      */
-    private static List<String> getUsefulFields(final Class<? extends ModelParametersSchemaV3> algorithmClass,
+    private static Set<String> getUsefulFields(final Class<? extends ModelParametersSchemaV3> algorithmClass,
                                                 final Set<String> allParameters) {
 
-        final Optional<Field> fieldsField = Arrays.stream(algorithmClass.getDeclaredFields())
+        return Arrays.stream(algorithmClass.getDeclaredFields())
                 .filter(field -> isStatic(field.getModifiers()))
-                .filter(field -> "fields".equalsIgnoreCase(field.getName()))
-                .findFirst();
-
-        final ImmutableList.Builder<String> usefulFields = ImmutableList.builder();
-
-        if (fieldsField.isPresent()) {
-            usefulFields.add(getStringArrayStaticFieldContent(algorithmClass.getTypeName(), fieldsField.get()));
-        } else {
-            usefulFields.addAll(allParameters);
-        }
-
-        return usefulFields.build();
+                .filter(field -> FIELDS.equalsIgnoreCase(field.getName()))
+                .map(field -> getStringArrayStaticFieldContent(algorithmClass.getTypeName(), field))
+                .findFirst()
+                .map(ImmutableSet::copyOf)
+                .orElse(ImmutableSet.copyOf(allParameters));
     }
 
     /**
