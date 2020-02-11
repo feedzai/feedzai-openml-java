@@ -194,9 +194,9 @@ public final class ParametersBuilderUtil {
 
         if (fieldType.isArray() && fieldType.getComponentType().equals(String.class)) {
             try {
-                return (String[]) field.get(algorithmClass.newInstance());
-            } catch (final IllegalAccessException | InstantiationException e) {
-                throw new RuntimeException(String.format(
+                return (String[]) field.get(null);
+            } catch (final IllegalAccessException e) {
+                throw new IllegalArgumentException(String.format(
                         "Unable to get useful fields for model of type: %s", algorithmClass.getTypeName()
                 ));
             }
