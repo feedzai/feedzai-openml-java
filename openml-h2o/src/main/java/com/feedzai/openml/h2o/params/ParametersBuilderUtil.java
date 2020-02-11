@@ -24,18 +24,23 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
 import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.api.schemas3.SchemaV3;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.lang.reflect.Modifier.isStatic;
 
 /**
  * Utility that builds the parameters' description for H2O machine learning algorithms by inspecting its API classes
@@ -117,6 +122,8 @@ public final class ParametersBuilderUtil {
 
         final Map<String, String> paramName2FieldName = getParamNameToFieldNameMapping(paramsClass);
 
+        final List<String> usefulFields = getUsefulFields(algorithmClass, paramName2FieldName.keySet());
+
         return Arrays.stream(algorithmClass.getFields())
                 .filter(ALLOW_ONLY_INPUT_PARAMS)
                 .filter(ALLOW_ONLY_RELEVANT_PARAMS)
@@ -128,7 +135,73 @@ public final class ParametersBuilderUtil {
                 .filter(modelParam -> !"calibrate_model".equals(modelParam.getName()))
                 // We already pass a seed always whenever possible.
                 .filter(modelParam -> !"seed".equals(modelParam.getName()))
+                // We only want the fields that are present in the list of fields of the algorithm class.
+                .filter(modelParam -> usefulFields.contains(modelParam.getName()))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns the fields that are set in the given {@linkplain ModelParametersSchemaV3 algorithmClass} as useful for
+     * the algorithm.
+     *
+     * @param algorithmClass The algorithm class to get the useful fields.
+     * @param allParameters  All the parameters to be added if useful fields is not provided by the class.
+     * @return The {@link List} with the useful fields for the given algorithm class.
+     * @since @@@feedzai.next.release@@@
+     */
+    private static List<String> getUsefulFields(final Class<? extends ModelParametersSchemaV3> algorithmClass,
+                                                final Set<String> allParameters) {
+
+        final Field[] declaredFields = algorithmClass.getDeclaredFields();
+        final List<Field> staticFields = new ArrayList<>();
+
+        for (final Field field : declaredFields) {
+            if (isStatic(field.getModifiers())) {
+                staticFields.add(field);
+            }
+        }
+
+        final Optional<Field> usefulFieldsArray = staticFields.stream()
+                .filter(fields -> "fields".equalsIgnoreCase(fields.getName()))
+                .findFirst();
+
+        final ImmutableList.Builder<String> usefulFields = ImmutableList.builder();
+
+        if (usefulFieldsArray.isPresent()) {
+            usefulFields.add(getFieldContent(algorithmClass, usefulFieldsArray.get()));
+        } else {
+            usefulFields.addAll(allParameters);
+        }
+
+        return usefulFields.build();
+    }
+
+    /**
+     * Returns an array with content of the given {@link Field} for the given {@linkplain ModelParametersSchemaV3
+     * algorithmClass}.
+     *
+     * <p> If the given field is not a {@link String} array an empty array is returned.
+     *
+     * @param algorithmClass The class with the given {@code field}.
+     * @param field          The field to retrieve the value.
+     * @return The array with the field content.
+     * @since @@@feedzai.next.release@@@
+     */
+    private static String[] getFieldContent(final Class<? extends ModelParametersSchemaV3> algorithmClass,
+                                            final Field field) {
+
+        final Class<?> fieldType = field.getType();
+
+        if (fieldType.isArray() && fieldType.getComponentType().equals(String.class)) {
+            try {
+                return (String[]) field.get(algorithmClass.newInstance());
+            } catch (final IllegalAccessException | InstantiationException e) {
+                throw new RuntimeException(String.format(
+                        "Unable to get useful fields for model of type: %s", algorithmClass.getTypeName()
+                ));
+            }
+        }
+        return new String[0];
     }
 
     /**
