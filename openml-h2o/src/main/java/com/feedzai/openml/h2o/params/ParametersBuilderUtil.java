@@ -26,6 +26,8 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.annotations.SerializedName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.api.schemas3.SchemaV3;
@@ -49,6 +51,11 @@ import static java.lang.reflect.Modifier.isStatic;
  * @since 0.1.0
  */
 public final class ParametersBuilderUtil {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(ParametersBuilderUtil.class);
 
     /**
      * Predicate that filters out fields that are not annotated with the API H2O annotation or that are not for input.
@@ -159,7 +166,7 @@ public final class ParametersBuilderUtil {
         final ImmutableList.Builder<String> usefulFields = ImmutableList.builder();
 
         if (fieldsField.isPresent()) {
-            usefulFields.add(getFieldContent(algorithmClass, fieldsField.get()));
+            usefulFields.add(getStringArrayStaticFieldContent(algorithmClass.getTypeName(), fieldsField.get()));
         } else {
             usefulFields.addAll(allParameters);
         }
@@ -168,18 +175,18 @@ public final class ParametersBuilderUtil {
     }
 
     /**
-     * Returns an array with content of the given {@link Field} for the given {@linkplain ModelParametersSchemaV3
-     * algorithmClass}.
+     * Returns a String array with the content of the given {@link Field}. It requires that the given Field is a static
+     * field.
      *
      * <p> If the given field is not a {@link String} array an empty array is returned.
      *
-     * @param algorithmClass The class with the given {@code field}.
-     * @param field          The field to retrieve the value.
+     * @param typeName The class with the given {@code field}.
+     * @param field    The field to retrieve the value.
      * @return The array with the field content.
      * @since 1.0.7
      */
-    private static String[] getFieldContent(final Class<? extends ModelParametersSchemaV3> algorithmClass,
-                                            final Field field) {
+    private static String[] getStringArrayStaticFieldContent(final String typeName,
+                                                             final Field field) {
 
         final Class<?> fieldType = field.getType();
 
@@ -187,11 +194,12 @@ public final class ParametersBuilderUtil {
             try {
                 return (String[]) field.get(null);
             } catch (final IllegalAccessException e) {
-                throw new IllegalArgumentException(String.format(
-                        "Unable to get useful fields for model of type: %s", algorithmClass.getTypeName()
-                ));
+                throw new IllegalArgumentException(
+                        String.format("Unable to get useful fields for model of type: %s", typeName));
             }
         }
+
+        logger.warn("{} field in class {} is not a String Array as expected", field.getName(), typeName);
         return new String[0];
     }
 
