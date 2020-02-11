@@ -199,7 +199,7 @@ public final class ParametersBuilderUtil {
             }
         }
 
-        logger.warn("{} field in class {} is not a String Array as expected", field.getName(), typeName);
+        logger.warn("`{}` field in class `{}` is not a String Array as expected", field.getName(), typeName);
         return new String[0];
     }
 

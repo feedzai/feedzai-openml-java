@@ -17,16 +17,24 @@
 
 package com.feedzai.openml.h2o.algos;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.feedzai.openml.h2o.H2OAlgorithm;
+import com.feedzai.openml.h2o.algos.mocks.BindingFieldsNotArrayParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingNoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingPrivateFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.FieldsNotArrayParameters;
 import com.feedzai.openml.h2o.algos.mocks.NoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.PrivateFieldsFieldParameters;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Java6Assertions.assertThat;
@@ -100,5 +108,50 @@ public class ParametersTest {
                 PrivateFieldsFieldParameters.class,
                 BindingPrivateFieldsFieldParameters.class
         );
+    }
+
+    /**
+     * Tests that a Warn is logged when a {@link water.api.schemas3.ModelParametersSchemaV3} has a {@code fields} field
+     * that is not a String array.
+     *
+     * @since 1.0.7
+     */
+    @Test
+    public void fieldsNotStringArray() {
+        final ListAppender<ILoggingEvent> listAppender = appendLogger(ParametersBuilderUtil.class);
+
+        ParametersBuilderUtil.getParametersFor(FieldsNotArrayParameters.class, BindingFieldsNotArrayParameters.class);
+
+        final List<ILoggingEvent> loggingList = listAppender.list;
+
+        final ILoggingEvent event = loggingList.get(0);
+
+        assertThat(event.getLevel())
+                .as("The logging level")
+                .isEqualTo(Level.WARN);
+
+        assertThat(event.getMessage())
+                .as("The logged message")
+                .containsIgnoringCase("is not a String Array as expected");
+    }
+
+    /**
+     * Adds an appender to the given {@link Class} logger and returns it.
+     *
+     * @param clazz The class which logger will have an {@link ch.qos.logback.core.Appender} added.
+     * @return The appender that was added to the given {@link Class} logger.
+     * @since 1.0.7
+     */
+    private ListAppender<ILoggingEvent> appendLogger(final Class<?> clazz) {
+
+        final Logger classLogger = (Logger) LoggerFactory.getLogger(clazz);
+
+        final ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+
+        // add the appender to the logger
+        // addAppender is outdated now
+        classLogger.addAppender(listAppender);
+        return listAppender;
     }
 }
