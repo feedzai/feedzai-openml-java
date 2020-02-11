@@ -18,6 +18,11 @@
 package com.feedzai.openml.h2o.algos;
 
 import com.feedzai.openml.h2o.H2OAlgorithm;
+import com.feedzai.openml.h2o.algos.mocks.BindingNoFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.BindingPrivateFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.NoFieldsFieldParameters;
+import com.feedzai.openml.h2o.algos.mocks.PrivateFieldsFieldParameters;
+import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import org.junit.Test;
 
@@ -62,4 +67,38 @@ public class ParametersTest {
         });
     }
 
+    /**
+     * Tests that nothing is filtered if the {@link water.api.schemas3.ModelParametersSchemaV3} contains no static field
+     * named {@code fields}.
+     *
+     * @since 1.0.7
+     */
+    @Test
+    public void noFieldsField() {
+        final Set<ModelParameter> parameters = ParametersBuilderUtil.getParametersFor(
+                NoFieldsFieldParameters.class,
+                BindingNoFieldsFieldParameters.class
+        );
+
+        assertThat(parameters)
+                .as("The parameters found")
+                .isNotEmpty();
+
+        assertThat(parameters.size())
+                .as("The number of parameters")
+                .isEqualTo(2);
+    }
+
+    /**
+     * Tests that an exception is thrown if the {@link water.api.schemas3.ModelParametersSchemaV3} has a private field.
+     *
+     * @since 1.0.7
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void privateFieldsField() {
+        ParametersBuilderUtil.getParametersFor(
+                PrivateFieldsFieldParameters.class,
+                BindingPrivateFieldsFieldParameters.class
+        );
+    }
 }

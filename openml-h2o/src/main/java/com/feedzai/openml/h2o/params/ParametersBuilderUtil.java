@@ -31,7 +31,6 @@ import water.api.schemas3.ModelParametersSchemaV3;
 import water.api.schemas3.SchemaV3;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -147,28 +146,20 @@ public final class ParametersBuilderUtil {
      * @param algorithmClass The algorithm class to get the useful fields.
      * @param allParameters  All the parameters to be added if useful fields is not provided by the class.
      * @return The {@link List} with the useful fields for the given algorithm class.
-     * @since @@@feedzai.next.release@@@
+     * @since 1.0.7
      */
     private static List<String> getUsefulFields(final Class<? extends ModelParametersSchemaV3> algorithmClass,
                                                 final Set<String> allParameters) {
 
-        final Field[] declaredFields = algorithmClass.getDeclaredFields();
-        final List<Field> staticFields = new ArrayList<>();
-
-        for (final Field field : declaredFields) {
-            if (isStatic(field.getModifiers())) {
-                staticFields.add(field);
-            }
-        }
-
-        final Optional<Field> usefulFieldsArray = staticFields.stream()
-                .filter(fields -> "fields".equalsIgnoreCase(fields.getName()))
+        final Optional<Field> fieldsField = Arrays.stream(algorithmClass.getDeclaredFields())
+                .filter(field -> isStatic(field.getModifiers()))
+                .filter(field -> "fields".equalsIgnoreCase(field.getName()))
                 .findFirst();
 
         final ImmutableList.Builder<String> usefulFields = ImmutableList.builder();
 
-        if (usefulFieldsArray.isPresent()) {
-            usefulFields.add(getFieldContent(algorithmClass, usefulFieldsArray.get()));
+        if (fieldsField.isPresent()) {
+            usefulFields.add(getFieldContent(algorithmClass, fieldsField.get()));
         } else {
             usefulFields.addAll(allParameters);
         }
@@ -185,7 +176,7 @@ public final class ParametersBuilderUtil {
      * @param algorithmClass The class with the given {@code field}.
      * @param field          The field to retrieve the value.
      * @return The array with the field content.
-     * @since @@@feedzai.next.release@@@
+     * @since 1.0.7
      */
     private static String[] getFieldContent(final Class<? extends ModelParametersSchemaV3> algorithmClass,
                                             final Field field) {
