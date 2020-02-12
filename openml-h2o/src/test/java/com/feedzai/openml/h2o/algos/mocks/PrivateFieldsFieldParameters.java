@@ -15,7 +15,7 @@ public class PrivateFieldsFieldParameters extends ModelParametersSchemaV3 {
     /**
      * Private field used for tests.
      */
-    private static final String[] fields = new String[]{"field_1", "field_2"};
+    private static final String[] fields = new String[]{"field_1", "field_2"}; //NOPMD
 
     @API(
             level = API.Level.critical,

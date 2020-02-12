@@ -24,7 +24,6 @@ import hex.schemas.XGBoostV3.XGBoostParametersV3;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Utility class to hold relevant information to train H2O XGBoost models.
