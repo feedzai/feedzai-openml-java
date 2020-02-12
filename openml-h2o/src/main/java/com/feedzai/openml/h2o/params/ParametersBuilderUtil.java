@@ -24,18 +24,24 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.annotations.SerializedName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.api.schemas3.SchemaV3;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.lang.reflect.Modifier.isStatic;
 
 /**
  * Utility that builds the parameters' description for H2O machine learning algorithms by inspecting its API classes
@@ -45,6 +51,11 @@ import java.util.stream.Collectors;
  * @since 0.1.0
  */
 public final class ParametersBuilderUtil {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(ParametersBuilderUtil.class);
 
     /**
      * Predicate that filters out fields that are not annotated with the API H2O annotation or that are not for input.
@@ -68,6 +79,13 @@ public final class ParametersBuilderUtil {
                     // (retrofit uses an array of integers but tries to encode it as strings...and so we have to
                     // consider it manually.
                     (field.getType().isArray() && H2ODeepLearningUtils.HIDDEN.equals(field.getName()));
+
+    /**
+     * The name of the {@link Field} that contains an array with the name of the useful fields.
+     *
+     * @since 1.0.7
+     */
+    private static final String FIELDS = "fields";
 
     /**
      * Private constructor for utility class.
@@ -117,6 +135,8 @@ public final class ParametersBuilderUtil {
 
         final Map<String, String> paramName2FieldName = getParamNameToFieldNameMapping(paramsClass);
 
+        final Set<String> usefulFields = getUsefulFields(algorithmClass, paramName2FieldName.keySet());
+
         return Arrays.stream(algorithmClass.getFields())
                 .filter(ALLOW_ONLY_INPUT_PARAMS)
                 .filter(ALLOW_ONLY_RELEVANT_PARAMS)
@@ -128,7 +148,59 @@ public final class ParametersBuilderUtil {
                 .filter(modelParam -> !"calibrate_model".equals(modelParam.getName()))
                 // We already pass a seed always whenever possible.
                 .filter(modelParam -> !"seed".equals(modelParam.getName()))
+                // We only want the fields that are present in the list of fields of the algorithm class.
+                .filter(modelParam -> usefulFields.contains(modelParam.getName()))
                 .collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns the fields that are set in the given {@linkplain ModelParametersSchemaV3 algorithmClass} as useful for
+     * the algorithm.
+     *
+     * @param algorithmClass The algorithm class to get the useful fields.
+     * @param allParameters  All the parameters to be added if useful fields is not provided by the class.
+     * @return The {@link List} with the useful fields for the given algorithm class.
+     * @since 1.0.7
+     */
+    private static Set<String> getUsefulFields(final Class<? extends ModelParametersSchemaV3> algorithmClass,
+                                                final Set<String> allParameters) {
+
+        return Arrays.stream(algorithmClass.getDeclaredFields())
+                .filter(field -> isStatic(field.getModifiers()))
+                .filter(field -> FIELDS.equalsIgnoreCase(field.getName()))
+                .map(field -> getStringArrayStaticFieldContent(algorithmClass.getTypeName(), field))
+                .findFirst()
+                .map(ImmutableSet::copyOf)
+                .orElse(ImmutableSet.copyOf(allParameters));
+    }
+
+    /**
+     * Returns a String array with the content of the given {@link Field}. It requires that the given Field is a static
+     * field.
+     *
+     * <p> If the given field is not a {@link String} array an empty array is returned.
+     *
+     * @param typeName The class with the given {@code field}.
+     * @param field    The field to retrieve the value.
+     * @return The array with the field content.
+     * @since 1.0.7
+     */
+    private static String[] getStringArrayStaticFieldContent(final String typeName,
+                                                             final Field field) {
+
+        final Class<?> fieldType = field.getType();
+
+        if (fieldType.isArray() && fieldType.getComponentType().equals(String.class)) {
+            try {
+                return (String[]) field.get(null);
+            } catch (final IllegalAccessException e) {
+                throw new IllegalArgumentException(
+                        String.format("Unable to get useful fields for model of type: %s", typeName));
+            }
+        }
+
+        logger.warn("`{}` field in class `{}` is not a String Array as expected", field.getName(), typeName);
+        return new String[0];
     }
 
     /**
