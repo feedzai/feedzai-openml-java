@@ -230,6 +230,9 @@
                                         <exclude>org/slf4j/**</exclude>
                                         <exclude>com/esotericsoftware/kryo/**</exclude>
                                         <exclude>org/objenesis/**</exclude>
+                                        <!-- The following two libraries were removed because they were under-performing in cluster environments-->
+                                        <exclude>**/libxgboost4j_gpu.so</exclude>
+                                        <exclude>**/libxgboost4j_omp.so</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
