@@ -231,7 +231,7 @@
                                         <exclude>com/esotericsoftware/kryo/**</exclude>
                                         <exclude>org/objenesis/**</exclude>
                                         <exclude>**/libxgboost4j_gpu.so</exclude>
-					<exclude>**/libxgboost4j_omp.so</exclude>
+                                        <exclude>**/libxgboost4j_omp.so</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
