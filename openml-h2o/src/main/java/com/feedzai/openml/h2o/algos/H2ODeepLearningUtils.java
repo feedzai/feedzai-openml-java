@@ -21,6 +21,7 @@ import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import hex.schemas.DeepLearningV3.DeepLearningParametersV3;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +64,7 @@ public final class H2ODeepLearningUtils extends AbstractSupervisedH2OParamUtils<
 
             if (HIDDEN.equals(paramName)) {
                 cleanParam(params.get(HIDDEN)).ifPresent(param ->
-                        h2oParams.hidden = Stream.of(param.split(LIST_PARAM_DELIMITER)).mapToInt(Integer::parseInt).toArray()
+                        h2oParams.hidden = Stream.of(StringUtils.strip(param, "[]").split(LIST_PARAM_DELIMITER)).mapToInt(Integer::parseInt).toArray()
                 );
                 return;
             }
