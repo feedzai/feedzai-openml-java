@@ -97,6 +97,15 @@
                 <version>1.0-rc2</version>
             </dependency>
 
+            <!-- Use the same dependencies versions of openml-api -->
+            <dependency>
+                <groupId>com.feedzai</groupId>
+                <artifactId>openml</artifactId>
+                <version>${openml-api.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+
             <!--Apache commons-->
             <dependency>
                 <groupId>commons-io</groupId>
