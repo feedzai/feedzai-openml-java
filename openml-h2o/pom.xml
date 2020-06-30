@@ -136,7 +136,7 @@
             <groupId>com.squareup.retrofit2</groupId>
             <artifactId>retrofit</artifactId>
             <!-- This version was specially chosen to match the one used by h2o-bindings -->
-            <version>2.0.1</version>
+            <version>2.5.0</version>
         </dependency>
         <dependency>
             <groupId>net.sf.supercsv</groupId>
