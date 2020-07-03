@@ -28,7 +28,6 @@ import static com.google.common.io.ByteStreams.copy;
  * Collection of util methods specific to the LightGBM OpenML Provider.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 public class LightGBMUtils {
 
@@ -41,7 +40,7 @@ public class LightGBMUtils {
      * LightGBM treats binary classification as a special case of 1 class.
      * I.e.: For binary classification it outputs a single value.
      */
-    static final int BINARY_LGBM_NUM_CLASSES = 1;
+    public static final int BINARY_LGBM_NUM_CLASSES = 1;
 
     /**
      * State variable to know if it loadLibs was ever called.
@@ -60,7 +59,7 @@ public class LightGBMUtils {
                 loadSharedLibraryFromJar("libgomp.so.1.0.0");
                 loadSharedLibraryFromJar("lib_lightgbm.so");
                 loadSharedLibraryFromJar("lib_lightgbm_swig.so");
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", e);
             }
 

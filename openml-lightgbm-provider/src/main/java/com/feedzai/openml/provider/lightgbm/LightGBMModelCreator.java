@@ -38,15 +38,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.*;
-import static com.feedzai.openml.util.validate.ValidationUtils.*;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FRACTION_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FREQUENCY_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BOOSTING_TYPE_PARAMETER_NAME;
+import static com.feedzai.openml.util.validate.ValidationUtils.baseLoadValidations;
+import static com.feedzai.openml.util.validate.ValidationUtils.checkParams;
+import static com.feedzai.openml.util.validate.ValidationUtils.validateCategoricalSchema;
+import static com.feedzai.openml.util.validate.ValidationUtils.validateModelPathToTrain;
 import static java.nio.file.Files.createTempFile;
 
 /**
- * Loads the scoring model
+ * Loads the scoring model.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGBMBinaryClassificationModel> {
 
@@ -63,34 +67,33 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     /**
      * Error message thrown for when trying to load a non-binary model.
      */
-    static final String ERROR_MSG_CANNOT_LOAD_NON_BINARY_LIGHTGBM_MODEL = "Cannot load a non-binary LightGBM model.";
+    public static final String ERROR_MSG_CANNOT_LOAD_NON_BINARY_LIGHTGBM_MODEL = "Cannot load a non-binary LightGBM model.";
 
     /**
      * Error message for when using a schema with string fields.
      */
-    static final String ERROR_MSG_SCHEMA_HAS_STRING_FIELDS = "Schema has string fields.";
+    public static final String ERROR_MSG_SCHEMA_HAS_STRING_FIELDS = "Schema has string fields.";
 
     /**
      * Error message for when the target is not binary.
      */
-    static final String ERROR_MSG_NON_BINARY_TARGET = "Target field must be binary.";
+    public static final String ERROR_MSG_NON_BINARY_TARGET = "Target field must be binary.";
 
     /**
      * Error message prefix for when the model resource cannot be found.
      */
-    static final String ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE = "Cannot find model file";
+    public static final String ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE = "Cannot find model file";
 
     /**
      * Error message when schema doesn't have the correct number of predictive fields.
      */
-    static final String ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE =
+    public static final String ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE =
             "Received schema with wrong number of predictive fields.";
 
     /**
      * Error message when boosting type is Random Forest and bagging is not enabled.
-     * @since @@@feedzai.next.release@@@
      */
-    static final String ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING =
+    public static final String ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING =
             "Random Forest Boosting type requires bagging. Please see bagging parameters.";
 
     /**
@@ -109,11 +112,11 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
                                                  final Random random,
                                                  final Map<String, String> params) {
 
-        Path tmpModelFilePath;
+        final Path tmpModelFilePath;
 
         try {
             tmpModelFilePath = createTempFile("pulse_lightgbm_model_", null);
-        } catch (IOException e) {
+        } catch (final IOException e) {
             logger.error("Could not create temporary file.");
             throw new RuntimeException(e);
         }
@@ -121,13 +124,13 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         try {
             LightGBMBinaryClassificationModelTrainer.fit(dataset, params, tmpModelFilePath);
             return loadModel(tmpModelFilePath, dataset.getSchema());
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.error("Could not train the model.");
             throw new RuntimeException(e);
         } finally {
             try {
                 Files.delete(tmpModelFilePath);
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 logger.error("Could not delete temporary model file: {}", e.getMessage());
             }
         }
@@ -164,7 +167,6 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
     /**
      * Checks if bagging is disabled.
-     * @since @@@feedzai.next.release@@@
      *
      * @param params LightGBM parameters
      * @return true if disabled, false otherwise.
@@ -173,8 +175,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         final double epsilon = 1e-60;
 
-        final Double freq = Double.parseDouble(params.get(BAGGING_FREQUENCY_PARAMETER_NAME));
-        final Double fraction = Double.parseDouble(params.get(BAGGING_FRACTION_PARAMETER_NAME));
+        final double freq = Double.parseDouble(params.get(BAGGING_FREQUENCY_PARAMETER_NAME));
+        final double fraction = Double.parseDouble(params.get(BAGGING_FRACTION_PARAMETER_NAME));
         return ((Math.abs(freq - 0) < epsilon) || (Math.abs(1 - fraction) < epsilon));
     }
 
@@ -260,17 +262,19 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     }
 
     /**
+     * Checks if schema has string fields.
+     *
      * @param schema schema
      * @return boolean which is true if there are string fields
      */
     private static boolean schemaHasStringFields(final DatasetSchema schema) {
 
-        return schema.getFieldSchemas().stream()
-                .filter(field -> field.getValueSchema() instanceof StringValueSchema)
-                .count() > 0;
+        return schema.getFieldSchemas().stream().anyMatch(field -> field.getValueSchema() instanceof StringValueSchema);
     }
 
     /**
+     * Gets the number of target classes in the schema target fields.
+     *
      * @param schema Schema
      * @return Number of target classes in the schema target
      * field or empty if there is no target field, or is not binary.
@@ -278,7 +282,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     private static Optional<Integer> getNumTargetClasses(final DatasetSchema schema) {
 
         if (schema.getTargetFieldSchema().isPresent()) {
-            AbstractValueSchema fieldValueSchema = schema.getTargetFieldSchema().get().getValueSchema();
+            final AbstractValueSchema fieldValueSchema = schema.getTargetFieldSchema().get().getValueSchema();
             if (fieldValueSchema instanceof CategoricalValueSchema) {
                 return Optional.of(((CategoricalValueSchema) fieldValueSchema).getNominalValues().size());
             } else {

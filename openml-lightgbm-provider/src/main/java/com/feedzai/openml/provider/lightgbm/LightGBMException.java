@@ -25,7 +25,6 @@ import com.microsoft.ml.lightgbm.lightgbmlibJNI;
  * last error in that LightGBM SWIG backend.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 public class LightGBMException extends RuntimeException {
 

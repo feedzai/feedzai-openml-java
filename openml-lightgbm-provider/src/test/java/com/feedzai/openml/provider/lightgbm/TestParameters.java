@@ -35,6 +35,8 @@ import java.util.Map;
 public class TestParameters {
 
     /**
+     * Gets default parameters.
+     *
      * @return Returns all LightGBM ModelParameters with the default values.
      */
     public static Map<String, String> getDefaultParameters() {

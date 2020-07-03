@@ -17,7 +17,9 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.feedzai.openml.data.schema.*;
+import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
@@ -33,12 +35,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_NON_BINARY_TARGET;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_SCHEMA_HAS_STRING_FIELDS;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 
 /**
- * Tests for the LightGBMModelLoader
+ * Tests for the LightGBMModelLoader.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 0.8.0
@@ -58,7 +66,7 @@ public class LightGBMModelCreatorTest {
     /**
      * No parameters to pass for now.
      */
-    private Map<String, String> params = new HashMap<String, String>();
+    private final Map<String, String> params = new HashMap<String, String>();
 
     /**
      * Prepares the tests.
@@ -106,7 +114,7 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForLoad(
                 TestResources.getModelFilePath(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
-                params
+                this.params
         );
 
         assertZeroErrors(errors);
@@ -165,10 +173,10 @@ public class LightGBMModelCreatorTest {
                 )
         );
 
-        List<ParamValidationError> errors = modelLoader.validateForLoad(
+        final List<ParamValidationError> errors = modelLoader.validateForLoad(
                 TestResources.getModelFolderPath(),
                 schemaWithStringField,
-                params
+                this.params
         );
 
         assertSingleErrorMessage(errors, ERROR_MSG_SCHEMA_HAS_STRING_FIELDS);
@@ -251,12 +259,12 @@ public class LightGBMModelCreatorTest {
     @Test
     public void validateForLoadNoModelFileInPathReturnsErrorTest() throws URISyntaxException {
 
-        Path invalidModelPath = TestResources.getResourcePath("").resolve("_no_file_named_like_this_");
+        final Path invalidModelPath = TestResources.getResourcePath("").resolve("_no_file_named_like_this_");
 
         final List<ParamValidationError> errors = modelLoader.validateForLoad(
                 invalidModelPath,
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
-                params
+                this.params
         );
 
         assertSingleErrorMessageWithPrefix(errors, ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE);
@@ -373,7 +381,6 @@ public class LightGBMModelCreatorTest {
 
     /**
      * Assert that one can't train without a target.
-     * @throws IOException
      */
     @Test
     public void validateForFitNoTargetReturnsErrorsTest() {
@@ -388,7 +395,7 @@ public class LightGBMModelCreatorTest {
     }
 
     /**
-     * Asserts that there are no errors
+     * Asserts that there are no errors.
      *
      * @param errors list of errors
      */

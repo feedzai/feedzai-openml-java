@@ -42,7 +42,7 @@ public class TestSchemas {
      *
      * @see TestSchemas#NUMERICAL_SCHEMA_FEATURES
      */
-    static final FieldSchema FRAUD_LABEL_INDEXED_FIELD = new FieldSchema(
+    public static final FieldSchema FRAUD_LABEL_INDEXED_FIELD = new FieldSchema(
             "is_fraud_label_indexed",
             4,
             new CategoricalValueSchema(true, ImmutableSet.of("0.0", "1.0"))
@@ -51,7 +51,7 @@ public class TestSchemas {
     /**
      * Non-binary target field ( to test behaviour with non-binary targets ).
      */
-    static final FieldSchema NON_BINARY_TARGET_FIELD = new FieldSchema(
+    public static final FieldSchema NON_BINARY_TARGET_FIELD = new FieldSchema(
             "target_field",
             0,
             new CategoricalValueSchema(true, ImmutableSet.of("A", "B", "C"))
@@ -121,7 +121,7 @@ public class TestSchemas {
      * Feature order should be the same.
      * @see TestSchemas#NUMERICALS_SCHEMA_WITH_LABEL_AT_END
      */
-    static final DatasetSchema NUMERICALS_SCHEMA_WITH_TARGET_IN_MIDDLE = SchemaUtils.getSchemaWithTargetAt(
+    public static final DatasetSchema NUMERICALS_SCHEMA_WITH_TARGET_IN_MIDDLE = SchemaUtils.getSchemaWithTargetAt(
             NUMERICALS_SCHEMA_WITH_LABEL_AT_END, 2
     );
 
@@ -130,7 +130,7 @@ public class TestSchemas {
      * Feature order should be the same.
      * @see TestSchemas#NUMERICALS_SCHEMA_WITH_LABEL_AT_END
      */
-    static final DatasetSchema NUMERICALS_SCHEMA_WITH_TARGET_AT_START = SchemaUtils.getSchemaWithTargetAt(
+    public static final DatasetSchema NUMERICALS_SCHEMA_WITH_TARGET_AT_START = SchemaUtils.getSchemaWithTargetAt(
             NUMERICALS_SCHEMA_WITH_LABEL_AT_END, 0
     );
 
@@ -148,10 +148,10 @@ public class TestSchemas {
     );
 
     /**
-     * Permutate the order of features of the train schema:
+     * Permutate the order of features of the train schema.
      * @see TestSchemas#NUMERICALS_SCHEMA_WITH_LABEL_AT_END
      */
-    static final DatasetSchema BAD_NUMERICALS_SCHEMA_WITH_WRONG_FEATURES_ORDER = new DatasetSchema(
+    public static final DatasetSchema BAD_NUMERICALS_SCHEMA_WITH_WRONG_FEATURES_ORDER = new DatasetSchema(
             4,
             ImmutableList.of(
                     SchemaUtils.getFieldCopyWithIndex(NUMERICAL_SCHEMA_FEATURES.get(3), 0),
@@ -172,7 +172,7 @@ public class TestSchemas {
     /**
      * Derived test schema with categoricals and label as first field in instance.
      */
-    static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_AT_START = SchemaUtils.getSchemaWithTargetAt(
+    public static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_AT_START = SchemaUtils.getSchemaWithTargetAt(
             CATEGORICALS_SCHEMA_LABEL_AT_END, 0
     );
 
@@ -190,7 +190,7 @@ public class TestSchemas {
     /**
      * Schema with no target.
      */
-    static final DatasetSchema SCHEMA_WITH_NO_TARGET = new DatasetSchema(
+    public static final DatasetSchema SCHEMA_WITH_NO_TARGET = new DatasetSchema(
             -1,
             TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END.getPredictiveFields()
     );
@@ -198,7 +198,7 @@ public class TestSchemas {
     /**
      * Schema with regression target.
      */
-    static final DatasetSchema SCHEMA_WITH_REGRESSION_TARGET = new DatasetSchema(
+    public static final DatasetSchema SCHEMA_WITH_REGRESSION_TARGET = new DatasetSchema(
             0,
             TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END.getPredictiveFields()
     );

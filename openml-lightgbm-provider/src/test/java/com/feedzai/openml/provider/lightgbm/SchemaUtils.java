@@ -46,7 +46,7 @@ class SchemaUtils {
      * @param fieldIndex index to change the field's fieldIndex to
      * @return new field with the indexField matching fieldIndex.
      */
-    static FieldSchema getFieldCopyWithIndex(final FieldSchema field, final int fieldIndex) {
+    protected static FieldSchema getFieldCopyWithIndex(final FieldSchema field, final int fieldIndex) {
 
         return new FieldSchema(
                 field.getFieldName(),
@@ -70,7 +70,7 @@ class SchemaUtils {
      * @return schema with the label at the desired position (or no label if requested).
      * @warning outputTargetIndex >= 0 will throw a RuntimeException if the input schema has no label.
      */
-    static DatasetSchema getSchemaWithTargetAt(final DatasetSchema schema, Integer outputTargetIndex) {
+    protected static DatasetSchema getSchemaWithTargetAt(final DatasetSchema schema, Integer outputTargetIndex) {
 
         final int originalTargetIndex = schema.getTargetIndex().orElse(-1);
         final List<FieldSchema> fields = schema.getFieldSchemas();
@@ -114,7 +114,7 @@ class SchemaUtils {
      * @param inputSchema Input schema with or without target field.
      * @return Schema without target field.
      */
-    static DatasetSchema getSchemaWithoutLabel(final DatasetSchema inputSchema) {
+    protected static DatasetSchema getSchemaWithoutLabel(final DatasetSchema inputSchema) {
 
         final List<FieldSchema> features = inputSchema.getPredictiveFields();
 

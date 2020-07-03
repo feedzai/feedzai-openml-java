@@ -27,7 +27,6 @@ import static com.feedzai.openml.util.algorithm.MLAlgorithmEnum.createDescriptor
  * Specifies the LightGBM algorithms that can be imported.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 public enum LightGBMAlgorithms implements MLAlgorithmEnum {
 

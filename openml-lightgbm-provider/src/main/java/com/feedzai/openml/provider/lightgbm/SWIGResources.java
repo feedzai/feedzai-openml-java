@@ -18,7 +18,7 @@
 package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.provider.exception.ModelLoadingException;
-import com.microsoft.ml.lightgbm.*;
+import com.microsoft.ml.lightgbm.lightgbmlibJNI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,6 @@ import static com.feedzai.openml.provider.lightgbm.LightGBMUtils.BINARY_LGBM_NUM
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 class SWIGResources implements AutoCloseable {
 
@@ -43,23 +42,23 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG pointer to BoosterHandle.
      */
-    Long swigBoosterHandle;
+    public Long swigBoosterHandle;
 
     /**
      * Useless variable in the C API, for we already have to preallocate swigOutScoresPtr,
      * so we get no information from this API output.
      */
-    Long swigOutLengthInt64Ptr;
+    public Long swigOutLengthInt64Ptr;
 
     /**
      * Pointer to the instance array.
      */
-    Long swigInstancePtr;
+    public Long swigInstancePtr;
 
     /**
      * SWIG Pointer to the scored array output (pre-allocated by us).
      */
-    Long swigOutScoresPtr;
+    public Long swigOutScoresPtr;
 
     /**
      * A handler to collect a pointer to int output.
@@ -67,14 +66,14 @@ class SWIGResources implements AutoCloseable {
      * As many calls output an IntPtr, this field is useful
      * to avoid repeating pointer allocation/destruction ops.
      */
-    Long swigOutIntPtr;
+    public Long swigOutIntPtr;
 
     /**
      * Number of iterations in the trained LightGBM boosting model.
      * Whilst not a swig resource, it is automatically retrieved during model loading,
      * thus we store it to avoid calling it again.
      */
-    private Integer boosterNumIterations;
+    public Integer boosterNumIterations;
 
     /**
      * Constructor. Initializes a model handle and all resource handlers
@@ -85,7 +84,7 @@ class SWIGResources implements AutoCloseable {
      * @throws ModelLoadingException Error loading the model.
      * @throws LightGBMException     in case there's an error in the C++ core library.
      */
-    SWIGResources(final String modelPath, final int numFeaturesSchema) throws ModelLoadingException, LightGBMException {
+    public SWIGResources(final String modelPath, final int numFeaturesSchema) throws ModelLoadingException, LightGBMException {
 
         initAuxResources(numFeaturesSchema);
         initModelResourcesFromFile(modelPath);
@@ -130,7 +129,7 @@ class SWIGResources implements AutoCloseable {
      * Assumes the model was already loaded from file.
      * Initializes the remaining SWIG resources.
      *
-     * @param numFeatures
+     * @param numFeatures the number of Features.
      * @throws LightGBMException in case there's an error in the C++ core library.
      */
     private void initAuxResources(final int numFeatures) throws LightGBMException {
@@ -151,6 +150,7 @@ class SWIGResources implements AutoCloseable {
      * Note: This will be called in close() automatically at the right time
      * if the constructor finished properly at the time of GC.
      * <p>
+     * @throws LightGBMException in case there's any lightGBM error.
      */
     private void releaseInitializedSWIGResources() throws LightGBMException {
 
@@ -200,5 +200,5 @@ class SWIGResources implements AutoCloseable {
      *
      * @return boosterNumIterations
      */
-    int getBoosterNumIterations() { return this.boosterNumIterations; }
+    public int getBoosterNumIterations() { return this.boosterNumIterations; }
 }

@@ -29,47 +29,44 @@ import java.util.Set;
  * Utility to organize all the necessary Machine Learning Hyper-Parameters for configuring the training of LightGBM.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 public class LightGBMDescriptorUtil {
 
     /**
      * Boosting type parameter name.
-     * @since @@@feedzai.next.release@@@
      */
-    static final String BOOSTING_TYPE_PARAMETER_NAME = "boosting_type";
+    public static final String BOOSTING_TYPE_PARAMETER_NAME = "boosting_type";
 
     /**
      * The number of boosting iterations parameter name.
      */
-    static final String NUM_ITERATIONS_PARAMETER_NAME = "num_iterations";
+    public static final String NUM_ITERATIONS_PARAMETER_NAME = "num_iterations";
 
     /**
      * Bagging fraction parameter name.
-     * @since @@@feedzai.next.release@@@
      */
-    static final String BAGGING_FRACTION_PARAMETER_NAME = "bagging_fraction";
+    public static final String BAGGING_FRACTION_PARAMETER_NAME = "bagging_fraction";
 
     /**
      * Bagging frequency parameter name.
-     * @since @@@feedzai.next.release@@@
+     * Bagging frequency parameter name.
      */
-    static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
+    public static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
 
     /**
      * Global seed parameter name.
      */
-    static final String SEED_PARAMETER_DESCRIPTION = "Seed";
+    public static final String SEED_PARAMETER_DESCRIPTION = "Seed";
 
     /**
      * Public-visible (UI) description of the bagging fraction parameter.
      */
-    private static final String BAGGING_FRACTION_PARAMETER_DESCRIPTION = "Bagging fraction";
+    public static final String BAGGING_FRACTION_PARAMETER_DESCRIPTION = "Bagging fraction";
 
     /**
      * Public-visible (UI) description of the bagging frequency.
      */
-    private static final String BAGGING_FREQUENCY_PARAMETER_DESCRIPTION = "Bagging frequency";
+    public static final String BAGGING_FREQUENCY_PARAMETER_DESCRIPTION = "Bagging frequency";
 
     /**
      * Public-visible (UI) description of the feature fraction parameter.
@@ -79,12 +76,12 @@ public class LightGBMDescriptorUtil {
     /**
      * An alias to ease the readability of parameters' configuration that are not mandatory.
      */
-    private static final boolean NOT_MANDATORY = false;
+    public static final boolean NOT_MANDATORY = false;
 
     /**
      * An alias to ease the readability of parameters' configuration that are not mandatory.
      */
-    private static final boolean MANDATORY = true;
+    public static final boolean MANDATORY = true;
 
     /**
      * Helper method to return a range of type DOUBLE.
@@ -94,7 +91,7 @@ public class LightGBMDescriptorUtil {
      * @param defaultValue Default value.
      * @return Double range with the specs above.
      */
-    private static final NumericFieldType doubleRange(final double minValue,
+    public static NumericFieldType doubleRange(final double minValue,
                                                       final double maxValue,
                                                       final double defaultValue) {
         return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.DOUBLE, defaultValue);
@@ -108,7 +105,7 @@ public class LightGBMDescriptorUtil {
      * @param defaultValue Default value.
      * @return Integer range with the specs above.
      */
-    private static final NumericFieldType intRange(final int minValue,
+    public static NumericFieldType intRange(final int minValue,
                                                    final int maxValue,
                                                    final int defaultValue) {
         return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.INT, defaultValue);
@@ -117,7 +114,7 @@ public class LightGBMDescriptorUtil {
     /**
      * Defines the set of model parameters accepted by the LightGBM model.
      */
-    static final Set<ModelParameter> PARAMS = ImmutableSet.of(
+    public static final Set<ModelParameter> PARAMS = ImmutableSet.of(
             // Core parameters: https://lightgbm.readthedocs.io/en/latest/Parameters.html#core-parameters
             new ModelParameter(
                     BOOSTING_TYPE_PARAMETER_NAME,

@@ -44,12 +44,12 @@ public class LightGBMBinaryClassificationModelTest {
     /**
      * LightGBM's model loader instance. Will be used to load more model instances during tests.
      */
-    static final LightGBMModelCreator modelLoader = new LightGBMModelCreator();
+    public static final LightGBMModelCreator modelLoader = new LightGBMModelCreator();
 
     /**
      * Standard model (import schema matches the outside model train schema fields' order, including label position).
      */
-    static LightGBMBinaryClassificationModel model;
+    protected static LightGBMBinaryClassificationModel model;
 
     /**
      * Set up the standard model.
@@ -93,7 +93,7 @@ public class LightGBMBinaryClassificationModelTest {
         final DatasetSchema schema = TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END;
 
         for (final CSVRecord record : csvParser) {
-            assertTrue(modelScoreMatchesReferenceScore(this.model, schema, record));
+            assertTrue(modelScoreMatchesReferenceScore(model, schema, record));
         }
     }
 
@@ -131,8 +131,8 @@ public class LightGBMBinaryClassificationModelTest {
     public void getClassDistributionScoresWithTargedAtStartTest()
             throws IOException, URISyntaxException, ModelLoadingException {
 
-        CSVParser csvParser = TestResources.getScoredInstancesCSVParser();
-        DatasetSchema schema = TestSchemas.NUMERICALS_SCHEMA_WITH_TARGET_AT_START;
+        final CSVParser csvParser = TestResources.getScoredInstancesCSVParser();
+        final DatasetSchema schema = TestSchemas.NUMERICALS_SCHEMA_WITH_TARGET_AT_START;
 
         final LightGBMBinaryClassificationModel model = modelLoader.loadModel(TestResources.getModelFilePath(), schema);
 
@@ -143,13 +143,14 @@ public class LightGBMBinaryClassificationModelTest {
 
     /**
      * Assert that scoring with a schema that has no labels gives the correct scores too.
-     * @throws URISyntaxException
-     * @throws IOException
-     * @throws ModelLoadingException
+     *
+     * @throws IOException           In case the CSVParser creation fails.
+     * @throws URISyntaxException    In case retrieving file resources fails.
+     * @throws ModelLoadingException Error loading the model.
      */
     @Test
     public void getClassDistributionScoresWithNoLabelTest()
-            throws URISyntaxException, IOException, ModelLoadingException {
+            throws IOException, URISyntaxException, ModelLoadingException {
 
         final CSVParser csvParser = TestResources.getScoredInstancesCSVParser();
         final DatasetSchema schema = SchemaUtils.getSchemaWithoutLabel(TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END);
@@ -201,14 +202,14 @@ public class LightGBMBinaryClassificationModelTest {
      * @param record Shall contain at least the features and refererence score (at field "score").
      * @return true if scores match, false if they don't.
      */
-    private boolean modelScoreMatchesReferenceScore(LightGBMBinaryClassificationModel model,
-                                                    DatasetSchema schema,
-                                                    CSVRecord record) {
+    private boolean modelScoreMatchesReferenceScore(final LightGBMBinaryClassificationModel model,
+                                                    final DatasetSchema schema,
+                                                    final CSVRecord record) {
 
         final Instance instance = CSVUtils.createDoublesInstanceFromCSVRecord(schema, record);
         final double referenceScore = Double.parseDouble(record.get("score"));
 
-        double[] scoreDistribution = model.getClassDistribution(instance);
+        final double[] scoreDistribution = model.getClassDistribution(instance);
 
         // Due to discrepancies in scores we compare up to the last 2 digits (non-included):
         return compareDoubles(referenceScore, scoreDistribution[1], 2);
@@ -216,17 +217,17 @@ public class LightGBMBinaryClassificationModelTest {
 
     /**
      * Compares two doubles, being equal if all but the last excludedDigits of the least precise double match.
-     * @param a Firsst double.
+     * @param a First double.
      * @param b Second double.
      * @param excludedDigits Exclude comparison of this many digits from the least precise number and compare.
      * @return true if and only if a == b (at the chosen precision level)
      */
-    private boolean compareDoubles(double a, double b, int excludedDigits) {
+    private boolean compareDoubles(final double a, final double b, final int excludedDigits) {
 
-        BigDecimal decimal_a = BigDecimal.valueOf(a);
-        BigDecimal decimal_b = BigDecimal.valueOf(b);
+        final BigDecimal decimal_a = BigDecimal.valueOf(a);
+        final BigDecimal decimal_b = BigDecimal.valueOf(b);
 
-        int smallerScale = Math.min(decimal_a.scale(), decimal_b.scale()) - excludedDigits;
+        final int smallerScale = Math.min(decimal_a.scale(), decimal_b.scale()) - excludedDigits;
 
         final RoundingMode roundingMode = RoundingMode.UP;
 

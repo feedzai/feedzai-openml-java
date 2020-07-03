@@ -24,8 +24,13 @@ import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.microsoft.ml.lightgbm.*;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
+import com.microsoft.ml.lightgbm.lightgbmlib;
+import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +49,6 @@ import static java.util.stream.Collectors.toList;
  * Class to train a LightGBM model.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 0.8.0
  */
 final class LightGBMBinaryClassificationModelTrainer {
 
@@ -66,7 +70,7 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param params LightGBM model parameters
      * @param outputModelFilePath Output filepath for the model file in .txt format.
      */
-    static void fit(final Dataset dataset, final Map<String, String> params, final Path outputModelFilePath) {
+    public static void fit(final Dataset dataset, final Map<String, String> params, final Path outputModelFilePath) {
 
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
@@ -134,7 +138,7 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param trainParams        LightGBM-formatted params string ("key1=value1 key2=value2 ...")
      * @param swigTrainResources SWIGTrainResources object
      */
-    static void createTrainDataset(final Dataset dataset,
+    private static void createTrainDataset(final Dataset dataset,
                                    final int numFeatures,
                                    final int numInstances,
                                    final String trainParams,
@@ -180,7 +184,7 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param trainParams                LightGBM string with the train params ("key1=value1 key2=value2 ...").
      * @param swigTrainFeaturesDataArray SWIG pointer to the features array (in row-major order).
      */
-    static void initializeLightGBMTrainDataset(final SWIGTYPE_p_p_void swigOutDatasetHandlePtr,
+    private static void initializeLightGBMTrainDataset(final SWIGTYPE_p_p_void swigOutDatasetHandlePtr,
                                                final int numFeatures,
                                                final int numInstances,
                                                final String trainParams,
@@ -188,7 +192,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
         final int rowMajor = 1; // Feature data was copied in row-major format.
-        int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMat(
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMat(
                 lightgbmlib.double_to_voidp_ptr(swigTrainFeaturesDataArray), // Feature data is in row-major format.
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 numInstances,
@@ -211,12 +215,12 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigTrainLabelDataArray SWIG labels array pointer
      * @param numInstances            Number of instances in dataset.
      */
-    static void setLightGBMDatasetLabelData(final SWIGTYPE_p_void swigDatasetHandle,
+    private static void setLightGBMDatasetLabelData(final SWIGTYPE_p_void swigDatasetHandle,
                                             final SWIGTYPE_p_float swigTrainLabelDataArray,
                                             final int numInstances) {
 
         logger.debug("Setting label data.");
-        int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
                 swigDatasetHandle,
                 "label", // LightGBM label column type.
                 lightgbmlib.float_to_voidp_ptr(swigTrainLabelDataArray),
@@ -235,14 +239,14 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigDatasetHandle SWIG dataset handle
      * @param schema            Dataset schema
      */
-    static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle, final DatasetSchema schema) {
+    private static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle, final DatasetSchema schema) {
 
         final int numFeatures = schema.getPredictiveFields().size();
 
         final String[] featureNames = getFieldNames(schema.getPredictiveFields());
         logger.debug("featureNames {}", Arrays.toString(featureNames));
 
-        int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(swigDatasetHandle, featureNames, numFeatures);
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(swigDatasetHandle, featureNames, numFeatures);
         if (returnCodeLGBM == -1) {
             logger.error("Could not set feature names.");
             throw new LightGBMException();
@@ -259,7 +263,7 @@ final class LightGBMBinaryClassificationModelTrainer {
     static void createBoosterStructure(final SWIGTrainResources swigTrainResources, final String trainParams) {
 
         logger.debug("Initializing LightGBM model structure.");
-        int returnCodeLGBM = lightgbmlib.LGBM_BoosterCreate(
+        final int returnCodeLGBM = lightgbmlib.LGBM_BoosterCreate(
                 swigTrainResources.swigDatasetHandle,
                 trainParams,
                 swigTrainResources.swigOutBoosterHandlePtr
@@ -289,7 +293,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         try {
             for (int trainIteration = 0; trainIteration < numIterations; ++trainIteration) {
                 logger.debug("Starting model training iteration #{}/{}.", trainIteration + 1, numIterations);
-                int returnCodeLGBM = lightgbmlib.LGBM_BoosterUpdateOneIter(swigBoosterHandle, swigOutFinishedIntPtr);
+                final int returnCodeLGBM = lightgbmlib.LGBM_BoosterUpdateOneIter(swigBoosterHandle, swigOutFinishedIntPtr);
                 if (returnCodeLGBM == -1) {
                     logger.error("Failed to train model!");
                     throw new LightGBMException();
@@ -321,7 +325,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         logger.debug("Saving trained model to disk at {}.", outputModelPath);
 
-        int returnCodeLGBM = lightgbmlib.LGBM_BoosterSaveModel(
+        final int returnCodeLGBM = lightgbmlib.LGBM_BoosterSaveModel(
                 swigBoosterHandle,
                 0,
                 -1,
@@ -348,7 +352,8 @@ final class LightGBMBinaryClassificationModelTrainer {
         final DatasetSchema datasetSchema = dataset.getSchema();
         final int numFields = datasetSchema.getFieldSchemas().size();
         final int numFeatures = datasetSchema.getPredictiveFields().size();
-        final int targetIndex = datasetSchema.getTargetIndex().get();
+        // if target index doesn't exit, return -1.
+        final int targetIndex = datasetSchema.getTargetIndex().orElse(-1);
 
         final Iterator<Instance> iterator = dataset.getInstances();
         int rowIdx = 0;

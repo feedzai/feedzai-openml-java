@@ -61,6 +61,8 @@ public class TestResources {
     }
 
     /**
+     * Gets model file path.
+     *
      * @return Path of test model resource.
      * @throws URISyntaxException if extracting that resource was not possible.
      */
@@ -70,6 +72,8 @@ public class TestResources {
     }
 
     /**
+     * Gets model folder path.
+     *
      * @return Path to the model folder resource.
      * @throws URISyntaxException if extracting that resource was not possible.
      */
@@ -79,6 +83,8 @@ public class TestResources {
     }
 
     /**
+     * Gets scored instances path.
+     *
      * @return path of the scored instances
      * @throws URISyntaxException if extracting that resource was not possible.
      */
@@ -88,6 +94,8 @@ public class TestResources {
     }
 
     /**
+     * Gets scored instances CSV parser.
+     *
      * @return CSVParser for the scored instances.
      * @throws URISyntaxException in case the resource URI cannot be created.
      * @throws IOException        in case there's an IO error.

@@ -26,11 +26,16 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.*;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -61,7 +66,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Dataset resource name to use for both fit & validation stages during tests.
      */
-    static final String DATASET_RESOURCE_NAME = "test_data/in_train_val.csv";
+    public static final String DATASET_RESOURCE_NAME = "test_data/in_train_val.csv";
 
     /**
      * The number of iterations used to test model fit.
@@ -91,7 +96,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     @Test
     public void fitWithNumericalsOnlyTest() throws URISyntaxException, IOException {
 
-        ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 TestResources.SCORED_INSTANCES_NAME,
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -112,7 +117,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     @Test
     public void fitWithNumericalsAndCategoricalsTest() throws URISyntaxException, IOException {
 
-        ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -137,21 +142,21 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     public void fitCategoricalsWithLabelInStartMiddleOrEndHasSameResultsTest()
             throws URISyntaxException, IOException {
 
-        ArrayList<ArrayList<Double>> scoresPerClassForLabelAtStart = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtStart = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
                 MAX_NUMBER_OF_INSTANCES_TO_SCORE
         );
 
-        ArrayList<ArrayList<Double>> scoresPerClassForLabelInMiddle = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<ArrayList<Double>> scoresPerClassForLabelInMiddle = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
                 MAX_NUMBER_OF_INSTANCES_TO_SCORE
         );
 
-        ArrayList<ArrayList<Double>> scoresPerClassForLabelAtEnd = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtEnd = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -221,6 +226,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      *
      * @param datasetResourceName Dataset to use for train and validation.
      * @param schema              Schema to use for train and validation.
+     * @param maxInstancesToTrain Maximum number of instances to train.
      * @param maxInstancesToScore Maximum number of instances to score.
      * @return array(arrayScoresClass0, arrayScoresClass1) Array of scores per class (binary case).
      * @throws URISyntaxException For errors when loading the dataset resource.
@@ -238,7 +244,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
                 dataset,
                 new Random(),
                 modelParams
@@ -257,7 +263,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @return Array with arrays of class scores.
      */
     private static ArrayList<ArrayList<Double>> getClassScores(final Dataset dataset,
-                                                               LightGBMBinaryClassificationModel model,
+                                                               final LightGBMBinaryClassificationModel model,
                                                                final int maxInstances) {
 
         final int targetIndex = dataset.getSchema().getTargetIndex().get(); // We need a label for the tests.
@@ -266,7 +272,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         classScores.add(new ArrayList<>());
         classScores.add(new ArrayList<>());
 
-        Iterator<Instance> iterator = dataset.getInstances();
+        final Iterator<Instance> iterator = dataset.getInstances();
         for (int numInstances = 0; iterator.hasNext() && numInstances < maxInstances; ++numInstances) {
             final Instance instance = iterator.next();
             final int classIndex = (int) instance.getValue(targetIndex);
@@ -281,15 +287,15 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Returns the average of an array.
      *
-     * @param X Input array from which to compute the average.
+     * @param inputArray Input array from which to compute the average.
      * @return Average
      */
-    private double average(ArrayList<Double> X) {
+    private double average(final ArrayList<Double> inputArray) {
 
         double sum = 0.0;
-        for (final Double x : X) {
+        for (final Double x : inputArray) {
             sum += x;
         }
-        return (sum / X.size());
+        return (sum / inputArray.size());
     }
 }

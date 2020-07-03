@@ -27,7 +27,6 @@ import com.feedzai.openml.mocks.MockInstance;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +62,9 @@ class CSVUtils {
     private static final Logger logger = LoggerFactory.getLogger(CSVUtils.class);
 
     /**
+     * Gets the CSV parser giving the path to CSV file.
+     *
+     * @param csvFilePath The CSV file path.
      * @return CSVParser for a csv file with header.
      * @throws IOException in case there's an IO error.
      */
@@ -138,7 +140,7 @@ class CSVUtils {
     }
 
     /**
-     * Gets the csv data into a dataset with the desired schema
+     * Gets the csv data into a dataset with the desired schema.
      *
      * @param csvFilepath Path to the CSV file with header.
      * @param schema      Schema with desired columns to extract from the csv.
@@ -161,7 +163,7 @@ class CSVUtils {
     }
 
     /**
-     * Gets the first rows from the CSV data into a dataset with the desired schema
+     * Gets the first rows from the CSV data into a dataset with the desired schema.
      *
      * @param csvFilepath     Path to the CSV file with header.
      * @param schema          Schema with desired columns to extract from the csv.
