@@ -1,0 +1,24 @@
+* Test dataset statistics
+
+| Feature         | Expression                                                                                 |
+|-----------------+--------------------------------------------------------------------------------------------|
+| card            | RANDBETWEEN(0,100)                                                                         |
+| amount          | RANDBETWEEN(0,1000)                                                                        |
+| event_timestamp | RANDOM                                                                                     |
+| is_fraud_label  | 400<amount<700 & cat1_string="C" & num1_float < 700                                        |
+| uuid            | UNIQUE                                                                                     |
+| cat1_generator  | RANDBETWEEN(0,3)                                                                           |
+| cat2_generator  | RANDBETWEEN(0,2)                                                                           |
+| cat3_generator  | RANDBETWEEN(0,5)                                                                           |
+| num1_float      | RANDBETWEEN(1,1000)+0.4                                                                    |
+| num2_double     | RANDBETWEEN(200000,40000000)-0.3                                                           |
+| num3_int        | RANDBETWEEN(10000,12000)                                                                   |
+| cat1_string     | IFS(F2=0,"aaa",F2=1,"b",F2=2,"C",F2=3,"dDd")                                               |
+| cat2_string     | IFS(G2=0,"aaacat2",G2=1,"bcat2",G2=2,"Ccat2",G2=3,"dDdcat2")                               |
+| cat3_string     | IFS(H2=0,"aaacat3",H2=1,"bcat3",H2=2,"Ccat3",H2=3,"dDdcat3",H2=4,"sdofij",H2=5,"blahblah") |
+
+| Dataset          |      N | N_fraud | Fraud rate (%) |
+|------------------+--------+---------+----------------|
+| train.csv        | 184951 |    9792 |            5.3 |
+| in_train_val.csv |  50000 |    2719 |            5.5 |
+| val.csv          |  50000 |    2569 |            5.1 |
