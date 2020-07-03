@@ -155,11 +155,9 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             errorsBuilder.add(new ParamValidationError(ERROR_MSG_NON_BINARY_TARGET));
         }
 
-        if (params.get(BOOSTING_TYPE_PARAMETER_NAME).equals("rf")) {
-            if (baggingDisabled(params)) {
-                logger.warn("RF requires bagging. Set bagging fraction < 1 and bagging frequency > 0.");
-                errorsBuilder.add(new ParamValidationError(ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING));
-            }
+        if (params.get(BOOSTING_TYPE_PARAMETER_NAME).equals("rf") && baggingDisabled(params)) {
+            logger.warn("RF requires bagging. Set bagging fraction < 1 and bagging frequency > 0.");
+            errorsBuilder.add(new ParamValidationError(ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING));
         }
 
         return errorsBuilder.build();

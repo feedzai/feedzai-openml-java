@@ -137,7 +137,7 @@ public class TestSchemas {
     /**
      * A wrong test schema that lacks lots of the schema fields.
      */
-    static final DatasetSchema BAD_NUMERICALS_SCHEMA_WITH_MISSING_FIELDS = new DatasetSchema(
+    public static final DatasetSchema BAD_NUMERICALS_SCHEMA_WITH_MISSING_FIELDS = new DatasetSchema(
             1,
             ImmutableList.of(
                     new FieldSchema("num2_double", 0,
@@ -165,7 +165,7 @@ public class TestSchemas {
     /**
      * Derived test schema with categoricals and label between the feature fields.
      */
-    static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE = SchemaUtils.getSchemaWithTargetAt(
+    public static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE = SchemaUtils.getSchemaWithTargetAt(
             CATEGORICALS_SCHEMA_LABEL_AT_END, 1
     );
 
@@ -179,7 +179,7 @@ public class TestSchemas {
     /**
      * Schema with non-binary classification target.
      */
-    static final DatasetSchema SCHEMA_WITH_NON_BINARY_CLASSIFICATION_TARGET = new DatasetSchema(
+    public static final DatasetSchema SCHEMA_WITH_NON_BINARY_CLASSIFICATION_TARGET = new DatasetSchema(
             1,
             ImmutableList.of(
                     NUMERICAL_SCHEMA_FEATURES.get(0),

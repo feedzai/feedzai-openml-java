@@ -17,7 +17,11 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.microsoft.ml.lightgbm.*;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
+import com.microsoft.ml.lightgbm.lightgbmlib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  */
-public class SWIGTrainResources implements  AutoCloseable {
+public class SWIGTrainResources implements AutoCloseable {
 
     /**
      * Logger for this class.
@@ -39,7 +43,7 @@ public class SWIGTrainResources implements  AutoCloseable {
     /**
      * Handle for the output parameter necessary for the LightGBM dataset instantiation.
      */
-    SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
+    public SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
 
     /**
      * SWIG pointer to the Features data array.
@@ -48,27 +52,27 @@ public class SWIGTrainResources implements  AutoCloseable {
      * In the current implementation, features are stored in row-major order, i.e.,
      * each instance is stored contiguously.
      */
-    SWIGTYPE_p_double swigTrainFeaturesDataArray;
+    public SWIGTYPE_p_double swigTrainFeaturesDataArray;
 
     /**
      * SWIG pointer to the labels array (array of float32 elements).
      */
-    SWIGTYPE_p_float swigTrainLabelDataArray;
+    public SWIGTYPE_p_float swigTrainLabelDataArray;
 
     /**
      * SWIG LightGBM dataset handle.
      */
-    SWIGTYPE_p_void swigDatasetHandle;
+    public SWIGTYPE_p_void swigDatasetHandle;
 
     /**
      * SWIG pointer to the output LightGBM Booster Handle during Booster structure instantiation.
      */
-    SWIGTYPE_p_p_void swigOutBoosterHandlePtr;
+    public SWIGTYPE_p_p_void swigOutBoosterHandlePtr;
 
     /**
      * Handle of the LightGBM boosting model post-instantiation.
      */
-    SWIGTYPE_p_void swigBoosterHandle;
+    public SWIGTYPE_p_void swigBoosterHandle;
 
     /**
      * Constructor.
@@ -99,14 +103,14 @@ public class SWIGTrainResources implements  AutoCloseable {
     /**
      * Setup swigDatasetHandle after its setup.
      */
-    void initSwigDatasetHandle() {
+    public void initSwigDatasetHandle() {
         this.swigDatasetHandle = lightgbmlib.voidpp_value(this.swigOutDatasetHandlePtr);
     }
 
     /**
      * Setup swigBoosterHandle after its structure was created in-memory.
      */
-    void initSwigBoosterHandle() {
+    public void initSwigBoosterHandle() {
         this.swigBoosterHandle = lightgbmlib.voidpp_value(this.swigOutBoosterHandlePtr);
     }
 
@@ -114,7 +118,7 @@ public class SWIGTrainResources implements  AutoCloseable {
      * Release the memory of the label array.
      * This can be called after instantiating the dataset and setting the label in it.
      */
-    void destroySwigTrainLabelDataArray() {
+    public void destroySwigTrainLabelDataArray() {
 
         if (this.swigTrainLabelDataArray != null) {
             lightgbmlib.delete_floatArray(this.swigTrainLabelDataArray);
@@ -126,7 +130,7 @@ public class SWIGTrainResources implements  AutoCloseable {
      * Release the memory of the features array.
      * This can be called after instantiating the dataset.
      */
-    void destroySwigTrainFeaturesDataArray() {
+    public void destroySwigTrainFeaturesDataArray() {
 
         if (this.swigTrainFeaturesDataArray != null) {
             lightgbmlib.delete_doubleArray(this.swigTrainFeaturesDataArray);
@@ -138,7 +142,7 @@ public class SWIGTrainResources implements  AutoCloseable {
      * Release any allocated resources.
      * This operation is idempotent and can be safely called at any time as many times as you wish.
      */
-    void releaseResources() {
+    public void releaseResources() {
 
         if (this.swigOutDatasetHandlePtr != null) {
             lightgbmlib.delete_voidpp(this.swigOutDatasetHandlePtr);

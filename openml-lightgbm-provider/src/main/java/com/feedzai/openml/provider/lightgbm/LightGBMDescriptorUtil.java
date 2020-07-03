@@ -49,7 +49,6 @@ public class LightGBMDescriptorUtil {
 
     /**
      * Bagging frequency parameter name.
-     * Bagging frequency parameter name.
      */
     public static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
 
@@ -92,8 +91,8 @@ public class LightGBMDescriptorUtil {
      * @return Double range with the specs above.
      */
     public static NumericFieldType doubleRange(final double minValue,
-                                                      final double maxValue,
-                                                      final double defaultValue) {
+                                               final double maxValue,
+                                               final double defaultValue) {
         return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.DOUBLE, defaultValue);
     }
 

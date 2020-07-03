@@ -70,41 +70,41 @@ class SchemaUtils {
      * @return schema with the label at the desired position (or no label if requested).
      * @warning outputTargetIndex >= 0 will throw a RuntimeException if the input schema has no label.
      */
-    protected static DatasetSchema getSchemaWithTargetAt(final DatasetSchema schema, Integer outputTargetIndex) {
+    protected static DatasetSchema getSchemaWithTargetAt(final DatasetSchema schema, final int outputTargetIndex) {
 
         final int originalTargetIndex = schema.getTargetIndex().orElse(-1);
         final List<FieldSchema> fields = schema.getFieldSchemas();
         final int numFields = fields.size();
 
         // Fix the user choice to match the proper end index if necessary:
-        outputTargetIndex = (outputTargetIndex < numFields) ? outputTargetIndex : numFields - 1;
+        final int outputTargetFieldIndex = (outputTargetIndex < numFields) ? outputTargetIndex : numFields - 1;
 
-        if (outputTargetIndex < 0) {
+        if (outputTargetFieldIndex < 0) {
             return getSchemaWithoutLabel(schema);
         } else if (originalTargetIndex == -1) {
             throw new RuntimeException("Input schema has no label. Invalid operation.");
         } else {
             // Both input and output schemas have labelindex >= 0.
 
-            final int labelShiftRegionMin = Math.min(originalTargetIndex, outputTargetIndex);
-            final int labelShiftRegionMax = Math.max(originalTargetIndex, outputTargetIndex);
+            final int labelShiftRegionMin = Math.min(originalTargetIndex, outputTargetFieldIndex);
+            final int labelShiftRegionMax = Math.max(originalTargetIndex, outputTargetFieldIndex);
 
             final List<FieldSchema> outputFields = new ArrayList<>();
             for (int i = 0; i < numFields; ++i) {
 
                 int fetchOffset = 0;
                 if (labelShiftRegionMin <= i && i <= labelShiftRegionMax) {
-                    if (i == outputTargetIndex) {
-                        fetchOffset = outputTargetIndex - originalTargetIndex;
+                    if (i == outputTargetFieldIndex) {
+                        fetchOffset = outputTargetFieldIndex - originalTargetIndex;
                     } else {
-                        fetchOffset = (i < outputTargetIndex) ? -1 : 1;
+                        fetchOffset = (i < outputTargetFieldIndex) ? -1 : 1;
                     }
                 }
 
                 outputFields.add(getFieldCopyWithIndex(fields.get(i - fetchOffset), i));
             }
 
-            return new DatasetSchema(outputTargetIndex, outputFields);
+            return new DatasetSchema(outputTargetFieldIndex, outputFields);
         }
     }
 

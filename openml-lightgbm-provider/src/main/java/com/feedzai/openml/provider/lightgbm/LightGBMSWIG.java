@@ -131,7 +131,7 @@ class LightGBMSWIG {
      * @param instance The instance from pulse.
      * @return double[2] array with scores.
      */
-    double[] getBinaryClassDistribution(final Instance instance) {
+    public double[] getBinaryClassDistribution(final Instance instance) {
 
         // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
         synchronized (this.swigResources) {
