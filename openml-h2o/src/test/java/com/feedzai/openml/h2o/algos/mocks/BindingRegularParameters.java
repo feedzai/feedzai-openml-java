@@ -7,7 +7,6 @@ import water.bindings.pojos.ModelParametersSchemaV3;
  * FIXME
  *
  * @author Miguel Cruz (miguel.cruz@feedzai.com)
- * @since @@@feedzai.next.release@@@
  */
 public class BindingRegularParameters extends ModelParametersSchemaV3 {
 
