@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Based on regression test for PULSEDEV-24998 from H2O.
  *
- * @author Nuno Diegues (nuno.diegues@feedzai.com) & adapted by Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
 public class ClassifyUnknownCategoryTest {
@@ -74,6 +74,5 @@ public class ClassifyUnknownCategoryTest {
                 .as("sum of the class distribution", new Object[0])
                 .isCloseTo(1.0D, Assertions.within(0.01D));
     }
-
-
+    
 }
