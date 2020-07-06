@@ -31,6 +31,7 @@ import static com.feedzai.openml.provider.lightgbm.LightGBMUtils.BINARY_LGBM_NUM
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 class SWIGResources implements AutoCloseable {
 

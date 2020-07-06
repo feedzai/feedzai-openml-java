@@ -30,6 +30,7 @@ import java.util.List;
  * Class to hold all used test schemas.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class TestSchemas {
 

@@ -28,6 +28,7 @@ import static com.google.common.io.ByteStreams.copy;
  * Collection of util methods specific to the LightGBM OpenML Provider.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMUtils {
 

@@ -49,6 +49,7 @@ import java.util.SortedSet;
  * for multiple test purposes with ease).
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 class CSVUtils {
 

@@ -43,6 +43,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Tests LightGBM model fitting procedures.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMBinaryClassificationModelTrainerTest {
 

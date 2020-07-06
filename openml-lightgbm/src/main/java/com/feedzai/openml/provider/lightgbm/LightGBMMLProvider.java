@@ -30,6 +30,7 @@ import java.util.Set;
  * This class implements Feedzai's OpenML MachineLearningProvider interface for LightGBM.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 @AutoService(MachineLearningProvider.class)
 public class LightGBMMLProvider implements TrainingMachineLearningProvider<LightGBMModelCreator> {

@@ -30,6 +30,7 @@ import java.util.Map;
  * Class to return the LightGBM Algorithm's default parameters.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class TestParameters {
 

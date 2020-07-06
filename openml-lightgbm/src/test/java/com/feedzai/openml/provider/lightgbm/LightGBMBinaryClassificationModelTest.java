@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for the BinaryLightGBMModel class.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMBinaryClassificationModelTest {
 

@@ -51,6 +51,7 @@ import static java.nio.file.Files.createTempFile;
  * Loads the scoring model.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGBMBinaryClassificationModel> {
 
@@ -183,9 +184,11 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
                                                        final DatasetSchema schema)  throws ModelLoadingException {
 
         // If modelPath is a directory, look for the model file inside:
-        Path modelFilePath = modelPath;
+        final Path modelFilePath;
         if (Files.isDirectory(modelPath)) {
             modelFilePath = modelPath.resolve(MODEL_BINARY_RESOURCE_FILE_NAME);
+        } else {
+            modelFilePath = modelPath;
         }
 
         logger.info("Loading LightGBM model from " + modelFilePath.toAbsolutePath().toString());

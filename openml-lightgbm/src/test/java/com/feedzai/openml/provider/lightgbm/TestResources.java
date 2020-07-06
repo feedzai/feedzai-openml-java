@@ -29,6 +29,7 @@ import java.nio.file.Paths;
  * It has all the reference resources necessary to perform the tests.
  *
  * @author Alberto Ferreira
+ * @since 1.0.10
  */
 public class TestResources {
 

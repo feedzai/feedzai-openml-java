@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class SWIGTrainResources implements AutoCloseable {
 

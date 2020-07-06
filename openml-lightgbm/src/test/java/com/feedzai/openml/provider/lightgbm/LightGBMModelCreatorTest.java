@@ -49,6 +49,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
  * Tests for the LightGBMModelLoader.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMModelCreatorTest {
 

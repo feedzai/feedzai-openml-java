@@ -178,7 +178,8 @@
                             <outputDirectory>${project.basedir}/target/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${maven.multiModuleProjectDirectory}/LICENCES</directory>
+                                    <directory>${project.parent.basedir}/</directory>
+                                    <include>LICENSE</include>
                                 </resource>
                             </resources>
                         </configuration>

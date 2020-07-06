@@ -35,6 +35,7 @@ import static java.util.stream.Collectors.toList;
  * e.g., targetFieldIndex=-1 => no target field.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 class SchemaUtils {
 

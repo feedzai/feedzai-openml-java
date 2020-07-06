@@ -36,6 +36,7 @@ import static com.feedzai.openml.provider.lightgbm.LightGBMUtils.BINARY_LGBM_NUM
  * <p>This class is <b>ThreadSafe</b>, not allowing for serializing any attempts for parallel scoring.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 class LightGBMSWIG {
 

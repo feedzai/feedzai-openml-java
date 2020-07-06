@@ -49,6 +49,7 @@ import static java.util.stream.Collectors.toList;
  * Class to train a LightGBM model.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 final class LightGBMBinaryClassificationModelTrainer {
 

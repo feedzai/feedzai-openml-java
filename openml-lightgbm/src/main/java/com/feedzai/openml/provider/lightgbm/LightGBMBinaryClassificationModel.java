@@ -30,6 +30,7 @@ import java.nio.file.Path;
  * This class is responsible for loading a saved LightGBM model binary and scoring instances.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class LightGBMBinaryClassificationModel implements ClassificationMLModel {
 
