@@ -178,8 +178,7 @@
                             <outputDirectory>${project.basedir}/target/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>${project.parent.basedir}/</directory>
-                                    <include>LICENSE</include>
+                                    <directory>LICENCES</directory>
                                 </resource>
                             </resources>
                         </configuration>
