@@ -4,10 +4,10 @@ import com.google.gson.annotations.SerializedName;
 import water.bindings.pojos.ModelParametersSchemaV3;
 
 /**
- * FIXME
+ * Mocked class that extends {@link ModelParametersSchemaV3} to match {@link RegularParameters}.
  *
  * @author Miguel Cruz (miguel.cruz@feedzai.com)
- * @since @@@feedzai.next.release@@@
+ * @since 1.0.7
  */
 public class BindingRegularParameters extends ModelParametersSchemaV3 {
 

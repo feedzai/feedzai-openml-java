@@ -1,0 +1,3 @@
+[submodule "openml-lightgbm/make-lightgbm"]
+	path = openml-lightgbm/make-lightgbm
+	url = https://github.com/feedzai/make-lightgbm
