@@ -4,10 +4,11 @@ import water.api.API;
 import water.api.schemas3.ModelParametersSchemaV3;
 
 /**
- * FIXME
+ * Mocked class that extends {@link water.bindings.pojos.ModelParametersSchemaV3} having a field named
+ * {@code fields}.
  *
  * @author Miguel Cruz (miguel.cruz@feedzai.com)
- * @since @@@feedzai.next.release@@@
+ * @since 1.0.7
  */
 public class RegularParameters extends ModelParametersSchemaV3 {
 
