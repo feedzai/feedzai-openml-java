@@ -74,7 +74,7 @@ class SWIGResources implements AutoCloseable {
      * Whilst not a swig resource, it is automatically retrieved during model loading,
      * thus we store it to avoid calling it again.
      */
-    Integer boosterNumIterations;
+    private Integer boosterNumIterations;
 
     /**
      * Constructor. Initializes a model handle and all resource handlers
