@@ -24,7 +24,7 @@
 
     <properties>
         <lightgbmlib.version>2.3.150</lightgbmlib.version>
-        <make.lightgbmlib.version>2.3.1</make.lightgbmlib.version>
+        <make-lightgbmlib.version>v2.3.1</make-lightgbmlib.version>
     </properties>
 
     <dependencies>
@@ -113,7 +113,7 @@
                         <configuration>
                             <executable>${project.basedir}/make.sh</executable>
                             <arguments>
-                                <argument>${make.lightgbmlib.version}</argument>
+                                <argument>${make-lightgbmlib.version}</argument>
                             </arguments>
                         </configuration>
                     </execution>
