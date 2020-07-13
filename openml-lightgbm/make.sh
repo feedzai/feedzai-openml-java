@@ -16,15 +16,28 @@
 #
 # @author Sheng Wang (sheng.wang@feedzai.com)
 
-FILE=lightgbmlib_build
-if [ ! -d "$FILE" ]; then
-  echo "entering the folder."
+VERSION=v"$1"
+
+# Compare version, when different remove the build folder
+FILE=lightgbmlib_build/__version__
+if [ -f "$FILE" ]; then
+  OLD_VERSION=$(head -n 1 "$FILE")
+  if [ "$VERSION" != "$OLD_VERSION" ]; then
+    echo "Renaming the folder."
+    rm -rf lightgbmlib_build
+  fi
+fi
+
+# Make LightGBM if it doesn't exist
+DIR=lightgbmlib_build
+if [ ! -d "$DIR" ]; then
+  echo "Entering the folder."
   cd make-lightgbm || return
-  echo "starting run the script"
-  bash make.sh v2.3.0 || return
-  echo "exiting the folder."
+  echo "Building LightGBM $VERSION"
+  bash make.sh "$VERSION" || return
+  echo "Exiting the folder."
   cd .. || return
-  echo "move the folder."
+  echo "Renaming the folder."
   mv make-lightgbm/build lightgbmlib_build || return
-  echo "finished!"
+  echo "Finished!"
 fi
