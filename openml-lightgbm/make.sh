@@ -16,7 +16,9 @@
 #
 # @author Sheng Wang (sheng.wang@feedzai.com)
 
-VERSION=v"$1"
+set -e
+
+VERSION="$1"
 
 # Compare version, when different remove the build folder
 FILE=lightgbmlib_build/__version__
@@ -32,12 +34,12 @@ fi
 DIR=lightgbmlib_build
 if [ ! -d "$DIR" ]; then
   echo "Entering the folder."
-  cd make-lightgbm || return
+  cd make-lightgbm
   echo "Building LightGBM $VERSION"
-  bash make.sh "$VERSION" || return
+  bash make.sh "$VERSION"
   echo "Exiting the folder."
-  cd .. || return
+  cd ..
   echo "Renaming the folder."
-  mv make-lightgbm/build lightgbmlib_build || return
+  mv make-lightgbm/build lightgbmlib_build
   echo "Finished!"
 fi
