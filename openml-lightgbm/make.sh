@@ -18,8 +18,6 @@
 
 set -e
 
-cd "$(dirname "$0")"
-
 VERSION="$1"
 
 # Compare version, when different remove the build folder
