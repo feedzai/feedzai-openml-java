@@ -107,7 +107,7 @@ public class TestSchemas {
      * "uuid","cat1_generator","cat2_generator","cat3_generator","num1_float","num2_double","num3_int",
      * "cat1_string","cat2_string","cat3_string"
      */
-    static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_AT_END = new DatasetSchema(
+    public static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_AT_END = new DatasetSchema(
             7,
             ImmutableList.<FieldSchema>builder()
                     .addAll(CATEGORICAL_SCHEMA_FEATURES)
