@@ -4,7 +4,7 @@ This implementation is a "wrapper" to Microsoft's LightGBM framework for Java fo
 
 The main goals of the implementation are:
 
-1. Reliability
+1.  Reliability
 2. Low latency single-event scoring meant for realtime usage
 3. High throughput scoring
  4. High throughput train
