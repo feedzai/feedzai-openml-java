@@ -5,9 +5,9 @@ This implementation is a "wrapper" to Microsoft's LightGBM framework for Java fo
 The main goals of the implementation are:
 
 1.  Reliability
-2. Low latency single-event scoring meant for realtime usage
-3. High throughput scoring
- 4. High throughput train
+2.  Low latency single-event scoring meant for realtime usage
+3.  High throughput scoring
+4.  High throughput train
 
 ## Installation
 
@@ -19,7 +19,5 @@ mvn clean install # or `mvn clean package` to generate the .jar alone
 
 ### Build time
 
-The first build might take up to 15 minutes, depending on your connection speed. After that each build takes around 10-30 seconds.
-
-The first build is lengthier as it needs to create [make-lightgbm](https://github.com/feedzai/make-lightgbm/)'s docker image and fetch maven dependencies.
+The first build is lengthier (might take up to 15 minutes) as it needs to create [make-lightgbm](https://github.com/feedzai/make-lightgbm/)'s docker image and fetch maven dependencies. After that each build takes around 10-30 seconds.
 
