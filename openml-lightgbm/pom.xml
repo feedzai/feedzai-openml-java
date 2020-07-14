@@ -112,6 +112,7 @@
                         </goals>
                         <configuration>
                             <executable>${project.basedir}/make.sh</executable>
+                            <workingDirectory>${project.basedir}</workingDirectory>
                             <arguments>
                                 <argument>${make-lightgbmlib.version}</argument>
                             </arguments>
