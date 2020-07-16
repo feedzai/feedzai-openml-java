@@ -26,7 +26,7 @@ Pull the provider from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-h2o</artifactId>
   <!-- See project tags for latest version -->
-  <version>1.0.9</version>
+  <version>1.0.10</version>
 </dependency>
 ```
 
@@ -41,6 +41,21 @@ Pull this module from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-datarobot</artifactId>
   <!-- See project tags for latest version -->
-  <version>1.0.9</version>
+  <version>1.0.10</version>
+</dependency>
+```
+
+### LightGBM
+[![Maven metadata URI](https://img.shields.io/maven-metadata/v/http/central.maven.org/maven2/com/feedzai/openml-lightgbm/maven-metadata.xml.svg)](https://mvnrepository.com/artifact/com.feedzai/openml-lightgbm)
+
+The `openml-lightgbm` module contains a provider that allows to load models trained with [Microsoft LightGBM](https://github.com/microsoft/LightGBM).
+
+Pull this module from Maven Central:
+```xml
+<dependency>
+  <groupId>com.feedzai</groupId>
+  <artifactId>openml-lightgbm</artifactId>
+  <!-- See project tags for latest version -->
+  <version>1.0.10</version>
 </dependency>
 ```
