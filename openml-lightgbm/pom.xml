@@ -23,8 +23,8 @@
     <description>Contains an example for the implementation of a LGBM Machine Learning Model and Classifier</description>
 
     <properties>
-        <lightgbmlib.version>2.3.150</lightgbmlib.version>
-        <make-lightgbmlib.version>v2.3.1</make-lightgbmlib.version>
+        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
+        <lightgbmlib.version>2.3.160</lightgbmlib.version>
     </properties>
 
     <dependencies>
@@ -40,7 +40,7 @@
         </dependency>
 
         <dependency>
-            <groupId>com.microsoft.ml.lightgbm</groupId>
+            <groupId>com.feedzai.openml.lightgbmlib</groupId>
             <artifactId>lightgbmlib</artifactId>
             <version>${lightgbmlib.version}</version>
         </dependency>
@@ -100,13 +100,14 @@
 
         <plugins>
 
+            <!-- Build LightGBM + lightgbmlib (Java JNI package) -->
             <plugin>
-                <artifactId>exec-maven-plugin</artifactId>
                 <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>Generate LightGBM Build</id>
                         <phase>initialize</phase>
+                        <id>generate-lightgbm-build</id>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -114,43 +115,14 @@
                             <executable>${project.basedir}/make.sh</executable>
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <arguments>
-                                <argument>${make-lightgbmlib.version}</argument>
+                                <argument>${lightgbm.version}</argument>
+                                <argument>${lightgbmlib.version}</argument>
                             </arguments>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <appendAssemblyId>false</appendAssemblyId>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- set locale otherwise the LightGBM core implementation spits wrong results -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <environmentVariables>
-                        <LC_ALL>C</LC_ALL>
-                    </environmentVariables>
-                </configuration>
-            </plugin>
-
-            <!-- Install the local copy of the custom build of LightGBM to Maven -->
+            <!-- Install the local copy of lightgbmlib to Maven -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
@@ -169,7 +141,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Copy the shared libraries to the resources folder -->
+            <!-- Copy the LightGBM shared libraries to the resources folder -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -208,6 +180,37 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- assemble package -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- set locale for tests otherwise the LightGBM core implementation spits wrong results -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <LC_ALL>C</LC_ALL>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 </project>

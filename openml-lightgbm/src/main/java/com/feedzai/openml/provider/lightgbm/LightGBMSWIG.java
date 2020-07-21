@@ -113,7 +113,7 @@ class LightGBMSWIG {
 
         int skipTargetOffset = 0; // set to 1 after passing the target (if it exists)
         for (int i = 0; i < this.schemaNumFields; ++i) {
-            // If the label is not present, targetIndex=-1, thus "if" wont't trigger:
+            // If the label is not present, targetIndex=-1, thus "if" won't trigger:
             if (i == this.schemaTargetIndex) {
                 skipTargetOffset = -1;
             } else {
@@ -252,7 +252,9 @@ class LightGBMSWIG {
 
         final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterSaveModel(
                 this.swigResources.swigBoosterHandle,
-                0, -1,
+                0,
+                -1,
+                lightgbmlibJNI.C_API_FEATURE_IMPORTANCE_GAIN_get(),
                 outputModelFilePath.toAbsolutePath().toString()
         );
         if (returnCodeLGBM == -1) {
