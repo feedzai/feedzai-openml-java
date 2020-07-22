@@ -36,7 +36,7 @@ DIR=lightgbmlib_build
 if [ ! -d "$DIR" ]; then
   echo "Entering the folder."
   cd make-lightgbm
-  echo "Building LightGBM $LIGHTGBM_VERSION as lightgbmlib LIGHTGBMLIB_VERSION"
+  echo "Building LightGBM $LIGHTGBM_VERSION as lightgbmlib $LIGHTGBMLIB_VERSION"
   bash make.sh "$LIGHTGBM_VERSION" "$LIGHTGBMLIB_VERSION"
   echo "Exiting the folder."
   cd ..

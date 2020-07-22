@@ -12,30 +12,32 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>openml-lightgbm</artifactId>
         <groupId>com.feedzai</groupId>
+        <artifactId>openml-lightgbm</artifactId>
         <version>0.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>com.feedzai.openml-lightgbm</groupId>
     <artifactId>openml-lightgbm-provider</artifactId>
+    <version>1.0.10-ft_af_pulsedev_32102_lgbm_large_datasets_support-SNAPSHOT</version>
 
     <description>Contains an example for the implementation of a LGBM Machine Learning Model and Classifier</description>
-<!--
-    <properties>
-        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
-        <lightgbmlib.version>2.3.160</lightgbmlib.version>
-    </properties>
--->
+
     <dependencies>
-        <!--
+
+        <!-- Force dependency on lightgbm-builder -->
         <dependency>
-            <groupId>com.feedzai.openml.lightgbmbuilder</groupId>
-            <version>0.0.0</version>
+            <groupId>com.feedzai.openml-lightgbm</groupId>
+            <version>${project.version}</version>
             <artifactId>lightgbm-builder</artifactId>
-            <scope>provided</scope>
         </dependency>
-        -->
+        <!-- Use lightgbmlib (LightGBM JNI interface) -->
+        <dependency>
+            <groupId>com.feedzai.openml.lightgbmlib</groupId>
+            <artifactId>lightgbmlib</artifactId>
+            <version>${lightgbmlib.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.feedzai</groupId>
@@ -46,12 +48,6 @@
             <groupId>com.feedzai</groupId>
             <artifactId>openml-utils</artifactId>
             <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.feedzai.openml.lightgbmlib</groupId>
-            <artifactId>lightgbmlib</artifactId>
-            <version>${lightgbmlib.version}</version>
         </dependency>
 
         <dependency>
@@ -168,7 +164,7 @@
                 </executions>
             </plugin>
 
-            <!-- set locale for tests otherwise the LightGBM core implementation spits wrong results -->
+            <!-- Set locale for tests otherwise the LightGBM core implementation gives wrong results. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>

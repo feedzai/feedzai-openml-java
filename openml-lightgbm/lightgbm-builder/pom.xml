@@ -11,32 +11,21 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>openml-lightgbm</artifactId>
         <groupId>com.feedzai</groupId>
+        <artifactId>openml-lightgbm</artifactId>
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>com.feedzai.openml.lightgbmbuilder</groupId>
-    <version>0.0.0</version>
+    <groupId>com.feedzai.openml-lightgbm</groupId>
+    <version>${project.version}</version>
     <artifactId>lightgbm-builder</artifactId>
 
-    <description>Contains an example for the implementation of a LGBM Machine Learning Model and Classifier</description>
-
-    <properties>
-        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
-        <lightgbmlib.version>2.3.160</lightgbmlib.version>
-    </properties>
-
-    <dependencies></dependencies>
-
+    <description>Builds Microsoft's LightGBM code + lightgbmlib.jar JNI interface and installs the latter locally.</description>
 
     <build>
-
-
         <plugins>
 
             <!-- Build LightGBM shared libraries + lightgbmlib Java package (.jar + .pom) -->
@@ -45,7 +34,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>clean</phase>
+                        <phase>package</phase>
                         <id>generate-lightgbm-build</id>
                         <goals>
                             <goal>exec</goal>
@@ -62,14 +51,14 @@
                 </executions>
             </plugin>
 
-
+            <!-- Install lightgbmlib.jar + .pom -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
                 <executions>
                     <execution>
                         <id>install-custom-lightgbmlib_build</id>
-                        <phase>clean</phase>
+                        <phase>package</phase>
                         <goals>
                             <goal>install-file</goal>
                         </goals>
@@ -81,8 +70,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-
 
         </plugins>
     </build>

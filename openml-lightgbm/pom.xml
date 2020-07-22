@@ -2,22 +2,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
-        <artifactId>openml-java</artifactId>
         <groupId>com.feedzai</groupId>
+        <artifactId>openml-java</artifactId>
         <version>0.0.0-SNAPSHOT</version>
     </parent>
     <packaging>pom</packaging>
+
+    <groupId>com.feedzai</groupId>
+    <artifactId>openml-lightgbm</artifactId>
+    <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <modules>
         <module>lightgbm-builder</module>
         <module>openml-lightgbm-provider</module>
     </modules>
-
-    <artifactId>openml-lightgbm</artifactId>
-
-    <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <properties>
         <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
