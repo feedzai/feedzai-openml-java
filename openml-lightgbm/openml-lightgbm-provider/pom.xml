@@ -109,56 +109,6 @@
 
         <plugins>
 
-            <!-- Build LightGBM shared libraries + lightgbmlib Java package (.jar + .pom) -->
-            <!--
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>clean</phase>
-                        <id>generate-lightgbm-build</id>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
-                        <configuration>
-                            <executable>${project.basedir}/make.sh</executable>
-                            <workingDirectory>${project.basedir}</workingDirectory>
-                            <arguments>
-                                <argument>${lightgbm.version}</argument>
-                                <argument>${lightgbmlib.version}</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
-
-
-
-            <!-- Install the local copy of lightgbmlib to Maven -->
-            <!--
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>install-custom-lightgbmlib_build</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>${project.basedir}/lightgbmlib_build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/lightgbmlib_build/pom.xml</pomFile>
-                            <generatePom>false</generatePom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
-
-
             <!-- Copy the LightGBM shared libraries to the resources folder -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -174,7 +124,7 @@
                             <outputDirectory>${project.basedir}/target/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../lightgbmlib_build</directory>
+                                    <directory>../lightgbm-builder/lightgbmlib_build</directory>
                                     <include>*.so</include>
                                     <include>*.so.1.0.0</include>
                                 </resource>
