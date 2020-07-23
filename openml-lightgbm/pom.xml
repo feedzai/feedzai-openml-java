@@ -24,7 +24,9 @@
     <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <modules>
-        <module>lightgbm-builder</module>
+        <!-- Builds LightGBM + lightgbmlib.jar -->
+        <module>openml-lightgbm-builder</module>
+        <!-- The provider itself, which requires such artifacts -->
         <module>openml-lightgbm-provider</module>
     </modules>
 

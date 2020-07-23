@@ -38,4 +38,4 @@ target
 .gnupg/private-keys-v1.d
 
 openml-h2o/dependency-reduced-pom.xml
-openml-lightgbm/lightgbmlib_build
+openml-lightgbm/openml-lightgbm-builder/lightgbmlib_build/

@@ -21,7 +21,7 @@
 
     <groupId>com.feedzai.openml-lightgbm</groupId>
     <version>${project.version}</version>
-    <artifactId>lightgbm-builder</artifactId>
+    <artifactId>openml-lightgbm-builder</artifactId>
 
     <description>Builds Microsoft's LightGBM code + lightgbmlib.jar JNI interface and installs the latter locally.</description>
 

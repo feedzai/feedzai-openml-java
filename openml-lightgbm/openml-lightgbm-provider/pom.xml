@@ -30,7 +30,7 @@
         <dependency>
             <groupId>com.feedzai.openml-lightgbm</groupId>
             <version>${project.version}</version>
-            <artifactId>lightgbm-builder</artifactId>
+            <artifactId>openml-lightgbm-builder</artifactId>
         </dependency>
         <!-- Use lightgbmlib (LightGBM JNI interface) -->
         <dependency>
