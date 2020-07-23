@@ -20,7 +20,7 @@
 
     <groupId>com.feedzai.openml-lightgbm</groupId>
     <artifactId>openml-lightgbm-provider</artifactId>
-    <version>1.0.10-ft_af_pulsedev_32102_lgbm_large_datasets_support-SNAPSHOT</version>
+    <version>${project.version}</version>
 
     <description>Contains an example for the implementation of a LGBM Machine Learning Model and Classifier</description>
 
