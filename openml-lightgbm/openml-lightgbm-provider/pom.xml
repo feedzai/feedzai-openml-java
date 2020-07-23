@@ -120,7 +120,7 @@
                             <outputDirectory>${project.basedir}/target/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../lightgbm-builder/lightgbmlib_build</directory>
+                                    <directory>../openml-lightgbm-builder/make-lightgbm/build</directory>
                                     <include>*.so</include>
                                     <include>*.so.1.0.0</include>
                                 </resource>

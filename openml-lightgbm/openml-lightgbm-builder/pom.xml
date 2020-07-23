@@ -43,6 +43,7 @@
                             <executable>${project.basedir}/make.sh</executable>
                             <workingDirectory>${project.basedir}</workingDirectory>
                             <arguments>
+                                <argument>${lightgbm.repo.url}</argument>
                                 <argument>${lightgbm.version}</argument>
                                 <argument>${lightgbmlib.version}</argument>
                             </arguments>
@@ -63,8 +64,8 @@
                             <goal>install-file</goal>
                         </goals>
                         <configuration>
-                            <file>${project.basedir}/lightgbmlib_build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/lightgbmlib_build/pom.xml</pomFile>
+                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
+                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
                             <generatePom>false</generatePom>
                         </configuration>
                     </execution>
