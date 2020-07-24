@@ -11,29 +11,31 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
     <parent>
-        <groupId>com.feedzai</groupId>
+        <groupId>com.feedzai.openml.lightgbm.meta</groupId>
         <artifactId>openml-lightgbm-meta-module</artifactId>
         <version>0.0.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.feedzai</groupId>
     <artifactId>openml-lightgbm</artifactId>
     <version>${project.version}</version>
 
-    <description>Contains an example for the implementation of a LGBM Machine Learning Model and Classifier</description>
+    <description>Openml Microsoft LightGBM Machine Learning Model and Classifier provider</description>
 
     <dependencies>
 
         <!-- Force dependency on lightgbm-builder -->
         <dependency>
-            <groupId>com.feedzai.openml-lightgbm</groupId>
+            <groupId>com.feedzai.openml.lightgbm.meta</groupId>
             <version>${project.version}</version>
-            <artifactId>openml-lightgbm-builder</artifactId>
+            <artifactId>lightgbm-builder</artifactId>
         </dependency>
         <!-- Use lightgbmlib (LightGBM JNI interface) -->
         <dependency>
+            <!--add .lightgbm.-->
             <groupId>com.feedzai.openml.lightgbmlib</groupId>
             <artifactId>lightgbmlib</artifactId>
             <version>${lightgbmlib.version}</version>
@@ -120,7 +122,7 @@
                             <outputDirectory>${project.basedir}/target/resources</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>../openml-lightgbm-builder/make-lightgbm/build</directory>
+                                    <directory>../lightgbm-builder/make-lightgbm/build</directory>
                                     <include>*.so</include>
                                     <include>*.so.1.0.0</include>
                                 </resource>

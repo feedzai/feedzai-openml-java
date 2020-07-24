@@ -19,13 +19,13 @@
     </parent>
     <packaging>pom</packaging>
 
-    <groupId>com.feedzai</groupId>
+    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
     <artifactId>openml-lightgbm-meta-module</artifactId>
     <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <modules>
         <!-- Builds LightGBM + lightgbmlib.jar -->
-        <module>openml-lightgbm-builder</module>
+        <module>lightgbm-builder</module>
         <!-- The provider itself, which requires such artifacts -->
         <module>openml-lightgbm</module>
     </modules>
