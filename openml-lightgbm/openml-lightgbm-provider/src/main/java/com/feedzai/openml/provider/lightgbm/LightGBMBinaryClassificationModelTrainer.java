@@ -366,7 +366,7 @@ final class LightGBMBinaryClassificationModelTrainer {
             lightgbmlib.floatArray_setitem(swigLabelDataArray, rowIdx, (float) instance.getValue(targetIndex));
 
             // Set the features values for this instance:
-            final int rowOffset = rowIdx * numFeatures;
+            final long rowOffset = rowIdx * numFeatures;
             for (int colIdx = 0, afterTargetColOffset = 0; colIdx < numFields; ++colIdx) {
                 if (colIdx == targetIndex) {
                     afterTargetColOffset = -1; // Initially 0, becomes -1 after passing the target column.
