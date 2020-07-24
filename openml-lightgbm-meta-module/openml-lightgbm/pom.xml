@@ -14,11 +14,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.feedzai</groupId>
+        <groupId>com.feedzai.openml.lightgbm.meta</groupId>
         <artifactId>openml-lightgbm-meta-module</artifactId>
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
+    <groupId>com.feedzai</groupId>
     <artifactId>openml-lightgbm</artifactId>
     <version>${project.version}</version>
 

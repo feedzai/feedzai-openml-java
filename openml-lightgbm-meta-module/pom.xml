@@ -19,6 +19,7 @@
     </parent>
     <packaging>pom</packaging>
 
+    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
     <artifactId>openml-lightgbm-meta-module</artifactId>
     <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
