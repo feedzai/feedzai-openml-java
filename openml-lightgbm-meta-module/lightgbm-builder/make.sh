@@ -19,10 +19,10 @@
 set -e
 
 export LIGHTGBM_REPO_URL="$1" # This env var will be consumed by make.sh.
-LIGHTGBM_VERSION="$2"
+LIGHTGBM_COMMIT_REF="$2"
 LIGHTGBMLIB_VERSION="$3"
 
-echo "Building LightGBM $LIGHTGBM_VERSION as lightgbmlib $LIGHTGBMLIB_VERSION"
+echo "Building LightGBM $LIGHTGBM_COMMIT_REF as lightgbmlib $LIGHTGBMLIB_VERSION"
 cd make-lightgbm
-bash make.sh "$LIGHTGBM_VERSION" "$LIGHTGBMLIB_VERSION"
+bash make.sh "$LIGHTGBM_COMMIT_REF" "$LIGHTGBMLIB_VERSION"
 
