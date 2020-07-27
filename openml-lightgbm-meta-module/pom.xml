@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ The copyright of this file belongs to Feedzai. The file cannot be
+  ~ reproduced in whole or in part, stored in a retrieval system,
+  ~ transmitted in any form, or by any means electronic, mechanical,
+  ~ photocopying, or otherwise, without the prior permission of the owner.
+  ~
+  ~ (c) 2020 Feedzai, Strictly Confidential
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.feedzai</groupId>
+        <artifactId>openml-java</artifactId>
+        <version>0.0.0-SNAPSHOT</version>
+    </parent>
+    <packaging>pom</packaging>
+
+    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
+    <artifactId>openml-lightgbm-meta-module</artifactId>
+    <description>OpenML LightGBM Machine Learning Model and Classifier</description>
+
+    <modules>
+        <!-- Builds LightGBM + lightgbmlib.jar -->
+        <module>lightgbm-builder</module>
+        <!-- The provider itself, which requires such artifacts -->
+        <module>openml-lightgbm</module>
+    </modules>
+
+    <properties>
+        <lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>
+        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
+        <lightgbmlib.version>2.3.190</lightgbmlib.version>
+    </properties>
+
+</project>

@@ -18,28 +18,11 @@
 
 set -e
 
-VERSION="$1"
+export LIGHTGBM_REPO_URL="$1" # This env var will be consumed by make.sh.
+LIGHTGBM_COMMIT_REF="$2"
+LIGHTGBMLIB_VERSION="$3"
 
-# Compare version, when different remove the build folder
-FILE=lightgbmlib_build/__version__
-if [ -f "$FILE" ]; then
-  OLD_VERSION=$(head -n 1 "$FILE")
-  if [ "$VERSION" != "$OLD_VERSION" ]; then
-    echo "Renaming the folder."
-    rm -rf lightgbmlib_build
-  fi
-fi
+echo "Building LightGBM $LIGHTGBM_COMMIT_REF as lightgbmlib $LIGHTGBMLIB_VERSION"
+cd make-lightgbm
+bash make.sh "$LIGHTGBM_COMMIT_REF" "$LIGHTGBMLIB_VERSION"
 
-# Make LightGBM if it doesn't exist
-DIR=lightgbmlib_build
-if [ ! -d "$DIR" ]; then
-  echo "Entering the folder."
-  cd make-lightgbm
-  echo "Building LightGBM $VERSION"
-  bash make.sh "$VERSION"
-  echo "Exiting the folder."
-  cd ..
-  echo "Renaming the folder."
-  mv make-lightgbm/build lightgbmlib_build
-  echo "Finished!"
-fi
