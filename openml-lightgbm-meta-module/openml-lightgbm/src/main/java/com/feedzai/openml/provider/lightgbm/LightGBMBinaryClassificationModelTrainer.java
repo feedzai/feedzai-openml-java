@@ -140,10 +140,10 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigTrainResources SWIGTrainResources object
      */
     private static void createTrainDataset(final Dataset dataset,
-                                   final int numFeatures,
-                                   final int numInstances,
-                                   final String trainParams,
-                                   final SWIGTrainResources swigTrainResources) {
+                                           final int numFeatures,
+                                           final int numInstances,
+                                           final String trainParams,
+                                           final SWIGTrainResources swigTrainResources) {
 
         logger.info("Creating LightGBM dataset");
 
@@ -186,10 +186,10 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigTrainFeaturesDataArray SWIG pointer to the features array (in row-major order).
      */
     private static void initializeLightGBMTrainDataset(final SWIGTYPE_p_p_void swigOutDatasetHandlePtr,
-                                               final int numFeatures,
-                                               final int numInstances,
-                                               final String trainParams,
-                                               final SWIGTYPE_p_double swigTrainFeaturesDataArray) {
+                                                       final int numFeatures,
+                                                       final int numInstances,
+                                                       final String trainParams,
+                                                       final SWIGTYPE_p_double swigTrainFeaturesDataArray) {
 
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
         final int rowMajor = 1; // Feature data was copied in row-major format.
@@ -330,6 +330,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 swigBoosterHandle,
                 0,
                 -1,
+                lightgbmlib.C_API_FEATURE_IMPORTANCE_GAIN,
                 outputModelPath.toAbsolutePath().toString());
         if (returnCodeLGBM == -1) {
             logger.error("Could not save model to disk.");
@@ -357,7 +358,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int targetIndex = datasetSchema.getTargetIndex().orElse(-1);
 
         final Iterator<Instance> iterator = dataset.getInstances();
-        int rowIdx = 0;
+        long rowIdx = 0;
         while (iterator.hasNext()) {
             final Instance instance = iterator.next();
 
@@ -365,7 +366,7 @@ final class LightGBMBinaryClassificationModelTrainer {
             lightgbmlib.floatArray_setitem(swigLabelDataArray, rowIdx, (float) instance.getValue(targetIndex));
 
             // Set the features values for this instance:
-            final int rowOffset = rowIdx * numFeatures;
+            final long rowOffset = rowIdx * numFeatures;
             for (int colIdx = 0, afterTargetColOffset = 0; colIdx < numFields; ++colIdx) {
                 if (colIdx == targetIndex) {
                     afterTargetColOffset = -1; // Initially 0, becomes -1 after passing the target column.

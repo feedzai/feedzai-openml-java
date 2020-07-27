@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ The copyright of this file belongs to Feedzai. The file cannot be
+  ~ reproduced in whole or in part, stored in a retrieval system,
+  ~ transmitted in any form, or by any means electronic, mechanical,
+  ~ photocopying, or otherwise, without the prior permission of the owner.
+  ~
+  ~ (c) 2020 Feedzai, Strictly Confidential
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.feedzai.openml.lightgbm.meta</groupId>
+        <artifactId>openml-lightgbm-meta-module</artifactId>
+        <version>0.0.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
+    <version>${project.version}</version>
+    <artifactId>lightgbm-builder</artifactId>
+
+    <description>Builds Microsoft's LightGBM code + lightgbmlib.jar JNI interface and installs the latter locally.</description>
+
+    <build>
+        <plugins>
+
+            <!-- Build LightGBM shared libraries + lightgbmlib Java package (.jar + .pom) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <id>generate-lightgbm-build</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>${project.basedir}/make.sh</executable>
+                            <workingDirectory>${project.basedir}</workingDirectory>
+                            <arguments>
+                                <argument>${lightgbm.repo.url}</argument>
+                                <argument>${lightgbm.version}</argument>
+                                <argument>${lightgbmlib.version}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Install lightgbmlib.jar + .pom -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>install-custom-lightgbmlib_build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
+                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
+                            <generatePom>false</generatePom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

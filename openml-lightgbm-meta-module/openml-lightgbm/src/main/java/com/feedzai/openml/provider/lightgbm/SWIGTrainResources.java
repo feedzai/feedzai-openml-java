@@ -93,7 +93,7 @@ public class SWIGTrainResources implements AutoCloseable {
 
         logger.debug("Allocating SWIG train data array.");
         // 1-D Array in row-major-order that stores only the features (excludes label) in double format:
-        this.swigTrainFeaturesDataArray = lightgbmlib.new_doubleArray(numInstances * numFeatures);
+        this.swigTrainFeaturesDataArray = lightgbmlib.new_doubleArray(((long)numInstances) * ((long)numFeatures));
         // 1-D Array with the labels (float32):
         this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(numInstances);
 

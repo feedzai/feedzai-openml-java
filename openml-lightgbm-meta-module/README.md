@@ -20,11 +20,14 @@ git submodule update
 
 ## Installation
 
-All you need is maven:
+This module depends on other parts of `feedzai-openml-java`. At the repo root run:
 
 ```bash
 mvn clean install # or `mvn clean package` to generate the .jar alone
 ```
+
+With the whole project built, you can now build this module "alone". Use the same command in this folder.
+
 
 ### Build time
 
