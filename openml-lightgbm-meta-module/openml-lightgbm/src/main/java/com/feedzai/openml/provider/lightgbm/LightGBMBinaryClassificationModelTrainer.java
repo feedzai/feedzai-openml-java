@@ -358,7 +358,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int targetIndex = datasetSchema.getTargetIndex().orElse(-1);
 
         final Iterator<Instance> iterator = dataset.getInstances();
-        int rowIdx = 0;
+        long rowIdx = 0;
         while (iterator.hasNext()) {
             final Instance instance = iterator.next();
 
