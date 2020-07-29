@@ -392,7 +392,6 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final ImmutableMap<String, String> allMapParams = ImmutableMap.<String, String>builder()
                 .putAll(mapParams)
-                .put("num_threads", "1")
                 .put("application", "binary")
                 .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","))
                 .build();
