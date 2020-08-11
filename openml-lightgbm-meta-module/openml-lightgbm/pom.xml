@@ -37,8 +37,8 @@
         <dependency>
             <!--add .lightgbm.-->
             <groupId>com.feedzai.openml.lightgbm.lightgbmlib</groupId>
-            <artifactId>lightgbmlib</artifactId>
             <version>${lightgbmlib.version}</version>
+            <artifactId>lightgbmlib</artifactId>
         </dependency>
 
         <dependency>
