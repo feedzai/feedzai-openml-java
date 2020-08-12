@@ -20,8 +20,8 @@
     </parent>
 
     <groupId>com.feedzai.openml.lightgbm.meta</groupId>
-    <version>${project.version}</version>
     <artifactId>lightgbm-builder</artifactId>
+    <version>${project.version}</version>
 
     <description>Builds Microsoft's LightGBM code + lightgbmlib.jar JNI interface and installs the latter locally.</description>
 
@@ -67,6 +67,32 @@
                             <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
                             <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
                             <generatePom>false</generatePom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Deploy lightgbmlib.jar + .pom -->
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    <stagingProgressTimeoutMinutes>10</stagingProgressTimeoutMinutes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>deploy-custom-lightgbmlib_build</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
+                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
                         </configuration>
                     </execution>
                 </executions>
