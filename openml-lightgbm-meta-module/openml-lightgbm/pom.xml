@@ -30,15 +30,15 @@
         <!-- Force dependency on lightgbm-builder -->
         <dependency>
             <groupId>com.feedzai.openml.lightgbm.meta</groupId>
-            <version>${project.version}</version>
             <artifactId>lightgbm-builder</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <!-- Use lightgbmlib (LightGBM JNI interface) -->
         <dependency>
             <!--add .lightgbm.-->
             <groupId>com.feedzai.openml.lightgbm.lightgbmlib</groupId>
-            <version>${lightgbmlib.version}</version>
             <artifactId>lightgbmlib</artifactId>
+            <version>${lightgbmlib.version}</version>
         </dependency>
 
         <dependency>
