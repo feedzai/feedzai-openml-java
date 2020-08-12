@@ -18,7 +18,7 @@
 package com.feedzai.openml.h2o;
 
 import com.google.common.collect.ImmutableMap;
-import hex.deepwater.DeepWaterParameters;
+import hex.deeplearning.DeepLearningModel.DeepLearningParameters;
 import hex.glm.GLMModel;
 
 import java.util.Map;
@@ -60,7 +60,7 @@ public final class H2OAlgorithmTestParams {
      */
     public static Map<String, String> getDeepLearning() {
         return ImmutableMap.<String, String>builder()
-                .put("activation", DeepWaterParameters.Activation.Rectifier.toString())
+                .put("activation", DeepLearningParameters.Activation.Rectifier.toString())
                 .put("epochs", "7")
                 .put("hidden", "200,150,100")
                 .put("variable_importances", "false")
