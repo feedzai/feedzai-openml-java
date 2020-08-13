@@ -74,15 +74,8 @@
 
             <!-- Deploy lightgbmlib.jar + .pom -->
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                    <stagingProgressTimeoutMinutes>10</stagingProgressTimeoutMinutes>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
                 <executions>
                     <execution>
                         <id>deploy-custom-lightgbmlib_build</id>
@@ -93,6 +86,7 @@
                         <configuration>
                             <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
                             <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
+                            <generatePom>false</generatePom>
                         </configuration>
                     </execution>
                 </executions>
