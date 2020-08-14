@@ -34,8 +34,8 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
                         <id>generate-lightgbm-build</id>
+                        <phase>package</phase>
                         <goals>
                             <goal>exec</goal>
                         </goals>
@@ -59,15 +59,18 @@
                 <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
+                        <id>attach-lightgbm-artifact</id>
+                        <phase>package</phase>
                         <goals>
-                            <goal>add-source</goal>
+                            <goal>attach-artifact</goal>
                         </goals>
                         <configuration>
-                            <sources>
-                                <source>${project.basedir}/make-lightgbm/build/</source>
-                            </sources>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.basedir}/make-lightgbm/build/pom.xml</file>
+                                    <type>pom</type>
+                                </artifact>
+                            </artifacts>
                         </configuration>
                     </execution>
                 </executions>
