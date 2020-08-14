@@ -52,41 +52,22 @@
                 </executions>
             </plugin>
 
-            <!-- Install lightgbmlib.jar + .pom -->
+            <!-- Install and Deploy lightgbmlib.jar + .pom -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
-                        <id>install-custom-lightgbmlib_build</id>
-                        <phase>package</phase>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
                         <goals>
-                            <goal>install-file</goal>
+                            <goal>add-source</goal>
                         </goals>
                         <configuration>
-                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
-                            <generatePom>false</generatePom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Deploy lightgbmlib.jar + .pom -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>deploy-custom-lightgbmlib_build</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
-                            <generatePom>false</generatePom>
+                            <sources>
+                                <source>${project.basedir}/make-lightgbm/build/</source>
+                            </sources>
                         </configuration>
                     </execution>
                 </executions>
