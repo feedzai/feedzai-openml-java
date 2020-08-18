@@ -19,8 +19,8 @@
     </parent>
     <packaging>pom</packaging>
 
-    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
-    <artifactId>openml-lightgbm-meta-module</artifactId>
+    <groupId>com.feedzai.openml.lightgbm</groupId>
+    <artifactId>openml-lightgbm-module</artifactId>
     <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <modules>
@@ -28,12 +28,6 @@
         <module>lightgbm-builder</module>
 
         <!-- The provider itself, which requires such artifacts -->
-        <module>openml-lightgbm</module>
+        <module>lightgbm-provider</module>
     </modules>
-
-    <properties>
-        <lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>
-        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
-        <lightgbmlib.version>2.3.190</lightgbmlib.version>
-    </properties>
 </project>
