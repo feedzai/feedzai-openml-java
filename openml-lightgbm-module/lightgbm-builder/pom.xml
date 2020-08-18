@@ -13,18 +13,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.feedzai.openml.lightgbm.meta</groupId>
-        <artifactId>openml-lightgbm-meta-module</artifactId>
-        <version>0.0.0-SNAPSHOT</version>
-    </parent>
-
     <groupId>com.feedzai.openml.lightgbm</groupId>
     <artifactId>lightgbm-lib</artifactId>
-    <version>${lightgbmlib.version}</version>
+    <version>2.3.190</version>
 
     <packaging>jar</packaging>
     <url>https://github.com/feedzai/make-lightgbm</url>
+
+    <properties>
+        <lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>
+        <lightgbm.version>fc79b366153e8aa5cf2996b4b753e28e5a75e878</lightgbm.version>
+        <lightgbmlib.version>2.3.190</lightgbmlib.version>
+    </properties>
 
     <description>
         LightGBM build for Java generated with make-lightgbm.

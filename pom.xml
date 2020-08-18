@@ -29,7 +29,7 @@
         <module>openml-datarobot</module>
         <module>openml-h2o</module>
         <module>openml-java-utils</module>
-        <module>openml-lightgbm-meta-module</module>
+        <module>openml-lightgbm-module</module>
     </modules>
 
     <name>Java OpenML Main</name>
