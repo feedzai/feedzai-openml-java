@@ -23,22 +23,16 @@
     <artifactId>openml-lightgbm</artifactId>
     <version>${project.version}</version>
 
-    <description>Openml Microsoft LightGBM Machine Learning Model and Classifier provider</description>
+    <description>OpenML Microsoft LightGBM Machine Learning Model and Classifier provider</description>
 
     <dependencies>
 
-        <!-- Force dependency on lightgbm-builder -->
+        <!-- Use lightgbm-lib (LightGBM JNI interface) -->
         <dependency>
-            <groupId>com.feedzai.openml.lightgbm.meta</groupId>
-            <artifactId>lightgbm-builder</artifactId>
+            <groupId>com.feedzai.openml.lightgbm</groupId>
+            <artifactId>lightgbm-lib</artifactId>
+            <!-- <version>${lightgbmlib.version}</version> -->
             <version>${project.version}</version>
-        </dependency>
-        <!-- Use lightgbmlib (LightGBM JNI interface) -->
-        <dependency>
-            <!--add .lightgbm.-->
-            <groupId>com.feedzai.openml.lightgbm.lightgbmlib</groupId>
-            <artifactId>lightgbmlib</artifactId>
-            <version>${lightgbmlib.version}</version>
         </dependency>
 
         <dependency>
@@ -46,6 +40,7 @@
             <artifactId>openml-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>com.feedzai</groupId>
             <artifactId>openml-utils</artifactId>
@@ -94,6 +89,70 @@
             <artifactId>commons-csv</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/target/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!-- Copy the LightGBM shared libraries to the resources folder -->
+            <!--
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-shared-libs-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../lightgbm-builder/make-lightgbm/build</directory>
+                                    <include>*.so</include>
+                                    <include>*.so.1.0.0</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-licences</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/target/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>LICENCES</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            -->
+
+            <!-- Set locale for tests otherwise the LightGBM core implementation gives wrong results. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <LC_ALL>C</LC_ALL>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
 </project>

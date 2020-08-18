@@ -19,12 +19,56 @@
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>lightgbm-builder</artifactId>
-    <version>${project.version}</version>
+    <groupId>com.feedzai.openml.lightgbm</groupId>
+    <artifactId>lightgbm-lib</artifactId>
+    <version>${lightgbmlib.version}</version>
 
-    <description>Builds Microsoft's LightGBM code + lightgbmlib.jar JNI interface and installs the latter locally.</description>
+    <packaging>jar</packaging>
+    <url>https://github.com/feedzai/make-lightgbm</url>
+    <description>
+        LightGBM build for Java generated with make-lightgbm.
+
+        Build created with command: `bash make.sh fc79b366153e8aa5cf2996b4b753e28e5a75e878 2.3.190`
+
+        ---
+
+        Build info:
+
+        LIGHTGBM_REPO_URL=https://github.com/microsoft/LightGBM
+        LIGHTGBM_VERSION=fc79b366153e8aa5cf2996b4b753e28e5a75e878
+        LIGHTGBM_COMMIT=fc79b366153e8aa5cf2996b4b753e28e5a75e878
+        PACKAGE_TIMESTAMP=20/08/14 11:48:19
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.microsoft.ml</groupId>
+            <artifactId>lightgbmlib</artifactId>
+            <version>${lightgbmlib.version}</version>
+            <systemPath>${basedir}/make-lightgbm/build/lightgbmlib.jar</systemPath>
+            <scope>system</scope>
+        </dependency>
+    </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>make-lightgbm/build/</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>lib_lightgbm.so</include>
+                    <include>lib_lightgbm_swig.so</include>
+                </includes>
+            </resource>
+            <resource>
+                <filtering>false</filtering>
+                <directory>make-lightgbm/resources/copy_to_build</directory>
+                <includes>
+                    <include>libopenmp.licence</include>
+                </includes>
+            </resource>
+        </resources>
+
         <plugins>
             <!-- Build LightGBM shared libraries + lightgbmlib Java package (.jar + .pom) -->
             <plugin>
@@ -50,6 +94,23 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/src.xml</descriptor>
+                    </descriptors>
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>
