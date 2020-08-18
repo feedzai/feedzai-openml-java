@@ -19,7 +19,6 @@
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.feedzai.openml.lightgbm.meta</groupId>
     <artifactId>lightgbm-builder</artifactId>
     <version>${project.version}</version>
 
@@ -27,7 +26,6 @@
 
     <build>
         <plugins>
-
             <!-- Build LightGBM shared libraries + lightgbmlib Java package (.jar + .pom) -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -52,46 +50,6 @@
                 </executions>
             </plugin>
 
-            <!-- Install lightgbmlib.jar + .pom -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>install-custom-lightgbmlib_build</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                        <configuration>
-                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
-                            <generatePom>false</generatePom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Deploy lightgbmlib.jar + .pom -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>deploy-custom-lightgbmlib_build</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>deploy-file</goal>
-                        </goals>
-                        <configuration>
-                            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-                            <file>${project.basedir}/make-lightgbm/build/lightgbmlib.jar</file>
-                            <pomFile>${project.basedir}/make-lightgbm/build/pom.xml</pomFile>
-                            <generatePom>false</generatePom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
 </project>

@@ -36,4 +36,81 @@
         <lightgbmlib.version>2.3.190</lightgbmlib.version>
     </properties>
 
+    <build>
+
+        <resources>
+            <resource>
+                <directory>${project.basedir}/openml-lightgbm/target/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!-- Copy the LightGBM shared libraries to the resources folder -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-shared-libs-resources</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/openml-lightgbm/target/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>lightgbm-builder/make-lightgbm/build</directory>
+                                    <include>*.so</include>
+                                    <include>*.so.1.0.0</include>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-licences</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/openml-lightgbm/target/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>LICENCES</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- assemble package -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>project/</classpathPrefix>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Set locale for tests otherwise the LightGBM core implementation gives wrong results. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <environmentVariables>
+                        <LC_ALL>C</LC_ALL>
+                    </environmentVariables>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
 </project>
