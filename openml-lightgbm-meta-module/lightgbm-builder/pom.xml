@@ -25,6 +25,7 @@
 
     <packaging>jar</packaging>
     <url>https://github.com/feedzai/make-lightgbm</url>
+
     <description>
         LightGBM build for Java generated with make-lightgbm.
 
