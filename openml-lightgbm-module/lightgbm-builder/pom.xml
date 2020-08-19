@@ -67,7 +67,8 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
+                        <!-- this should happen before maven-antrun-plugin -->
+                        <phase>validate</phase>
                         <id>generate-lightgbm-build</id>
                         <goals>
                             <goal>exec</goal>
@@ -89,7 +90,8 @@
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>generate-resources</phase>
+                        <!-- this should happen after exec-maven-plugin -->
+                        <phase>compile</phase>
                         <configuration>
                             <tasks>
                                 <echo message="unzipping file" />
