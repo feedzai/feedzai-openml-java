@@ -25,5 +25,9 @@
                 <transformation>IGNORE</transformation>
             </transformations>
         </branchPolicy>
-    </branchPolicies>
+     </branchPolicies>
+     <exclusions>
+         <!-- String, relative path from project root -->
+	     <exclusion>openml-lightgbm-module/lightgbm-lib</exclusion>
+     </exclusions>
 </configuration>

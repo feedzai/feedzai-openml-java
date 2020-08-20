@@ -9,15 +9,6 @@ The main goals of the implementation are:
 3.  High throughput scoring
 4.  High throughput train
 
-## Set up
-
-Pull make-lightgbm project.
-
-```bash
-git submodule init
-git submodule update
-```
-
 ## Installation
 
 This module depends on other parts of `feedzai-openml-java`. At the repo root run:
