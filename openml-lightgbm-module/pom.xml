@@ -25,9 +25,9 @@
 
     <modules>
         <!-- Builds LightGBM + lightgbmlib.jar -->
-        <module>lightgbm-builder</module>
+        <module>lightgbm-lib</module>
 
         <!-- The provider itself, which requires such artifacts -->
-        <module>lightgbm-provider</module>
+        <module>openml-lightgbm</module>
     </modules>
 </project>
