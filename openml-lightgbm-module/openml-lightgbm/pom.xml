@@ -32,6 +32,7 @@
             <groupId>com.feedzai.openml.lightgbm</groupId>
             <artifactId>lightgbm-lib</artifactId>
             <version>${lightgbmlib.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
