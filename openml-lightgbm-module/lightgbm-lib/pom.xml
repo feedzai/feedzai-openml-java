@@ -26,20 +26,56 @@
         <lightgbmlib.version>2.3.190</lightgbmlib.version>
     </properties>
 
-    <description>
-        LightGBM build for Java generated with make-lightgbm.
-
-        Build created with command: `bash make.sh fc79b366153e8aa5cf2996b4b753e28e5a75e878 2.3.190`
-
-        ---
-
-        Build info:
-
-        LIGHTGBM_REPO_URL=https://github.com/microsoft/LightGBM
-        LIGHTGBM_VERSION=fc79b366153e8aa5cf2996b4b753e28e5a75e878
-        LIGHTGBM_COMMIT=fc79b366153e8aa5cf2996b4b753e28e5a75e878
-        PACKAGE_TIMESTAMP=20/08/14 11:48:19
-    </description>
+    <!-- jgitver changes the version 2.3.190 to project version, therefore we excluded this project from jgitver -->
+    <!-- for this reason we can't use parent on this module, so I'm repeating this profile from root pom -->
+    <profiles>
+        <profile>
+            <id>release</id>
+            <properties>
+                <gpg.executable>gpg</gpg.executable>
+                <gpg.keyname>${env.PGP_KEY_ID}</gpg.keyname>
+                <gpg.passphrase>${env.PGP_PASS}</gpg.passphrase>
+                <gpg.defaultKeyring>false</gpg.defaultKeyring>
+                <gpg.homedir>${user.dir}/.gnupg</gpg.homedir>
+            </properties>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.4</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                            <stagingProgressTimeoutMinutes>10</stagingProgressTimeoutMinutes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <resources>
@@ -104,6 +140,21 @@
                     </execution>
                 </executions>
             </plugin>
+
+
+
         </plugins>
     </build>
+
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
