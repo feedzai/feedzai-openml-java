@@ -21,7 +21,6 @@
 
     <groupId>com.feedzai</groupId>
     <artifactId>openml-lightgbm</artifactId>
-    <version>${lightgbmlib.version}</version>
 
     <description>OpenML Microsoft LightGBM Machine Learning Model and Classifier provider</description>
 
