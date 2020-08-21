@@ -24,8 +24,11 @@
 
     <description>OpenML Microsoft LightGBM Machine Learning Model and Classifier provider</description>
 
-    <dependencies>
+    <properties>
+        <lightgbmlib.version>2.3.190</lightgbmlib.version>
+    </properties>
 
+    <dependencies>
         <!-- Use lightgbm-lib (LightGBM JNI interface) -->
         <dependency>
             <groupId>com.feedzai.openml.lightgbm</groupId>
