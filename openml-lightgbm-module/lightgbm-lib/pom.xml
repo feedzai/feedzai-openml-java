@@ -18,6 +18,21 @@
     <version>2.3.190</version>
 
     <packaging>jar</packaging>
+    <name>Openml LightGBM lib</name>
+    <description>
+        LightGBM build for Java generated with make-lightgbm.
+
+        Build created with command: `bash make.sh fc79b366153e8aa5cf2996b4b753e28e5a75e878 2.3.190`
+
+        ---
+
+        Build info:
+
+        LIGHTGBM_REPO_URL=https://github.com/microsoft/LightGBM
+        LIGHTGBM_VERSION=fc79b366153e8aa5cf2996b4b753e28e5a75e878
+        LIGHTGBM_COMMIT=fc79b366153e8aa5cf2996b4b753e28e5a75e878
+        PACKAGE_TIMESTAMP=20/08/21 07:43:12
+    </description>
     <url>https://github.com/feedzai/make-lightgbm</url>
 
     <properties>
@@ -28,6 +43,37 @@
 
     <!-- jgitver changes the version 2.3.190 to project version, therefore we excluded this project from jgitver -->
     <!-- for this reason we can't use parent on this module, so I'm repeating this profile from root pom -->
+    <organization>
+        <name>Feedzai</name>
+        <url>https://www.feedzai.com</url>
+    </organization>
+
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/feedzai/feedzai-openml-java/issues</url>
+    </issueManagement>
+
+    <scm>
+        <url>https://github.com/feedzai/feedzai-openml-java</url>
+        <developerConnection>scm:git:git@github.com:feedzai/feedzai-openml-java.git</developerConnection>
+    </scm>
+
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Feedzai OpenML</name>
+            <organization>Feedzai</organization>
+            <url>https://github.com/feedzai/feedzai-openml-java/issues</url>
+        </developer>
+    </developers>
+
     <profiles>
         <profile>
             <id>release</id>
