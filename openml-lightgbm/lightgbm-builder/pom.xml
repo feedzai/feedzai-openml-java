@@ -212,7 +212,7 @@
                         </goals>
                         <configuration>
                             <classifier>javadoc</classifier>
-                            <classesDirectory>${basedir}/src/main/java/com/feedzai/openml/lightgbm</classesDirectory>
+                            <classesDirectory>${basedir}/javadoc</classesDirectory>
                         </configuration>
                     </execution>
                 </executions>
