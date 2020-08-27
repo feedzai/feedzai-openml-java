@@ -201,7 +201,7 @@
                 </executions>
             </plugin>
 
-            <!-- This will create an empty javadoc -->
+            <!-- This will create a dummy javadoc -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
