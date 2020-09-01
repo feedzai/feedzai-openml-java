@@ -219,6 +219,25 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 .isEqualTo(1);
     }
 
+    /**
+     * Assert that non-ASCII feature names can be used for train.
+     */
+    @Test
+    public void fitWithASCIIFeatureNameIsOKTest () {
+
+        final Dataset dataset = new MockDataset(
+                TestSchemas.SCHEMA_WITH_TWO_NON_ASCII_FEATURES, 10, new Random());
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
+
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+                dataset,
+                new Random(),
+                trainParams
+        );
+
+        assertThat(model.getClassDistribution(dataset.instance(0))[1]).as("score")
+                .isBetween(0.0, 1.0);
+    }
 
     /**
      * With a dataset and schema choice, fit a model and evaluate it on part or the full data.

@@ -97,6 +97,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     static final String ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING =
             "Random Forest Boosting type requires bagging. Please see bagging parameters.";
 
+
     /**
      * Constructor.
      * Its only job is to load the libraries so that the rest of the classes work.
@@ -143,9 +144,24 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
                                                      final Map<String, String> params) {
         final ImmutableList.Builder<ParamValidationError> errorsBuilder = ImmutableList.builder();
 
-        errorsBuilder.addAll(validateModelPathToTrain(pathToPersist));
-        errorsBuilder.addAll(checkParams(
-                LightGBMAlgorithms.LIGHTGBM_BINARY_CLASSIFIER.getAlgorithmDescriptor(), params));
+        errorsBuilder
+                .addAll(validateModelPathToTrain(pathToPersist))
+                .addAll(validateSchema(schema))
+                .addAll(validateFitParams(params));
+
+        return errorsBuilder.build();
+    }
+
+    /**
+     * Validate model fit schema.
+     *
+     * @param schema schema to validate
+     * @return list of validation errors.
+     */
+    private List<ParamValidationError> validateSchema(final DatasetSchema schema) {
+
+        final ImmutableList.Builder<ParamValidationError> errorsBuilder = ImmutableList.builder();
+
         validateCategoricalSchema(schema).ifPresent(errorsBuilder::add);
 
         if (schemaHasStringFields(schema)) {
@@ -155,6 +171,22 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         if (getNumTargetClasses(schema).orElse(-1) != 2) {
             errorsBuilder.add(new ParamValidationError(ERROR_MSG_NON_BINARY_TARGET));
         }
+
+        return errorsBuilder.build();
+    }
+
+    /**
+     * Validate model fit parameters.
+     *
+     * @param params Model fit parameters
+     * @return list of validation errors.
+     */
+    private List<ParamValidationError> validateFitParams(final Map<String, String> params) {
+
+        final ImmutableList.Builder<ParamValidationError> errorsBuilder = ImmutableList.builder();
+
+        errorsBuilder.addAll(checkParams(
+                LightGBMAlgorithms.LIGHTGBM_BINARY_CLASSIFIER.getAlgorithmDescriptor(), params));
 
         if (params.get(BOOSTING_TYPE_PARAMETER_NAME).equals("rf") && baggingDisabled(params)) {
             logger.warn("RF requires bagging. Set bagging fraction < 1 and bagging frequency > 0.");
