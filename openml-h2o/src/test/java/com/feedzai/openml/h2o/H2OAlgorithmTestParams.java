@@ -134,9 +134,9 @@ public final class H2OAlgorithmTestParams {
                 .put("standardize", "true")
                 .put("non_negative", "true")
                 .put("obj_reg", "-1")
-                .put("theta", "1e-10")
-                .put("HGLM", "false")
-                .put("calc_like", "false")
+                .put("theta", "1e-10")      // default value
+                .put("HGLM", "false")       // default value
+                .put("calc_like", "false")  // default value
                 .build();
 
     }
@@ -150,6 +150,10 @@ public final class H2OAlgorithmTestParams {
         return ImmutableMap.<String, String>builder()
                 .put("ntrees", "100")
                 .put("sample_size", "100")
+                .put("mtries", "-1")        // default value
+                .put("sample_rate", "-1")   // default value
+                .put("max_depth", "8")      // default value
+                .put("min_rows", "1")       // default value
                 .build();
     }
 }
