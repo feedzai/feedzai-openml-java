@@ -251,7 +251,14 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
      */
     @Test
     public final void ensureH2OAlgorithmsHaveMandatoryParams() {
-        this.getTrainAlgorithms().forEach(
+
+        final Map<MLAlgorithmEnum, Map<String, String>> trainAlgorithms = this.getTrainAlgorithms();
+
+        assertThat(trainAlgorithms.size())
+                .as("The list of training algorithms must not be null.")
+                .isNotEqualTo(0);
+
+        trainAlgorithms.forEach(
                 (algorithm, params) -> validateParamsForTheAlgorithm(params, algorithm)
         );
     }
@@ -276,6 +283,8 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
                 params
         );
 
-        assertThat(paramValidationErrors.size()).isEqualTo(0);
+        assertThat(paramValidationErrors.size())
+                .as("The list parameter validation errors must be null.")
+                .isEqualTo(0);
     }
 }
