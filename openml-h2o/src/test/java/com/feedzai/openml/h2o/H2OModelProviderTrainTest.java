@@ -253,7 +253,9 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
     @Test
     public final void ensureH2OAlgorithmsHaveMandatoryParams() {
         this.getTrainAlgorithms().forEach(
-                (algorithm, params) -> validateParamsForAlgorithms(params, algorithm)
+                (algorithm, params) -> {
+                    assertThat(validateParamsForAlgorithms(params, algorithm).size()).isEqualTo(0);
+                }
         );
     }
 
@@ -262,9 +264,11 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
      *
      * @param params    The default parameters.
      * @param algorithm The H2O algorithm.
+     *
+     * @return The list of Parameter Validation Errors.
      * @since 1.0.18
      */
-    private void validateParamsForAlgorithms(final Map<String, String> params, final MLAlgorithmEnum algorithm) {
+    private List<ParamValidationError> validateParamsForAlgorithms(final Map<String, String> params, final MLAlgorithmEnum algorithm) {
 
         final H2OModelCreator loader = getMachineLearningModelLoader(algorithm);
 
@@ -277,6 +281,6 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
                 params
         );
 
-        assertThat(paramValidationErrors.size()).isEqualTo(0);
+        return paramValidationErrors;
     }
 }
