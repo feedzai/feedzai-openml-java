@@ -202,4 +202,18 @@ public class TestSchemas {
             0,
             TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END.getPredictiveFields()
     );
+
+    /**
+     * Schema with two features with non-ASCII characters.
+     */
+    static final DatasetSchema SCHEMA_WITH_TWO_NON_ASCII_FEATURES = new DatasetSchema(
+            0,
+            ImmutableList.<FieldSchema>builder()
+                    .addAll(NUMERICALS_SCHEMA_WITH_TARGET_AT_START.getFieldSchemas())
+                    .add(new FieldSchema("cão", 5,
+                            new NumericValueSchema(false)))
+                    .add(new FieldSchema("test \uD801\uDC00", 6,
+                            new NumericValueSchema(false)))
+                    .build()
+    );
 }

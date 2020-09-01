@@ -151,6 +151,7 @@ class LightGBMSWIG {
                     this.schemaNumFeatures,
                     isRowMajor,
                     lightgbmlibConstants.C_API_PREDICT_NORMAL,
+                    0, // start at iteration 0
                     numIterations,
                     LightGBMParameters,
                     // useless API output: size known already (had to preallocate memory)
