@@ -217,8 +217,8 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param numInstances            Number of instances in dataset.
      */
     private static void setLightGBMDatasetLabelData(final SWIGTYPE_p_void swigDatasetHandle,
-                                            final SWIGTYPE_p_float swigTrainLabelDataArray,
-                                            final int numInstances) {
+                                                    final SWIGTYPE_p_float swigTrainLabelDataArray,
+                                                    final int numInstances) {
 
         logger.debug("Setting label data.");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(

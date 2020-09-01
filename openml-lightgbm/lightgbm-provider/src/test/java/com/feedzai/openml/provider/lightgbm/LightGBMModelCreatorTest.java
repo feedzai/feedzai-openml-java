@@ -66,7 +66,7 @@ public class LightGBMModelCreatorTest {
     /**
      * No parameters to pass for now.
      */
-    private final Map<String, String> params = new HashMap<String, String>();
+    private final Map<String, String> params = new HashMap<>();
 
     /**
      * Prepares the tests.
@@ -94,12 +94,11 @@ public class LightGBMModelCreatorTest {
     @Test
     public void loadModelFailsOnNonModelResourceLoadTest() {
 
-        assertThatExceptionOfType(ModelLoadingException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(ModelLoadingException.class).isThrownBy(() ->
             modelLoader.loadModel(
                     TestResources.getScoredInstancesPath(), // Shouldn't be able to load a non-LightGBM file as a model.
                     TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END
-            );
-        });
+            ));
 
     }
 
@@ -277,12 +276,12 @@ public class LightGBMModelCreatorTest {
     @Test
     public void loadModelWithWrongNumberOfFieldsThrowsTest() {
 
-        assertThatExceptionOfType(ModelLoadingException.class).isThrownBy(() -> {
+        assertThatExceptionOfType(ModelLoadingException.class).isThrownBy(() ->
             modelLoader.loadModel(
                     TestResources.getModelFilePath(),
                     TestSchemas.BAD_NUMERICALS_SCHEMA_WITH_MISSING_FIELDS
-            );
-        }).withMessage(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
+            )
+        ).withMessage(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
     }
 
     /**
@@ -293,12 +292,12 @@ public class LightGBMModelCreatorTest {
     @Test
     public void loadModelFolderDoesNotThrowTest() {
 
-        assertThatCode(() -> {
+        assertThatCode(() ->
             modelLoader.loadModel(
                     TestResources.getModelFolderPath(),
                     TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END
-            );
-        }).doesNotThrowAnyException();
+            )
+        ).doesNotThrowAnyException();
     }
 
     /**
@@ -307,12 +306,12 @@ public class LightGBMModelCreatorTest {
     @Test
     public void loadModelFileDoesNotThrowTest() {
 
-        assertThatCode(() -> {
+        assertThatCode(() ->
             modelLoader.loadModel(
                     TestResources.getModelFilePath(),
                     TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END
-            );
-        }).doesNotThrowAnyException();
+            )
+        ).doesNotThrowAnyException();
     }
 
     /**
