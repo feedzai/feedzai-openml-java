@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import water.H2O;
 
 import java.io.File;
 import java.util.List;
@@ -253,9 +252,7 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
     @Test
     public final void ensureH2OAlgorithmsHaveMandatoryParams() {
         this.getTrainAlgorithms().forEach(
-                (algorithm, params) -> {
-                    assertThat(validateParamsForAlgorithms(params, algorithm).size()).isEqualTo(0);
-                }
+                (algorithm, params) -> validateParamsForTheAlgorithm(params, algorithm)
         );
     }
 
@@ -264,11 +261,9 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
      *
      * @param params    The default parameters.
      * @param algorithm The H2O algorithm.
-     *
-     * @return The list of Parameter Validation Errors.
      * @since 1.0.18
      */
-    private List<ParamValidationError> validateParamsForAlgorithms(final Map<String, String> params, final MLAlgorithmEnum algorithm) {
+    private void validateParamsForTheAlgorithm(final Map<String, String> params, final MLAlgorithmEnum algorithm) {
 
         final H2OModelCreator loader = getMachineLearningModelLoader(algorithm);
 
@@ -281,6 +276,6 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
                 params
         );
 
-        return paramValidationErrors;
+        assertThat(paramValidationErrors.size()).isEqualTo(0);
     }
 }
