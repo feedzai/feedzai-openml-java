@@ -223,7 +223,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Assert that non-ASCII feature names can be used for train.
      */
     @Test
-    public void fitWithASCIIFeatureNameIsOKTest () {
+    public void fitWithNonASCIIFeatureNameIsPossible () {
 
         final Dataset dataset = new MockDataset(
                 TestSchemas.SCHEMA_WITH_TWO_NON_ASCII_FEATURES, 10, new Random());
