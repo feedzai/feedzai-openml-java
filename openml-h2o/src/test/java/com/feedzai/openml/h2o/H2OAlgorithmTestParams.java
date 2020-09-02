@@ -134,6 +134,9 @@ public final class H2OAlgorithmTestParams {
                 .put("standardize", "true")
                 .put("non_negative", "true")
                 .put("obj_reg", "-1")
+                .put("theta", "1e-10")      // default value
+                .put("HGLM", "false")       // default value
+                .put("calc_like", "false")  // default value
                 .build();
 
     }

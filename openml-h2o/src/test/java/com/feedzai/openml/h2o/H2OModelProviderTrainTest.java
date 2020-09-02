@@ -22,14 +22,17 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
+import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import com.feedzai.openml.util.provider.AbstractProviderModelTrainTest;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -37,6 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 /**
@@ -163,5 +167,49 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Cl
                 .isInstanceOf(ModelTrainingException.class)
                 .hasMessageContaining("In order to generate the model the dataset cannot be empty")
                 .hasMessageContaining("/tmp/"); //just to check that the URI is present in the message
+    }
+
+    /**
+     * Ensures that all supported H2O algorithms have the mandatory parameters.
+     *
+     * @since 1.0.18
+     */
+    @Test
+    public final void ensureH2OAlgorithmsHaveMandatoryParams() {
+
+        final Map<MLAlgorithmEnum, Map<String, String>> trainAlgorithms = this.getTrainAlgorithms();
+
+        assertThat(trainAlgorithms.size())
+                .as("The list of training algorithms must not be null.")
+                .isNotEqualTo(0);
+
+        trainAlgorithms.forEach(
+                (algorithm, params) -> validateParamsForTheAlgorithm(params, algorithm)
+        );
+    }
+
+    /**
+     * Validates the mandatory parameters that the algorithm needs.
+     *
+     * @param params    The default parameters.
+     * @param algorithm The H2O algorithm.
+     * @since 1.0.18
+     */
+    private void validateParamsForTheAlgorithm(final Map<String, String> params, final MLAlgorithmEnum algorithm) {
+
+        final H2OModelCreator loader = getMachineLearningModelLoader(algorithm);
+
+        final File tempDir = Files.createTempDir();
+        tempDir.deleteOnExit();
+
+        final List<ParamValidationError> paramValidationErrors = loader.validateForFit(
+                tempDir.toPath(),
+                TRAIN_DATASET.getSchema(),
+                params
+        );
+
+        assertThat(paramValidationErrors.size())
+                .as("The list parameter validation errors must be null.")
+                .isEqualTo(0);
     }
 }
