@@ -31,7 +31,7 @@
         LIGHTGBM_REPO_URL=https://github.com/microsoft/LightGBM
         LIGHTGBM_VERSION=v3.0.0
         LIGHTGBM_COMMIT=7e11d4aeabd4a39ffa4afb382299c6d00ddf01e7
-        PACKAGE_TIMESTAMP=20/09/01 18:20:49
+        PACKAGE_TIMESTAMP=2020/09/01 18:20:49
     </description>
     <url>https://github.com/feedzai/make-lightgbm</url>
 

@@ -210,10 +210,8 @@ public class TestSchemas {
             0,
             ImmutableList.<FieldSchema>builder()
                     .addAll(NUMERICALS_SCHEMA_WITH_TARGET_AT_START.getFieldSchemas())
-                    .add(new FieldSchema("cão", 5,
-                            new NumericValueSchema(false)))
-                    .add(new FieldSchema("test \uD801\uDC00", 6,
-                            new NumericValueSchema(false)))
+                    .add(new FieldSchema("cão", 5, new NumericValueSchema(false)))
+                    .add(new FieldSchema("test \uD801\uDC00", 6, new NumericValueSchema(false)))
                     .build()
     );
 }
