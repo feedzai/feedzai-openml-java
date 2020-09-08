@@ -51,20 +51,9 @@ class LightGBMSWIG {
     private final int schemaTargetIndex;
 
     /**
-     * Constant: number of predictive fields in the schema.
-     */
-    private final int schemaNumFeatures;
-
-    /**
      * Number of features in the schema.
      */
     private final int schemaNumFields;
-
-    /**
-     * Holds the number of features used by the model.
-     * It is fetched from the model binary and initialized at the constructor.
-     */
-    private int boosterNumFeatures;
 
     /**
      * Number of loaded model classes.
@@ -88,15 +77,17 @@ class LightGBMSWIG {
      * @throws ModelLoadingException in case any LightGBM error occurs.
      */
     LightGBMSWIG(final String modelPath, final DatasetSchema schema) throws ModelLoadingException {
+
         this.schemaNumFields = schema.getFieldSchemas().size();
-        // TODO: should not be received! Model should know better.
-        this.schemaNumFeatures = schema.getPredictiveFields().size();
         this.schemaTargetIndex = schema.getTargetIndex().orElse(-1);
-        this.swigResources = new SWIGResources(modelPath, this.schemaNumFeatures);
+        this.swigResources = new SWIGResources(modelPath);
 
         initBoosterNumClasses();
-        initGetBoosterNumFeatures();
+
+        final String LightGBMParameters = "num_threads=1";
+        this.swigResources.initBoosterFastPredictHandle(LightGBMParameters); // TODO: merge this into SWIGResources()
     }
+
 
     /**
      * From the input instance, copies the values into the
@@ -109,7 +100,7 @@ class LightGBMSWIG {
      *
      * @param instance The instance from pulse.
      */
-    private void initSWIGInstanceArray(final Instance instance) {
+    private void copyDataToSWIGInstance(final Instance instance) {
 
         int skipTargetOffset = 0; // set to 1 after passing the target (if it exists)
         for (int i = 0; i < this.schemaNumFields; ++i) {
@@ -137,24 +128,10 @@ class LightGBMSWIG {
         // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
         synchronized (this.swigResources) {
 
-            initSWIGInstanceArray(instance);
-
-            // LightGBM call configuration:
-            final int isRowMajor = 1;
-            final int numIterations = -1;
-            final String LightGBMParameters = "num_threads=1";
-
-            final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRow(
-                    this.swigResources.swigBoosterHandle,
+            copyDataToSWIGInstance(instance);
+            final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFast(
+                    this.swigResources.swigFastConfigHandle, //this.swigResources.swigBoosterHandle,
                     this.swigResources.swigInstancePtr,
-                    lightgbmlibConstants.C_API_DTYPE_FLOAT64,
-                    this.schemaNumFeatures,
-                    isRowMajor,
-                    lightgbmlibConstants.C_API_PREDICT_NORMAL,
-                    0, // start at iteration 0
-                    numIterations,
-                    LightGBMParameters,
-                    // useless API output: size known already (had to preallocate memory)
                     this.swigResources.swigOutLengthInt64Ptr,
                     this.swigResources.swigOutScoresPtr // preallocated memory
             );
@@ -162,33 +139,14 @@ class LightGBMSWIG {
             if (returnCodeLGBM == -1)
                 throw new LightGBMException();
 
+            // Valid for binary predictions:
             final double predictionScore = lightgbmlibJNI.doubleArray_getitem(this.swigResources.swigOutScoresPtr, 0);
             logger.trace("Prediction: {}", predictionScore);
-            final double[] binaryPredictionScores = new double[2];
-            binaryPredictionScores[0] = 1 - predictionScore;
-            binaryPredictionScores[1] = predictionScore;
-
-            return binaryPredictionScores;
-
+            return new double[]{1 - predictionScore, predictionScore};
         }
     }
 
-    /**
-     * Calls the SWIG API to fetch the number of features from the model binary.
-     *
-     * <p><b>Note</b> that this method is not thread safe (by itself) and thus needs to be called in a synchronized
-     * manner.
-     * @throws LightGBMException in case there's any lightGBM error.
-     */
-    private void initGetBoosterNumFeatures() throws LightGBMException {
-        final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterGetNumFeature(this.swigResources.swigBoosterHandle,
-                this.swigResources.swigOutIntPtr);
-        if (returnCodeLGBM == -1)
-            throw new LightGBMException();
-        this.boosterNumFeatures = lightgbmlibJNI.intp_value(this.swigResources.swigOutIntPtr);
 
-        logger.debug("Loaded LightGBM Model has {} features.", this.boosterNumFeatures);
-    }
 
     /**
      * Gets number of features in the model.
@@ -196,7 +154,7 @@ class LightGBMSWIG {
      * @return Number of features in the model (retrieved from model binary).
      */
     int getBoosterNumFeatures() {
-        return this.boosterNumFeatures;
+        return this.swigResources.getBoosterNumFeatures();
     }
 
     /**
