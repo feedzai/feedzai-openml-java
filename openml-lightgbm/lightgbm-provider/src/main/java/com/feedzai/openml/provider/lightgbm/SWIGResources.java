@@ -44,28 +44,28 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG pointer to BoosterHandle.
      */
-    Long swigBoosterHandle;
+    public Long swigBoosterHandle;
 
     /**
      * SWIG pointer to FastConfigHandle
      */
-    Long swigFastConfigHandle;
+    public Long swigFastConfigHandle;
 
     /**
      * Useless variable in the C API, for we already have to preallocate swigOutScoresPtr,
      * so we get no information from this API output.
      */
-    Long swigOutLengthInt64Ptr;
+    public Long swigOutLengthInt64Ptr;
 
     /**
      * Pointer to the instance array.
      */
-    Long swigInstancePtr;
+    public Long swigInstancePtr;
 
     /**
      * SWIG Pointer to the scored array output (pre-allocated by us).
      */
-    Long swigOutScoresPtr;
+    public Long swigOutScoresPtr;
 
     /**
      * A handler to collect a pointer to int output.
@@ -73,7 +73,7 @@ class SWIGResources implements AutoCloseable {
      * As many calls output an IntPtr, this field is useful
      * to avoid repeating pointer allocation/destruction ops.
      */
-    Long swigOutIntPtr;
+    public Long swigOutIntPtr;
 
     /**
      * Number of iterations in the trained LightGBM boosting model.
@@ -97,12 +97,14 @@ class SWIGResources implements AutoCloseable {
      * @throws ModelLoadingException Error loading the model.
      * @throws LightGBMException     in case there's an error in the C++ core library.
      */
-    SWIGResources(final String modelPath) throws ModelLoadingException, LightGBMException {
+    SWIGResources(final String modelPath,
+                  final String LightGBMParameters) throws ModelLoadingException, LightGBMException {
 
         this.swigOutIntPtr = lightgbmlibJNI.new_intp();
         initModelResourcesFromFile(modelPath);
         initGetBoosterNumFeatures();
         initAuxResources();
+        initBoosterFastPredictHandle(LightGBMParameters);
     }
 
     /**
@@ -159,7 +161,7 @@ class SWIGResources implements AutoCloseable {
      *
      * @throws ModelLoadingException in case there is a C++ back-end error creating the FastConfig object.
      */
-    void initBoosterFastPredictHandle(final String LightGBMParameters) throws ModelLoadingException {
+    private void initBoosterFastPredictHandle(final String LightGBMParameters) throws ModelLoadingException {
 
         final long swigOutFastConfigHandlePtr = lightgbmlibJNI.voidpp_handle();
 
@@ -271,14 +273,14 @@ class SWIGResources implements AutoCloseable {
      *
      * @return boosterNumIterations
      */
-    int getBoosterNumIterations() { return this.boosterNumIterations; }
+    public int getBoosterNumIterations() { return this.boosterNumIterations; }
 
     /**
      * Returns the number of features in the model.
      *
      * @return boosterNumIterations
      */
-    int getBoosterNumFeatures() { return this.boosterNumFeatures; }
+    public int getBoosterNumFeatures() { return this.boosterNumFeatures; }
 
     /**
      * Computes the number of features in the model.

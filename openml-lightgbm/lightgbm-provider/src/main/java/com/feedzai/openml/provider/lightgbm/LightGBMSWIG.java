@@ -78,14 +78,13 @@ class LightGBMSWIG {
      */
     LightGBMSWIG(final String modelPath, final DatasetSchema schema) throws ModelLoadingException {
 
+        final String LightGBMParameters = "num_threads=1";
+
         this.schemaNumFields = schema.getFieldSchemas().size();
         this.schemaTargetIndex = schema.getTargetIndex().orElse(-1);
-        this.swigResources = new SWIGResources(modelPath);
+        this.swigResources = new SWIGResources(modelPath, LightGBMParameters);
 
         initBoosterNumClasses();
-
-        final String LightGBMParameters = "num_threads=1";
-        this.swigResources.initBoosterFastPredictHandle(LightGBMParameters); // TODO: merge this into SWIGResources()
     }
 
 
@@ -123,7 +122,7 @@ class LightGBMSWIG {
      * @param instance The instance from pulse.
      * @return double[2] array with scores.
      */
-    double[] getBinaryClassDistribution(final Instance instance) {
+    public double[] getBinaryClassDistribution(final Instance instance) {
 
         // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
         synchronized (this.swigResources) {
@@ -153,7 +152,7 @@ class LightGBMSWIG {
      *
      * @return Number of features in the model (retrieved from model binary).
      */
-    int getBoosterNumFeatures() {
+    public int getBoosterNumFeatures() {
         return this.swigResources.getBoosterNumFeatures();
     }
 
@@ -179,7 +178,7 @@ class LightGBMSWIG {
      * @return Number of model classes (retrieved from model binary).
      *         NOTE: It's 1 for binary case in LightGBM!
      */
-    int getBoosterNumClasses() {
+    public int getBoosterNumClasses() {
         return this.boosterNumClasses;
     }
 
@@ -188,7 +187,7 @@ class LightGBMSWIG {
      *
      * @return Returns true if the model is binary.
      */
-    boolean isModelBinary() {
+    public boolean isModelBinary() {
         return this.boosterNumClasses == BINARY_LGBM_NUM_CLASSES;
     }
 
@@ -197,14 +196,14 @@ class LightGBMSWIG {
      *
      * @return The number of booster iterations in the model (retrieved from model binary).
      */
-    int getBoosterNumIterations() { return this.swigResources.getBoosterNumIterations(); }
+    public int getBoosterNumIterations() { return this.swigResources.getBoosterNumIterations(); }
 
     /**
      * Saves the model to disk.
      *
      * @param outputModelFilePath the path of the output LightGBM model file.
      */
-    void saveModelToDisk(final Path outputModelFilePath) {
+    public void saveModelToDisk(final Path outputModelFilePath) {
 
         logger.info("Saving model to disk.");
         logger.debug("Saving model to disk @ {}.", outputModelFilePath);
