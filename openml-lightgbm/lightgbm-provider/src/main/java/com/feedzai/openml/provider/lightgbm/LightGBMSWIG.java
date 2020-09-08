@@ -20,7 +20,6 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
-import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import com.microsoft.ml.lightgbm.lightgbmlibJNI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +128,7 @@ class LightGBMSWIG {
 
             copyDataToSWIGInstance(instance);
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFast(
-                    this.swigResources.swigFastConfigHandle, //this.swigResources.swigBoosterHandle,
+                    this.swigResources.swigFastConfigHandle,
                     this.swigResources.swigInstancePtr,
                     this.swigResources.swigOutLengthInt64Ptr,
                     this.swigResources.swigOutScoresPtr // preallocated memory
