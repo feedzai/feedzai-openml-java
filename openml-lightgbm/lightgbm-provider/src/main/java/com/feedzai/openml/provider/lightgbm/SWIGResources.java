@@ -154,8 +154,8 @@ class SWIGResources implements AutoCloseable {
     }
 
     /**
-     * Initializes the FastPredict object from a Booster.
-     * This FastPredict config is responsible for caching Booster+Prediction settings for repeated prediction calls.
+     * Initializes the FastConfig object from a Booster.
+     * This FastConfig is responsible for caching Booster+Prediction settings for repeated prediction calls.
      * It is used in the *Fast() predict methods instead of the Booster and prediction settings.
      *
      * @param LightGBMParameters String with custom LightGBM parameters.
