@@ -240,7 +240,6 @@ class SWIGResources implements AutoCloseable {
         // Delete FastConfig configuration resource:
         if (this.swigFastConfigHandle != null) {
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_FastConfigFree(this.swigFastConfigHandle);
-            lightgbmlibJNI.delete_voidpp(this.swigFastConfigHandle);
             this.swigFastConfigHandle = null;
 
             if (returnCodeLGBM == -1) {
@@ -251,7 +250,6 @@ class SWIGResources implements AutoCloseable {
         // Delete model resources:
         if (this.swigBoosterHandle != null) {
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterFree(this.swigBoosterHandle);
-            lightgbmlibJNI.delete_voidpp(this.swigBoosterHandle);
             this.swigBoosterHandle = null;
 
             if (returnCodeLGBM == -1) {
