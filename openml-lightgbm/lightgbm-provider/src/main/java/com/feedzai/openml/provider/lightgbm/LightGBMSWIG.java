@@ -75,7 +75,7 @@ class LightGBMSWIG {
      * @param schema    Input schema
      * @throws ModelLoadingException in case any LightGBM error occurs.
      */
-    LightGBMSWIG(final String modelPath, final DatasetSchema schema) throws ModelLoadingException {
+    public LightGBMSWIG(final String modelPath, final DatasetSchema schema) throws ModelLoadingException {
 
         final String LightGBMParameters = "num_threads=1";
 
@@ -137,7 +137,6 @@ class LightGBMSWIG {
             if (returnCodeLGBM == -1)
                 throw new LightGBMException();
 
-            // Valid for binary predictions:
             final double predictionScore = lightgbmlibJNI.doubleArray_getitem(this.swigResources.swigOutScoresPtr, 0);
             logger.trace("Prediction: {}", predictionScore);
             return new double[]{1 - predictionScore, predictionScore};

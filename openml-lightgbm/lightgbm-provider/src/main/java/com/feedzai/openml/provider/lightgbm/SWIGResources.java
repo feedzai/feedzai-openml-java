@@ -93,12 +93,13 @@ class SWIGResources implements AutoCloseable {
      * Constructor. Initializes a model handle and all resource handlers
      * necessary to implement the standard model operations.
      *
-     * @param modelPath         Path to the model folder.
+     * @param modelPath          Path to the model folder.
+     * @param LightGBMParameters String with LightGBM parameters.
      * @throws ModelLoadingException Error loading the model.
      * @throws LightGBMException     in case there's an error in the C++ core library.
      */
-    SWIGResources(final String modelPath,
-                  final String LightGBMParameters) throws ModelLoadingException, LightGBMException {
+    public SWIGResources(final String modelPath,
+                         final String LightGBMParameters) throws ModelLoadingException, LightGBMException {
 
         this.swigOutIntPtr = lightgbmlibJNI.new_intp();
         initModelResourcesFromFile(modelPath);
