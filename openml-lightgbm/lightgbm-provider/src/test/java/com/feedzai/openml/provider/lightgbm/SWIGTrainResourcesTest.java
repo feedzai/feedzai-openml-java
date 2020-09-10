@@ -32,8 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SWIGTrainResourcesTest {
 
     /**
-     * SWIGResources instance common to all tests. Do not modify it!
-     * Used to speed up tests by avoiding re-reading the model file.
+     * SWIGTrainResources instance common to all tests.
+     * Fresh instance initialized before each test.
      */
     private SWIGTrainResources swigTrainResources;
 
@@ -65,9 +65,9 @@ public class SWIGTrainResourcesTest {
         assertThat(swigTrainResources.swigTrainFeaturesDataArray).as("swigTrainFeaturesDataArray").isNotNull();
         assertThat(swigTrainResources.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNotNull();
         assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
-        // Cannot assert those as they require external initialization:
-        //assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
-        //assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNotNull();
+        /* Cannot assert these two as they require external initialization:
+         assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
+         assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNotNull(); */
     }
 
     /**

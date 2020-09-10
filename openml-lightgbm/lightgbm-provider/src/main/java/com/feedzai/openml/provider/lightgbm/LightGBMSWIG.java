@@ -71,13 +71,14 @@ class LightGBMSWIG {
     /**
      * Will read the model at path and initialize it.
      * If any LightGBM error arises a ModelLoadingException is thrown.
-     * @param modelPath Path to the model
-     * @param schema    Input schema
+     *
+     * @param modelPath          Path to the model
+     * @param schema             Input schema
+     * @param LightGBMParameters LightGBM parameters
      * @throws ModelLoadingException in case any LightGBM error occurs.
      */
-    public LightGBMSWIG(final String modelPath, final DatasetSchema schema) throws ModelLoadingException {
-
-        final String LightGBMParameters = "num_threads=1";
+    public LightGBMSWIG(final String modelPath,
+                        final DatasetSchema schema, final String LightGBMParameters) throws ModelLoadingException {
 
         this.schemaNumFields = schema.getFieldSchemas().size();
         this.schemaTargetIndex = schema.getTargetIndex().orElse(-1);

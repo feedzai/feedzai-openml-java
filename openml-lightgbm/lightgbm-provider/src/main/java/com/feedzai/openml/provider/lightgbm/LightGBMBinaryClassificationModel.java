@@ -51,6 +51,11 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
     private final LightGBMSWIG lgbm;
 
     /**
+     * String with LightGBM parameters used for prediction.
+     */
+    private static final String LightGBMPredictionParameters = "num_threads=1";
+
+    /**
      * Constructor.
      * Takes care of loading the model from the file and initializing all SWIG-LGBM resources for prediction.
      *
@@ -60,7 +65,7 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
      */
     LightGBMBinaryClassificationModel(final Path modelPath, final DatasetSchema schema) throws ModelLoadingException {
         this.schema = schema;
-        lgbm = new LightGBMSWIG(modelPath.toString(), schema);
+        lgbm = new LightGBMSWIG(modelPath.toString(), schema, LightGBMPredictionParameters);
     }
 
     @Override
