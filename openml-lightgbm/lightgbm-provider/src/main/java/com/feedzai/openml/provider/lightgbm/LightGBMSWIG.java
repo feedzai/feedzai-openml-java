@@ -74,15 +74,15 @@ class LightGBMSWIG {
      *
      * @param modelPath          Path to the model
      * @param schema             Input schema
-     * @param LightGBMParameters LightGBM parameters
+     * @param lightGBMParameters LightGBM parameters
      * @throws ModelLoadingException in case any LightGBM error occurs.
      */
     public LightGBMSWIG(final String modelPath,
-                        final DatasetSchema schema, final String LightGBMParameters) throws ModelLoadingException {
+                        final DatasetSchema schema, final String lightGBMParameters) throws ModelLoadingException {
 
         this.schemaNumFields = schema.getFieldSchemas().size();
         this.schemaTargetIndex = schema.getTargetIndex().orElse(-1);
-        this.swigResources = new SWIGResources(modelPath, LightGBMParameters);
+        this.swigResources = new SWIGResources(modelPath, lightGBMParameters);
 
         initBoosterNumClasses();
     }

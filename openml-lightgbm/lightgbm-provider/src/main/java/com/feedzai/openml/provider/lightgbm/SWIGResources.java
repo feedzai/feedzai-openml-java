@@ -94,18 +94,17 @@ class SWIGResources implements AutoCloseable {
      * necessary to implement the standard model operations.
      *
      * @param modelPath          Path to the model folder.
-     * @param LightGBMParameters String with LightGBM parameters.
+     * @param lightGBMParameters String with LightGBM parameters.
      * @throws ModelLoadingException Error loading the model.
      * @throws LightGBMException     in case there's an error in the C++ core library.
      */
     public SWIGResources(final String modelPath,
-                         final String LightGBMParameters) throws ModelLoadingException, LightGBMException {
+                         final String lightGBMParameters) throws ModelLoadingException, LightGBMException {
 
         this.swigOutIntPtr = lightgbmlibJNI.new_intp();
         initModelResourcesFromFile(modelPath);
-        initGetBoosterNumFeatures();
-        initAuxResources();
-        initBoosterFastPredictHandle(LightGBMParameters);
+        initAuxiliaryModelResources();
+        initBoosterFastPredictHandle(lightGBMParameters);
     }
 
     /**
@@ -194,7 +193,10 @@ class SWIGResources implements AutoCloseable {
      *
      * @throws LightGBMException in case there's an error in the C++ core library.
      */
-    private void initAuxResources() throws LightGBMException {
+    private void initAuxiliaryModelResources() throws LightGBMException {
+
+        this.boosterNumFeatures = computeBoosterNumFeaturesFromModel();
+        logger.debug("Loaded LightGBM Model has {} features.", this.boosterNumFeatures);
 
         this.swigOutLengthInt64Ptr = lightgbmlibJNI.new_int64_tp();
         this.swigInstancePtr = lightgbmlibJNI.new_doubleArray(getBoosterNumFeatures());
@@ -282,19 +284,19 @@ class SWIGResources implements AutoCloseable {
     public int getBoosterNumFeatures() { return this.boosterNumFeatures; }
 
     /**
-     * Computes the number of features in the model.
+     * Computes the number of features in the model and returns it.
      *
-     * @throws ModelLoadingException when there is a LightGBM C++ error.
+     * @throws LightGBMException when there is a LightGBM C++ error.
+     * @returns int with the number of Booster features.
      */
-    private void initGetBoosterNumFeatures() throws ModelLoadingException {
+    private Integer computeBoosterNumFeaturesFromModel() throws LightGBMException {
 
         final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterGetNumFeature(
                 this.swigBoosterHandle,
                 this.swigOutIntPtr);
         if (returnCodeLGBM == -1)
-            releaseResourcesAndThrowModelLoadingException("Couldn't get number of features from model: ");
+            throw new LightGBMException();
 
-        this.boosterNumFeatures = lightgbmlibJNI.intp_value(this.swigOutIntPtr);
-        logger.debug("Loaded LightGBM Model has {} features.", this.boosterNumFeatures);
+        return lightgbmlibJNI.intp_value(this.swigOutIntPtr);
     }
 }
