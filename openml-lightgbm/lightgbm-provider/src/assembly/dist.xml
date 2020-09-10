@@ -12,7 +12,7 @@
             <outputDirectory>/</outputDirectory>
             <useProjectArtifact>true</useProjectArtifact>
             <unpack>true</unpack>
-            <scope>runtime</scope>
+            <scope>provided</scope>
             <includes>
                 <include>com.feedzai.openml.lightgbm:lightgbm-lib</include>
                 <include>com.feedzai:openml-lightgbm</include>
