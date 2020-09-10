@@ -38,13 +38,13 @@ public class SWIGResourcesTest {
     /**
      * Standard model path.
      */
-    static Path modelPath;
+    private static Path modelPath;
 
     /**
      * SWIGResources instance common to all tests. Do not modify it!
      * Used to speed up tests by avoiding re-reading the model file.
      */
-    static SWIGResources defaultSwig;
+    private static SWIGResources defaultSwig;
 
     /**
      * Set up the standard model path.
@@ -52,7 +52,7 @@ public class SWIGResourcesTest {
      * @throws URISyntaxException Couldn't extract file resource.
      */
     @BeforeClass
-    static public void setupFixture() throws ModelLoadingException, URISyntaxException {
+    public static void setupFixture() throws ModelLoadingException, URISyntaxException {
 
         LightGBMUtils.loadLibs(); // Initialize LightGBM libs.
 
