@@ -19,6 +19,7 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -236,4 +238,25 @@ public class LightGBMBinaryClassificationModelTest {
         );
     }
 
+    @Test
+    public void testRewriteModel() throws URISyntaxException, ModelLoadingException {
+        LightGBMSWIG swig = new LightGBMSWIG(TestResources.getModelFilePath().toString(), TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, "");
+
+        swig.saveModelToDisk(Paths.get("novo_reescrito.txt"));
+
+
+    }
+
+
+    @Test
+    public void testRewriteModel42() throws URISyntaxException, ModelLoadingException {
+        LightGBMSWIG swig = new LightGBMSWIG(
+                TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                "");
+
+        swig.saveModelToDisk(Paths.get("novo_reescrito_42.txt"));
+
+
+    }
 }

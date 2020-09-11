@@ -25,7 +25,7 @@
     <description>OpenML Microsoft LightGBM Machine Learning Model and Classifier provider</description>
 
     <properties>
-        <lightgbmlib.version>3.0.0</lightgbmlib.version>
+        <lightgbmlib.version>3.0.1</lightgbmlib.version>
     </properties>
 
     <dependencies>
