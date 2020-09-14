@@ -156,6 +156,16 @@ class LightGBMSWIG {
     }
 
     /**
+     * Gets the name of the features in the model.
+     *
+     * @return Names of the features in the model (retrieved from model binary).
+     * @since 1.0.18
+     */
+    public String[] getBoosterFeatureNames() {
+        return this.swigResources.getBoosterFeatureNames();
+    }
+
+    /**
      * Initializes the number of model classes from the model binary.
      *
      * <p><b>Note</b> that this method is not thread safe (by itself) and thus needs to be called in a synchronized
