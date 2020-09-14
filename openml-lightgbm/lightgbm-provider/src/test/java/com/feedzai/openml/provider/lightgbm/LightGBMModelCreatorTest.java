@@ -39,6 +39,7 @@ import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MS
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_SCHEMA_HAS_STRING_FIELDS;
+import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELD_NAMES;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -282,6 +283,23 @@ public class LightGBMModelCreatorTest {
                     TestSchemas.BAD_NUMERICALS_SCHEMA_WITH_MISSING_FIELDS
             )
         ).withMessage(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
+    }
+
+    /**
+     * Assert that loading a model with a wrong field
+     * names order throws a ModelLoadingException.
+     *
+     * @since 1.0.18
+     */
+    @Test
+    public void loadModelWithWrongFieldNamesOrderThrowsTest() {
+
+        assertThatExceptionOfType(ModelLoadingException.class).isThrownBy(() ->
+                modelLoader.loadModel(
+                        TestResources.getModelFilePath(),
+                        TestSchemas.BAD_NUMERICALS_SCHEMA_WITH_WRONG_FEATURES_ORDER
+                )
+        ).withMessage(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELD_NAMES);
     }
 
     /**

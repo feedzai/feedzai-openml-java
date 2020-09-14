@@ -110,6 +110,14 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
     }
 
     /**
+     * @return Names of the features in the model.
+     * @since 1.0.18
+     */
+    public String[] getBoosterFeatureNames() {
+        return lgbm.getBoosterFeatureNames();
+    }
+
+    /**
      * @return The number of booster iterations in the model.
      */
     public int getBoosterNumIterations() { return lgbm.getBoosterNumIterations(); }

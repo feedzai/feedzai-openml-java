@@ -23,12 +23,14 @@ import com.microsoft.ml.lightgbm.lightgbmlibJNI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 import static com.feedzai.openml.provider.lightgbm.LightGBMUtils.BINARY_LGBM_NUM_CLASSES;
 
 /**
  * This class is responsible for initializing, managing and releasing all
  * LightGBM SWIG resources and resource handlers in a memory-safe manner.
- *
+ * <p>
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
@@ -88,6 +90,15 @@ class SWIGResources implements AutoCloseable {
      * thus we store it to avoid calls that can fail.
      */
     private Integer boosterNumFeatures;
+
+    /**
+     * Names of features in the trained LightGBM boosting model.
+     * Whilst not a swig resource, it is automatically retrieved during model loading,
+     * thus we store it to avoid calls that can fail.
+     *
+     * @since 1.0.18
+     */
+    private String[] boosterFeatureNames;
 
     /**
      * Constructor. Initializes a model handle and all resource handlers
@@ -198,6 +209,8 @@ class SWIGResources implements AutoCloseable {
         this.boosterNumFeatures = computeBoosterNumFeaturesFromModel();
         logger.debug("Loaded LightGBM Model has {} features.", this.boosterNumFeatures);
 
+        this.boosterFeatureNames = computeBoosterFeatureNamesFromModel();
+
         this.swigOutLengthInt64Ptr = lightgbmlibJNI.new_int64_tp();
         this.swigInstancePtr = lightgbmlibJNI.new_doubleArray(getBoosterNumFeatures());
         this.swigOutScoresPtr = lightgbmlibJNI.new_doubleArray(BINARY_LGBM_NUM_CLASSES);
@@ -270,18 +283,28 @@ class SWIGResources implements AutoCloseable {
     }
 
     /**
-     * Returns the number of booster iterations in the model.
+     * Returns the number of iterations in the LightGBM model.
      *
      * @return boosterNumIterations
      */
     public int getBoosterNumIterations() { return this.boosterNumIterations; }
 
     /**
-     * Returns the number of features in the model.
+     * Returns the number of features in the LightGBM model.
      *
      * @return boosterNumIterations
      */
     public int getBoosterNumFeatures() { return this.boosterNumFeatures; }
+
+    /**
+     * Returns the name of features in the LightGBM model.
+     *
+     * @return boosterFeatureNames
+     * @since 1.0.18
+     */
+    public String[] getBoosterFeatureNames() {
+        return this.boosterFeatureNames;
+    }
 
     /**
      * Computes the number of features in the model and returns it.
@@ -298,5 +321,30 @@ class SWIGResources implements AutoCloseable {
             throw new LightGBMException();
 
         return lightgbmlibJNI.intp_value(this.swigOutIntPtr);
+    }
+
+    /**
+     * Compute the feature names, from the model.
+     *
+     * @throws LightGBMException when there is a LightGBM C++ error.
+     * @return a string array with the feature names.
+     * @since 1.0.18
+     */
+    private String[] computeBoosterFeatureNamesFromModel() throws LightGBMException {
+
+        final long swigStringArrayHandle = lightgbmlibJNI.LGBM_BoosterGetFeatureNamesSWIG(this.swigBoosterHandle);
+
+        if (swigStringArrayHandle == 0) {
+            logger.error("Could not read feature names.");
+            throw new LightGBMException();
+        }
+
+        final String[] featureNames = lightgbmlibJNI.StringArrayHandle_get_strings(swigStringArrayHandle);
+        logger.debug("LightGBM model features: {}.", Arrays.toString(featureNames));
+
+        logger.trace("Deallocating feature names.");
+        lightgbmlibJNI.StringArrayHandle_free(swigStringArrayHandle);
+
+        return featureNames;
     }
 }

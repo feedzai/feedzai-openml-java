@@ -21,6 +21,7 @@ import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.AbstractValueSchema;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
@@ -90,6 +91,12 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
      */
     static final String ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE =
             "Received schema with wrong number of predictive fields.";
+
+    /**
+     * Error message when schema predictive fields don't match model feature names.
+     */
+    static final String ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELD_NAMES =
+            "Received schema with wrong predictive field names.";
 
     /**
      * Error message when boosting type is Random Forest and bagging is not enabled.
@@ -237,6 +244,10 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             throw new ModelLoadingException(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
         }
 
+        if (!schemaMatchAllFeatures(schema, model.getBoosterFeatureNames())) {
+            throw new ModelLoadingException(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELD_NAMES);
+        }
+
         return model;
     }
 
@@ -247,22 +258,6 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         final ImmutableList.Builder<ParamValidationError> errorsBuilder = ImmutableList.builder();
 
-        if (Files.isDirectory(modelPath)) {
-            if (! Files.exists(modelPath.resolve(MODEL_BINARY_RESOURCE_FILE_NAME))) {
-                logger.error(
-                        "Error loading model from directory ({}). File {} not found.",
-                        modelPath, MODEL_BINARY_RESOURCE_FILE_NAME
-                );
-                errorsBuilder.add(new ParamValidationError(String.format("%s %s inside folder.",
-                        ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE, MODEL_BINARY_RESOURCE_FILE_NAME)
-                ));
-            }
-        } else if (! Files.exists(modelPath)) {
-            logger.error(ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE + " in filesystem ({}).", modelPath);
-            errorsBuilder.add(new ParamValidationError(ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE + " in filesystem."));
-        }
-
-        // Checks that the RandomForest also implements:
         errorsBuilder.addAll(baseLoadValidations(schema, params));
         validateCategoricalSchema(schema).ifPresent(errorsBuilder::add);
 
@@ -272,6 +267,23 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         if (getNumTargetClasses(schema).orElse(-1) != 2) {
             errorsBuilder.add(new ParamValidationError(ERROR_MSG_NON_BINARY_TARGET));
+        }
+
+        if (!Files.exists(modelPath)) {
+            logger.error(ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE + " in filesystem ({}).", modelPath);
+            errorsBuilder.add(new ParamValidationError(ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE + " in filesystem."));
+
+            return errorsBuilder.build();
+        }
+
+        if (Files.isDirectory(modelPath) && !Files.exists(modelPath.resolve(MODEL_BINARY_RESOURCE_FILE_NAME))) {
+            logger.error(
+                    "Error loading model from directory ({}). File {} not found.",
+                    modelPath, MODEL_BINARY_RESOURCE_FILE_NAME
+            );
+            errorsBuilder.add(new ParamValidationError(String.format("%s %s inside folder.",
+                    ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE, MODEL_BINARY_RESOURCE_FILE_NAME)
+            ));
         }
 
         return errorsBuilder.build();
@@ -313,5 +325,62 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         } else {
             return Optional.empty();
         }
+    }
+
+    /**
+     * Gets the feature names from schema.
+     *
+     * @implNote The space character is replaced with underscore
+     * to comply with LightGBM's model features representation.
+     *
+     * @param schema Schema
+     * @return Feature names from the schema.
+     * @since 1.0.18
+     */
+    private static String[] getFeatureNamesFrom(final DatasetSchema schema) {
+
+        return schema.getPredictiveFields().stream()
+                .map(FieldSchema::getFieldName)
+                .map(fieldName -> fieldName.replace(" ", "_"))
+                .toArray(String[]::new);
+    }
+
+    /**
+     * Performs a one-by-one feature name comparison between a
+     * {@link DatasetSchema} and an array of feature names.
+     * This way the first mismatch is logged, improving debug.
+     *
+     * @param schema Schema
+     * @param featureNames Feature names to validate.
+     * @return {@code true} if the schema predictive field names
+     * match the provided array, {@code false} otherwise.
+     * @since 1.0.18
+     */
+    private boolean schemaMatchAllFeatures(final DatasetSchema schema, final String[] featureNames) {
+
+        final String[] schemaFeatureNames = getFeatureNamesFrom(schema);
+
+        boolean isMatch = true;
+
+        for (int i = 0; i < featureNames.length; i++) {
+
+            if (!schemaFeatureNames[i].equals(featureNames[i])) {
+
+                logger.error("Schema with wrong predictive field name at index {}: '{}' Expected: '{}'",
+                        i,
+                        schemaFeatureNames[i],
+                        featureNames[i]);
+
+                isMatch = false;
+            }
+        }
+
+        if (!isMatch) {
+            logger.error("Schema with wrong predictive field names: '{}' - Expected: '{}'",
+                    String.join(", ", schemaFeatureNames),
+                    String.join(", ", featureNames));
+        }
+
+        return isMatch;
     }
 }
