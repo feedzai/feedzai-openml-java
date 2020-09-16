@@ -25,8 +25,12 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
@@ -42,6 +46,11 @@ import static org.junit.Assert.assertTrue;
  * @since 1.0.10
  */
 public class LightGBMBinaryClassificationModelTest {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(LightGBMBinaryClassificationModelTest.class);
 
     /**
      * LightGBM's model loader instance. Will be used to load more model instances during tests.
@@ -238,25 +247,49 @@ public class LightGBMBinaryClassificationModelTest {
         );
     }
 
+    /**
+     * This functional test ensures that LightGBM can read a model file and output one exactly alike the one read in.
+     * This is to ensure the new code to rewrite the model read/write layers is completely functional.
+     * The two reference models were generated initially with LightGBM's v3.0.0 code.
+     * The two generated ones will use the current code in the current locale. There should be no mismatches.
+     * @throws URISyntaxException
+     * @throws ModelLoadingException
+     * @throws IOException
+     * @throws InterruptedException
+     */
     @Test
-    public void testRewriteModel() throws URISyntaxException, ModelLoadingException {
+    public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
+
+        // Generate both models
         LightGBMSWIG swig = new LightGBMSWIG(TestResources.getModelFilePath().toString(), TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, "");
 
-        swig.saveModelToDisk(Paths.get("novo_reescrito.txt"));
+        swig.saveModelToDisk(Paths.get("new_code_models/4f.txt"));
 
 
-    }
-
-
-    @Test
-    public void testRewriteModel42() throws URISyntaxException, ModelLoadingException {
-        LightGBMSWIG swig = new LightGBMSWIG(
+        swig = new LightGBMSWIG(
                 TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
 
-        swig.saveModelToDisk(Paths.get("novo_reescrito_42.txt"));
+        swig.saveModelToDisk(Paths.get("new_code_models/42f.txt"));
 
 
+        // Check for differences and report in detailed manner!
+        final ProcessBuilder pb = new ProcessBuilder("python", "diff_models.py");
+        final Process p = pb.start();
+        // Fetch process output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        StringBuilder builder = new StringBuilder();
+        String line = null;
+        while ( (line = reader.readLine()) != null) {
+           builder.append(line);
+           builder.append(System.getProperty("line.separator"));
+        }
+        final String processOutput = builder.toString();
+
+        p.waitFor();
+        logger.error(processOutput);
+
+        assertThat(p.exitValue()).as("exit code").isEqualTo(0);
     }
 }

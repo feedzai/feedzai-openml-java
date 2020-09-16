@@ -38,11 +38,20 @@
     <properties>
         <!--<lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>-->
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
+        <lightgbmlib.version>3.0.1</lightgbmlib.version>
         <lightgbm.version>0509f11c001b37a820a04c1b0bad10b7f8d80f95</lightgbm.version> <!-- 1. W-only -->
         <lightgbm.version>d0f40b12d078484594b41bdfd18d6d38d47a4f7c</lightgbm.version> <!-- 2. latest with R+W -->
         <lightgbm.version>ft-af-model-locale-fix-poc-read-write</lightgbm.version> <!-- 3. PoC branch -->
+        <lightgbm.version>dc18fa85d24e5d36bace4d82eae0d5a0b658a2bb</lightgbm.version>
+        <lightgbm.version>b169f38b736266eae0d2f2624cb233c9dd5b24a8</lightgbm.version>
+        <lightgbm.version>244ff1da5a88ee3ce3c833bcfea12628d4d2e0ae</lightgbm.version> <!-- broken build -->
+        <lightgbm.version>7bcfb8f6318bb785f753c9e344c1ab4cde9637f7</lightgbm.version>
+        <lightgbm.version>7a80fff5d1cde8c9091c1443fb882bd8b28e9267</lightgbm.version> <!-- broken build -->
+        <lightgbm.version>cbf38a38209bb4e1fe9abd9d8ef51a92ee5d947d</lightgbm.version> <!-- segfault -->
+        <lightgbm.version>97875d24bc695b4e9813281068e7e46bbfa8ba37</lightgbm.version> <!-- rollback to working state -->
+        <lightgbm.version>877fc4cfa11a44600d2839bda0ecd3c2750c5a07</lightgbm.version> <!-- Add 1st __TToStringHelperFast: had a stall of 100% CPU usage in the first run. Now it segfaults. -->
+        <lightgbm.version>f397c6d539894ad65b47243e6fa1427993ee0adc</lightgbm.version> <!-- Rollback but call format as well without copy -->
         <lightgbm.version>model-locale-fix</lightgbm.version>
-        <lightgbmlib.version>3.0.1</lightgbmlib.version>
     </properties>
 
     <!-- jgitver changes the version 2.3.190 to project version, therefore we excluded this project from jgitver -->
