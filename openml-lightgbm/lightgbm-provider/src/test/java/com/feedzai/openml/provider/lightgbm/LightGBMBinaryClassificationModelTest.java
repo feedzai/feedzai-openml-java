@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
@@ -262,6 +263,8 @@ public class LightGBMBinaryClassificationModelTest {
 
         // Generate both models
         LightGBMSWIG swig = new LightGBMSWIG(TestResources.getModelFilePath().toString(), TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, "");
+
+        new File("new_code_models").mkdir();
 
         swig.saveModelToDisk(Paths.get("new_code_models/4f.txt"));
 
