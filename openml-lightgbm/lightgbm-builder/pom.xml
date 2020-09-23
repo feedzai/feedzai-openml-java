@@ -39,12 +39,9 @@
         <!--<lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>-->
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
         <lightgbmlib.version>3.0.1</lightgbmlib.version>
-        <lightgbm.version>0509f11c001b37a820a04c1b0bad10b7f8d80f95</lightgbm.version> <!-- 1. W-only -->
-        <lightgbm.version>d0f40b12d078484594b41bdfd18d6d38d47a4f7c</lightgbm.version> <!-- 2. latest with R+W -->
-        <lightgbm.version>ft-af-model-locale-fix-poc-read-write</lightgbm.version> <!-- 3. PoC branch -->
-        <!-- working model writes -->
-        <lightgbm.version>3f88786131bac74ff4cf308cf604e4b585392195</lightgbm.version> <!-- Ported to latest version of fmt and removed hacks. Working writes! -->
-        <!-- rewrite model reads -->
+        <!-- Standard codebase (won't pass the tests when LC_ALL != C) -->
+        <lightgbm.version>v3.0.0</lightgbm.version>
+        <!-- Patched version: passes all tests independently of locale -->
         <lightgbm.version>model-locale-fix</lightgbm.version>
     </properties>
 
