@@ -39,10 +39,8 @@
         <!--<lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>-->
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
         <lightgbmlib.version>3.0.1</lightgbmlib.version>
-        <!-- Standard codebase (won't pass the tests when LC_ALL != C) -->
-        <lightgbm.version>v3.0.0</lightgbm.version>
-        <!-- Patched version: passes all tests independently of locale -->
-        <lightgbm.version>model-locale-fix</lightgbm.version>
+        <lightgbm.version>v3.0.0</lightgbm.version> <!-- Standard codebase (won't pass the tests when LC_ALL != C) -->
+        <lightgbm.version>model-locale-fix</lightgbm.version> <!-- Patched version: passes all tests independently of locale -->
     </properties>
 
     <!-- jgitver changes the version 2.3.190 to project version, therefore we excluded this project from jgitver -->

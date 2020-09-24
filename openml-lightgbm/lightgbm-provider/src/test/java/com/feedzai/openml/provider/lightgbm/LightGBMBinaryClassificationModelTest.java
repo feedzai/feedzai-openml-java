@@ -19,10 +19,10 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -249,6 +249,54 @@ public class LightGBMBinaryClassificationModelTest {
     }
 
     /**
+     * Compares model files in the standard_code_models/ and new_code_models/.
+     * If there are any differences in the models within such folders they are reported
+     * in a colored report (requires python3 with termcolor installed).
+     *
+     * @return true if there are no differences and all the dependencies are installed, false otherwise.
+     * @throws IOException          In case the process errors.
+     * @throws InterruptedException In case awaiting for the process to finish fails.
+     */
+    private boolean compareModelFilesAndDoPrettyReport() throws IOException, InterruptedException {
+
+        // Check for differences and report in detailed manner!
+        final ProcessBuilder pb = new ProcessBuilder("python", "diff_models.py");
+        final Process p = pb.start();
+        // Fetch process output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        StringBuilder builder = new StringBuilder();
+        String line = null;
+        while ((line = reader.readLine()) != null) {
+            builder.append(line);
+            builder.append(System.getProperty("line.separator"));
+        }
+        final String processOutput = builder.toString();
+
+        p.waitFor();
+        logger.error(processOutput);
+
+        return (p.exitValue() == 0);
+    }
+
+    /**
+     * Asserts that the two files have the same content.
+     *
+     * @param name      name of the file to compare for the assert message.
+     * @param filepath1 path to the first file
+     * @param filepath2 path to the second file
+     * @throws IOException Raised in case of failure reading the files
+     */
+    private void assertEqualFileContents(String name, String filepath1, String filepath2) throws IOException {
+
+        File file1 = new File(filepath1);
+        File file2 = new File(filepath2);
+
+        assertThat(FileUtils.contentEquals(file1, file2))
+                .as(String.format("%s file comparison", name))
+                .isTrue();
+    }
+
+    /**
      * This functional test ensures that LightGBM can read a model file and output one exactly alike the one read in.
      * This is to ensure the new code to rewrite the model read/write layers is completely functional.
      * The two reference models were generated initially with LightGBM's v3.0.0 code.
@@ -261,38 +309,35 @@ public class LightGBMBinaryClassificationModelTest {
     @Test
     public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
-        // Generate both models
-        LightGBMSWIG swig = new LightGBMSWIG(TestResources.getModelFilePath().toString(), TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, "");
-
+        // Create the output directory if it doesn't exist:
         new File("new_code_models").mkdir();
 
+        // Rewrite model 4f.txt:
+        LightGBMSWIG swig = new LightGBMSWIG(
+                TestResources.getModelFilePath().toString(),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                "");
         swig.saveModelToDisk(Paths.get("new_code_models/4f.txt"));
 
-
+        // Rewrite model 42f.txt:
         swig = new LightGBMSWIG(
                 TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-
         swig.saveModelToDisk(Paths.get("new_code_models/42f.txt"));
 
+        // Do a detailed report (if Python3+termcolor is available):
+        compareModelFilesAndDoPrettyReport();
 
-        // Check for differences and report in detailed manner!
-        final ProcessBuilder pb = new ProcessBuilder("python", "diff_models.py");
-        final Process p = pb.start();
-        // Fetch process output
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        StringBuilder builder = new StringBuilder();
-        String line = null;
-        while ( (line = reader.readLine()) != null) {
-           builder.append(line);
-           builder.append(System.getProperty("line.separator"));
-        }
-        final String processOutput = builder.toString();
+        // Compare the rewritten models:
+        assertEqualFileContents(
+                "4f.txt",
+                "standard_code_models/4f.txt",
+                "new_code_models/4f.txt");
 
-        p.waitFor();
-        logger.error(processOutput);
-
-        assertThat(p.exitValue()).as("exit code").isEqualTo(0);
+        assertEqualFileContents(
+                "42f.txt",
+                "standard_code_models/42f.txt",
+                "new_code_models/42f.txt");
     }
 }
