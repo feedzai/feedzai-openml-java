@@ -28,9 +28,11 @@ from pathlib import Path
 
 try:
     from termcolor import colored
-    _HAS_TERMCOLOR = True
+    def warn_missing_libs():
+        pass
 except ModuleNotFoundError:
-    _HAS_TERMCOLOR = False
+    def warn_missing_libs():
+        print("Warning: Please install Python's 'termcolor' library to see detailed colored model diff!")
     def colored(msg, color):
         "Poor replacement for colored."
         if color == "red":
@@ -50,40 +52,36 @@ def file_diff_report(a, b, delim=" "):
 
     if len(a_lines) != len(b_lines):
         print("Different file line sizes!")
-        sys.exit(1)
+        return
 
-    for l, _ in enumerate(a_lines):
-        a_elems = a_lines[l].split(delim)
-        b_elems = b_lines[l].split(delim)
+    for a_line, b_line in zip(a_lines, b_lines):
+        a_elems = a_line.split(delim)
+        b_elems = b_line.split(delim)
 
         if a_elems != b_elems:
             print(
-                colored(f"\n>>> Different line contents between lines\n", "yellow"),
-                colored(a_lines[l], "red"),
-                colored(b_lines[l], "green"),
+                colored(f"\n\n\n>>> Different line contents between lines\n\n", "yellow"),
+                colored(a_line, "red"),
+                colored(b_line, "green"),
                 sep=""
             )
-            print(colored("\n=> Different elements in lines\n", "yellow"))
+            print(colored("\n>> Different elements in lines\n", "yellow"))
             if len(a_elems) != len(b_elems):
                 print("Different line sizes!")
-                sys.exit(1)
-            for e in range(len(a_elems)):
-                a_elem = a_elems[e]
-                b_elem = b_elems[e]
+                return
+            for a_elem, b_elem in zip(a_elems, b_elems):
                 if a_elem != b_elem:
                     print(
-                        colored(a_elems[e], "red"),
+                        colored(a_elem, "red"),
                         "\n",
-                        colored(b_elems[e], "green"),
+                        colored(b_elem, "green"),
                         sep=""
                     )
 
 def compare_folders_with_model_files(folder_ref, folder_new):
     """
     Compares two folders with lgbm .txt models inside.
-
     If a file with the same name is found in the two folders is compared.
-
     Any difference triggers an exit(1).
     """
     dir_ref = Path(folder_ref)
@@ -92,14 +90,13 @@ def compare_folders_with_model_files(folder_ref, folder_new):
     diff_filenames = filecmp.dircmp(dir_ref, dir_new).diff_files
 
     if diff_filenames:
-        if not _HAS_TERMCOLOR:
-            print("Warning: Please install Python's 'termcolor' library to see detailed colored report!")
+        warn_missing_libs()
 
-        
         for filename in diff_filenames:
             print(colored(f"Found mismatches in file {filename}", "yellow"))
             file_diff_report(dir_ref/filename, dir_new/filename)
 
+        warn_missing_libs()
         sys.exit(1)
 
 if __name__ == "__main__":

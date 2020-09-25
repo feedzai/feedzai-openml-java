@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -253,15 +254,24 @@ public class LightGBMBinaryClassificationModelTest {
      * If there are any differences in the models within such folders they are reported
      * in a colored report (requires python3 with termcolor installed).
      *
+     * @param referenceModelsFolder Folder with reference models
+     * @param newModelsFolder       Folder with new models to compare to reference
      * @return true if there are no differences and all the dependencies are installed, false otherwise.
      * @throws IOException          In case the process errors.
      * @throws InterruptedException In case awaiting for the process to finish fails.
      */
-    private boolean compareModelFilesAndDoPrettyReport() throws IOException, InterruptedException {
+    private boolean compareModelFilesAndDoPrettyReport(
+            final String referenceModelsFolder,
+            final String newModelsFolder) throws IOException, InterruptedException {
 
         // Check for differences and report in detailed manner!
-        final ProcessBuilder pb = new ProcessBuilder("python", "diff_models.py");
-        final Process p = pb.start();
+        final Process p = new ProcessBuilder(
+                "python",
+                "diff_models.py",
+                referenceModelsFolder,
+                newModelsFolder
+        ).start();
+
         // Fetch process output
         BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
         StringBuilder builder = new StringBuilder();
@@ -286,10 +296,12 @@ public class LightGBMBinaryClassificationModelTest {
      * @param filepath2 path to the second file
      * @throws IOException Raised in case of failure reading the files
      */
-    private void assertEqualFileContents(String name, String filepath1, String filepath2) throws IOException {
+    private void assertEqualFileContents(final String name,
+                                         final Path filepath1,
+                                         final Path filepath2) throws IOException {
 
-        File file1 = new File(filepath1);
-        File file2 = new File(filepath2);
+        File file1 = new File(filepath1.toString());
+        File file2 = new File(filepath2.toString());
 
         assertThat(FileUtils.contentEquals(file1, file2))
                 .as(String.format("%s file comparison", name))
@@ -309,35 +321,43 @@ public class LightGBMBinaryClassificationModelTest {
     @Test
     public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
+        final String referenceModelsFolder = "standard_code_models";
+        final String testOutputModelsFolder = "new_code_models";
+        final String model1Name = "4f.txt";
+        final String model2Name = "42f.txt";
+
         // Create the output directory if it doesn't exist:
-        new File("new_code_models").mkdir();
+        new File(testOutputModelsFolder).mkdir();
 
         // Rewrite model 4f.txt:
         LightGBMSWIG swig = new LightGBMSWIG(
                 TestResources.getModelFilePath().toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get("new_code_models/4f.txt"));
+        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, model1Name));
 
         // Rewrite model 42f.txt:
         swig = new LightGBMSWIG(
                 TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get("new_code_models/42f.txt"));
+        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, model2Name));
 
         // Do a detailed report (if Python3+termcolor is available):
-        compareModelFilesAndDoPrettyReport();
+        compareModelFilesAndDoPrettyReport(
+                referenceModelsFolder,
+                testOutputModelsFolder
+        );
 
         // Compare the rewritten models:
         assertEqualFileContents(
-                "4f.txt",
-                "standard_code_models/4f.txt",
-                "new_code_models/4f.txt");
+                model1Name,
+                Paths.get(referenceModelsFolder, model1Name),
+                Paths.get(testOutputModelsFolder, model1Name));
 
         assertEqualFileContents(
-                "42f.txt",
-                "standard_code_models/42f.txt",
-                "new_code_models/42f.txt");
+                model1Name,
+                Paths.get(referenceModelsFolder, model2Name),
+                Paths.get(testOutputModelsFolder, model2Name));
     }
 }
