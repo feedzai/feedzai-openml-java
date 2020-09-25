@@ -5,6 +5,10 @@ If a file with the same name is found in both folders it is compared.
 Any differences in any of such compared files prints a report and triggers exit(1).
 The report focuses on differences in the parameters of each line.
 
+Requirements:
+ - Python 3
+ - (Optional) Python's termcolor for best results (`pip install termcolor`)
+
 Usage:
  script <reference_models_folder> <new_models_folder>
 
