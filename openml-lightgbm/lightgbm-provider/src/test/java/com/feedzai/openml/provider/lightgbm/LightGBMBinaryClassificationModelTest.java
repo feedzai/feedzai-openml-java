@@ -259,6 +259,7 @@ public class LightGBMBinaryClassificationModelTest {
      * @return true if there are no differences and all the dependencies are installed, false otherwise.
      * @throws IOException          In case the process errors.
      * @throws InterruptedException In case awaiting for the process to finish fails.
+     * @since 1.0.19
      */
     private boolean compareModelFilesAndDoPrettyReport(
             final String referenceModelsFolder,
@@ -295,13 +296,14 @@ public class LightGBMBinaryClassificationModelTest {
      * @param filepath1 path to the first file
      * @param filepath2 path to the second file
      * @throws IOException Raised in case of failure reading the files
+     * @since 1.0.19
      */
     private void assertEqualFileContents(final String name,
                                          final Path filepath1,
                                          final Path filepath2) throws IOException {
 
-        File file1 = new File(filepath1.toString());
-        File file2 = new File(filepath2.toString());
+        final File file1 = new File(filepath1.toString());
+        final File file2 = new File(filepath2.toString());
 
         assertThat(FileUtils.contentEquals(file1, file2))
                 .as(String.format("%s file comparison", name))
@@ -313,10 +315,12 @@ public class LightGBMBinaryClassificationModelTest {
      * This is to ensure the new code to rewrite the model read/write layers is completely functional.
      * The two reference models were generated initially with LightGBM's v3.0.0 code.
      * The two generated ones will use the current code in the current locale. There should be no mismatches.
-     * @throws URISyntaxException
-     * @throws ModelLoadingException
-     * @throws IOException
-     * @throws InterruptedException
+     *
+     * @throws URISyntaxException    For invalid resource paths
+     * @throws ModelLoadingException Errors when loading the model resources
+     * @throws IOException           IO Errors opening/writing
+     * @throws InterruptedException  Thrown if the model report fails to await for the process
+     * @since 1.0.19
      */
     @Test
     public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
