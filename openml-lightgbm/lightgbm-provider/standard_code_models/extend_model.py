@@ -10,7 +10,6 @@ Copyright: 2020, Feedzai
 License: Same as the repo.
 """
 
-import sys
 import argparse
 import random
 
@@ -21,7 +20,7 @@ class ModelBlocks:
         self.header_block = self.raw_blocks[0]
         self.tree_blocks = list(filter(ModelBlocks.is_tree_block, self.raw_blocks))
         self.end_blocks = self.raw_blocks[
-            self.find_end_of_trees_block(self.raw_blocks):
+            ModelBlocks.find_end_of_trees_block(self.raw_blocks):
         ]
         del self.raw_blocks
 
@@ -33,8 +32,9 @@ class ModelBlocks:
         input_lines  = open(filepath).readlines()
         output_lines = list(self.yield_model_lines()) # list of output lines
 
-        assert len(input_lines) == len(output_lines), "Bug: Corrupted output!"
-        
+        if len(input_lines) != len(output_lines):
+            raise Exception("Bug detected: Output self-consistency checks failed!")
+
     @staticmethod
     def parse_file_blocks(filepath):
         at_block = False
@@ -65,7 +65,8 @@ class ModelBlocks:
         # We don't store the second blank line in the tree (add +1):
         return sum(map(len, block))
 
-    def find_end_of_trees_block(self, blocks):
+    @staticmethod
+    def find_end_of_trees_block(blocks):
         for b, block in enumerate(blocks):
             if len(block) == 2 and block[0] == "end of trees\n":
                 return b
@@ -86,13 +87,13 @@ class ModelBlocks:
     def add_sampled_trees(self, n):
         "Adds sampled trees and returns a list of the sampled trees"
         return [self.add_sampled_tree() for i in range(n)]
-        
+
     def gen_tree_sizes_line(self):
         ssv = " ".join([
             str(ModelBlocks.tree_size(tree_block)) for tree_block in self.tree_blocks
         ])
         return f"tree_sizes={ssv}\n"
-    
+
     def yield_model_lines(self):
 
         for line in self.header_block:
@@ -109,9 +110,9 @@ class ModelBlocks:
         "Dump model to disk"
         with open(filepath, "w") as out_file:
             out_file.writelines(self.yield_model_lines())
-            
 
-                
+
+
 
 def grow_model(filepath, new_trees:int, output_path):
     print("Parsing model file...")
@@ -121,7 +122,7 @@ def grow_model(filepath, new_trees:int, output_path):
     print("Writing to disk...")
     model_blocks.write_to(output_path)
     print("DONE!\n")
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_path")
@@ -129,5 +130,6 @@ if __name__ == "__main__":
     parser.add_argument("output_path")
     args = parser.parse_args()
 
-    assert args.input_path != args.output_path
+    if args.input_path == args.output_path:
+        raise ValueError("Cannot use same paths for input and output file!")
     grow_model(args.input_path, args.number_trees, args.output_path)
