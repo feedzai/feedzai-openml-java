@@ -15,6 +15,10 @@ import random
 
 class ModelBlocks:
     def __init__(self, filepath):
+        """
+        Initialize ModelBlocks data structures,
+        parse model file and do self-consistency checks.
+        """
         self.raw_blocks = ModelBlocks.parse_file_blocks(filepath)
 
         self.header_block = self.raw_blocks[0]
@@ -28,7 +32,9 @@ class ModelBlocks:
         self.check_model_blocks(filepath)
 
     def check_model_blocks(self, filepath):
-        "Asserts that the file output will be the same as the input before any changes are made."
+        """
+        Asserts that the file output will be the same as the input before any changes are made.
+        """
         input_lines  = open(filepath).readlines()
         output_lines = list(self.yield_model_lines()) # list of output lines
 
@@ -37,6 +43,10 @@ class ModelBlocks:
 
     @staticmethod
     def parse_file_blocks(filepath):
+        """
+        Parses the model file to a list of blocks.
+        Each block is a "paragraph" in the model file.
+        """
         at_block = False
         blocks = []
         with open(filepath) as f:
@@ -58,15 +68,17 @@ class ModelBlocks:
 
     @staticmethod
     def is_tree_block(block):
+        """Returns true only for tree blocks."""
         return block and block[0].startswith("Tree=")
 
     @staticmethod
     def tree_size(block):
-        # We don't store the second blank line in the tree (add +1):
+        """Returns the size of the tree in the file in bytes."""
         return sum(map(len, block))
 
     @staticmethod
     def find_end_of_trees_block(blocks):
+        """Detect the model block that ends the trees section."""
         for b, block in enumerate(blocks):
             if len(block) == 2 and block[0] == "end of trees\n":
                 return b
@@ -89,13 +101,14 @@ class ModelBlocks:
         return [self.add_sampled_tree() for i in range(n)]
 
     def gen_tree_sizes_line(self):
+        """Re-computes the tree_size= information line in the file header."""
         ssv = " ".join([
             str(ModelBlocks.tree_size(tree_block)) for tree_block in self.tree_blocks
         ])
         return f"tree_sizes={ssv}\n"
 
     def yield_model_lines(self):
-
+        """Generator for the output file, line by line."""
         for line in self.header_block:
             if not line.startswith("tree_sizes="):
                 yield line
@@ -107,7 +120,7 @@ class ModelBlocks:
                 yield line
 
     def write_to(self, filepath):
-        "Dump model to disk"
+        """Dump model to disk."""
         with open(filepath, "w") as out_file:
             out_file.writelines(self.yield_model_lines())
 
@@ -115,6 +128,7 @@ class ModelBlocks:
 
 
 def grow_model(filepath, new_trees:int, output_path):
+    """Reads the model file, adds `new_trees` to the model and saves it to disk."""
     print("Parsing model file...")
     model_blocks = ModelBlocks(filepath)
     print(f"Adding {new_trees} sampled trees...")
