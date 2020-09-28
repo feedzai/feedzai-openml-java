@@ -268,7 +268,7 @@ public class LightGBMBinaryClassificationModelTest {
         // Check for differences and report in detailed manner!
         final Process p = new ProcessBuilder(
                 "python",
-                "diff_models.py",
+                "src/test/resources/diff_models.py",
                 referenceModelsFolder,
                 newModelsFolder
         ).start();
