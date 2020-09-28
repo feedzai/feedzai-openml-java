@@ -325,7 +325,7 @@ public class LightGBMBinaryClassificationModelTest {
     @Test
     public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
-        final String referenceModelsFolder = "standard_code_models";
+        final String referenceModelsFolder = "src/test/resources/standard_code_models";
         final String testOutputModelsFolder = "new_code_models";
         final String model1Name = "4f.txt";
         final String model2Name = "42f.txt";
