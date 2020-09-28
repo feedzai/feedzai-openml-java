@@ -123,18 +123,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- Set locale for tests otherwise the LightGBM core implementation gives wrong results. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <environmentVariables>
-                        <!-- Forcing the C locale to pass tests is no longer needed with the model-locale-fix patch. -->
-                        <!--<LC_ALL>C</LC_ALL>-->
-                    </environmentVariables>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 </project>
