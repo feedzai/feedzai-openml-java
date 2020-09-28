@@ -274,19 +274,20 @@ public class LightGBMBinaryClassificationModelTest {
         ).start();
 
         // Fetch process output
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        final StringBuilder builder = new StringBuilder();
-        String line = null;
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-            builder.append(System.getProperty("line.separator"));
+        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            final StringBuilder builder = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line);
+                builder.append(System.getProperty("line.separator"));
+            }
+            final String processOutput = builder.toString();
+
+            p.waitFor();
+            logger.error(processOutput);
+
+            return (p.exitValue() == 0);
         }
-        final String processOutput = builder.toString();
-
-        p.waitFor();
-        logger.error(processOutput);
-
-        return (p.exitValue() == 0);
     }
 
     /**
@@ -313,7 +314,7 @@ public class LightGBMBinaryClassificationModelTest {
     /**
      * This functional test ensures that LightGBM can read a model file and output one exactly alike the one read in.
      * This is to ensure the new code to rewrite the model read/write layers is completely functional.
-     * The two reference models were generated initially with LightGBM's v3.0.0 code.
+     * The two reference models were generated with LightGBM's v3.0.0 code.
      * The two generated ones will use the current code in the current locale. There should be no mismatches.
      *
      * @throws URISyntaxException    For invalid resource paths
@@ -323,30 +324,33 @@ public class LightGBMBinaryClassificationModelTest {
      * @since 1.0.19
      */
     @Test
-    public void testRewriteModel() throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
+    public void ensureModelReadWriteRoundTripMatchesStandardLightGBMOutput()
+            throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
         final String referenceModelsFolder = "src/test/resources/standard_code_models";
         final String testOutputModelsFolder = "new_code_models";
-        final String model1Name = "4f.txt";
-        final String model2Name = "42f.txt";
+        final String firstModelFilename = "4f.txt";
+        final String secondModelFilename = "42f.txt";
 
         // Create the output directory if it doesn't exist:
         final File outputFolder = new File(testOutputModelsFolder);
         outputFolder.mkdir();
 
-        // Rewrite model 4f.txt:
+        // Round-trip read+write models 4f.txt and 42f.txt with the current code
+
         LightGBMSWIG swig = new LightGBMSWIG(
                 TestResources.getModelFilePath().toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, model1Name));
+        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, firstModelFilename));
 
-        // Rewrite model 42f.txt:
         swig = new LightGBMSWIG(
                 TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, model2Name));
+        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, secondModelFilename));
+
+        // Compare generated model files with the round-trip read+write models generated with LightGBM v3.0.0
 
         // Do a detailed report (if Python3+termcolor is available):
         compareModelFilesAndDoPrettyReport(
@@ -356,14 +360,14 @@ public class LightGBMBinaryClassificationModelTest {
 
         // Compare the rewritten models:
         assertEqualFileContents(
-                model1Name,
-                Paths.get(referenceModelsFolder, model1Name),
-                Paths.get(testOutputModelsFolder, model1Name));
+                firstModelFilename,
+                Paths.get(referenceModelsFolder, firstModelFilename),
+                Paths.get(testOutputModelsFolder, firstModelFilename));
 
         assertEqualFileContents(
-                model1Name,
-                Paths.get(referenceModelsFolder, model2Name),
-                Paths.get(testOutputModelsFolder, model2Name));
+                firstModelFilename,
+                Paths.get(referenceModelsFolder, secondModelFilename),
+                Paths.get(testOutputModelsFolder, secondModelFilename));
 
         FileUtils.deleteDirectory(outputFolder); // Delete outputs if test succeeds.
     }
