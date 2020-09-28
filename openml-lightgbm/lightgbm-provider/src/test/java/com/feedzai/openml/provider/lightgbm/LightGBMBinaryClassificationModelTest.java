@@ -331,7 +331,8 @@ public class LightGBMBinaryClassificationModelTest {
         final String model2Name = "42f.txt";
 
         // Create the output directory if it doesn't exist:
-        new File(testOutputModelsFolder).mkdir();
+        final File outputFolder = new File(testOutputModelsFolder);
+        outputFolder.mkdir();
 
         // Rewrite model 4f.txt:
         LightGBMSWIG swig = new LightGBMSWIG(
@@ -363,5 +364,7 @@ public class LightGBMBinaryClassificationModelTest {
                 model1Name,
                 Paths.get(referenceModelsFolder, model2Name),
                 Paths.get(testOutputModelsFolder, model2Name));
+
+        FileUtils.deleteDirectory(outputFolder); // Delete outputs if test succeeds.
     }
 }
