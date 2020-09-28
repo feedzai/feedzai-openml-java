@@ -274,8 +274,8 @@ public class LightGBMBinaryClassificationModelTest {
         ).start();
 
         // Fetch process output
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        StringBuilder builder = new StringBuilder();
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        final StringBuilder builder = new StringBuilder();
         String line = null;
         while ((line = reader.readLine()) != null) {
             builder.append(line);
