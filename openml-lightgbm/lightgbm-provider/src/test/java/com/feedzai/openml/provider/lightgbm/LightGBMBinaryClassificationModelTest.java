@@ -250,9 +250,9 @@ public class LightGBMBinaryClassificationModelTest {
     }
 
     /**
-     * Compares model files in the standard_code_models/ and new_code_models/.
+     * Compares files with the same name across two folders.
      * If there are any differences in the models within such folders they are reported
-     * in a colored report (requires python3 with termcolor installed).
+     * in a colored report. Requires python3 with termcolor installed for best readability.
      *
      * @param referenceModelsFolder Folder with reference models
      * @param newModelsFolder       Folder with new models to compare to reference
