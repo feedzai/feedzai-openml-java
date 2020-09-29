@@ -251,47 +251,6 @@ public class LightGBMBinaryClassificationModelTest {
     }
 
     /**
-     * Compares files with the same name across two folders.
-     * If there are any differences in the models within such folders they are reported
-     * in a colored report. Requires python3 with termcolor installed for best readability.
-     *
-     * @param referenceModelsFolder Folder with reference models.
-     * @param newModelsFolder       Folder with new models to compare to reference.
-     * @return true if there are no differences and all the dependencies are installed, false otherwise.
-     * @throws IOException          In case the process errors.
-     * @throws InterruptedException In case awaiting for the process to finish fails.
-     * @since 1.0.19
-     */
-    private boolean compareModelFilesAndDoPrettyReport(
-            final String referenceModelsFolder,
-            final String newModelsFolder) throws IOException, InterruptedException {
-
-        // Check for differences and report in detailed manner!
-        final Process p = new ProcessBuilder(
-                "python",
-                "src/test/resources/diff_models.py",
-                referenceModelsFolder,
-                newModelsFolder
-        ).start();
-
-        // Fetch process output
-        try (final BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-            final StringBuilder builder = new StringBuilder();
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line);
-                builder.append(System.getProperty("line.separator"));
-            }
-            final String processOutput = builder.toString();
-
-            p.waitFor();
-            logger.error(processOutput);
-
-            return (p.exitValue() == 0);
-        }
-    }
-
-    /**
      * Asserts that the two files have the same content.
      *
      * @param name      Name of the file to compare for the assert message.
@@ -322,19 +281,21 @@ public class LightGBMBinaryClassificationModelTest {
      * @throws ModelLoadingException Errors when loading the model resources.
      * @throws IOException           IO Errors opening/writing.
      * @throws InterruptedException  Thrown if the model report fails to await for the process.
+     * @implNote If you have mismatches in the models, run test/resources/diff_models.py by giving it
+     * the two model folders. It will compare files with the same name across the two folders.
      * @since 1.0.19
      */
     @Test
     public void ensureModelReadWriteRoundTripMatchesStandardLightGBMOutput()
             throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
-        final String referenceModelsFolder = "src/test/resources/standard_code_models";
-        final String testOutputModelsFolder = "new_code_models";
+        final Path referenceModelsFolder = TestResources.getResourcePath("standard_code_models");
+        final Path testOutputModelsFolder = Paths.get("new_code_models").toAbsolutePath();
         final String firstModelFilename = "4f.txt";
         final String secondModelFilename = "42f.txt";
 
         // Create the output directory if it doesn't exist:
-        final File outputFolder = new File(testOutputModelsFolder);
+        final File outputFolder = new File(testOutputModelsFolder.toString());
         outputFolder.mkdir();
 
         // Round-trip read+write models 4f.txt and 42f.txt with the current code
@@ -343,32 +304,26 @@ public class LightGBMBinaryClassificationModelTest {
                 TestResources.getModelFilePath().toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, firstModelFilename));
+        swig.saveModelToDisk(testOutputModelsFolder.resolve(firstModelFilename));
 
         swig = new LightGBMSWIG(
                 TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 "");
-        swig.saveModelToDisk(Paths.get(testOutputModelsFolder, secondModelFilename));
+        swig.saveModelToDisk(testOutputModelsFolder.resolve(secondModelFilename));
 
         // Compare generated model files with the round-trip read+write models generated with LightGBM v3.0.0
-
-        // Do a detailed report (if Python3+termcolor is available):
-        compareModelFilesAndDoPrettyReport(
-                referenceModelsFolder,
-                testOutputModelsFolder
-        );
 
         // Compare the rewritten models:
         assertEqualFileContents(
                 firstModelFilename,
-                Paths.get(referenceModelsFolder, firstModelFilename),
-                Paths.get(testOutputModelsFolder, firstModelFilename));
+                referenceModelsFolder.resolve(firstModelFilename),
+                testOutputModelsFolder.resolve(firstModelFilename));
 
         assertEqualFileContents(
                 firstModelFilename,
-                Paths.get(referenceModelsFolder, secondModelFilename),
-                Paths.get(testOutputModelsFolder, secondModelFilename));
+                referenceModelsFolder.resolve(secondModelFilename),
+                testOutputModelsFolder.resolve(secondModelFilename));
 
         FileUtils.deleteDirectory(outputFolder); // Delete outputs if test succeeds.
     }
