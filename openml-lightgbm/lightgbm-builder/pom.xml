@@ -15,7 +15,7 @@
 
     <groupId>com.feedzai.openml.lightgbm</groupId>
     <artifactId>lightgbm-lib</artifactId>
-    <version>3.0.1-model_locale_fix</version>
+    <version>3.0.0-with_model_locale_fix_for_java</version>
 
     <packaging>jar</packaging>
     <name>Openml LightGBM lib</name>
@@ -28,8 +28,8 @@
         <!-- Microsoft hasn't merged our model-locale-fix patch yet. -->
         <!--<lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>-->
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
-        <lightgbmlib.version>3.0.1</lightgbmlib.version>
-        <lightgbm.version>model-locale-fix</lightgbm.version>
+        <lightgbmlib.version>3.0.0-with_model_locale_fix_for_java</lightgbmlib.version>
+        <lightgbm.version>v3.0.0-with_model_locale_fix_for_java</lightgbm.version>
     </properties>
 
     <!-- jgitver changes the version 2.3.190 to project version, therefore we excluded this project from jgitver -->
