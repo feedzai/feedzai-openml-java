@@ -210,7 +210,7 @@ public class LightGBMBinaryClassificationModelTest {
      * (which also contains the reference score)
      * according to the schema.
      *
-     * @param model  Model that will score
+     * @param model  Model that will score.
      * @param schema Schema to use (controls CSVRecord extraction)
      * @param record Shall contain at least the features and refererence score (at field "score").
      * @return true if scores match, false if they don't.
@@ -230,10 +230,11 @@ public class LightGBMBinaryClassificationModelTest {
 
     /**
      * Compares two doubles, being equal if all but the last excludedDigits of the least precise double match.
-     * @param a First double.
-     * @param b Second double.
+     *
+     * @param a              First double.
+     * @param b              Second double.
      * @param excludedDigits Exclude comparison of this many digits from the least precise number and compare.
-     * @return true if and only if a == b (at the chosen precision level)
+     * @return true if and only if a == b (at the chosen precision level).
      */
     private boolean compareDoubles(final double a, final double b, final int excludedDigits) {
 
@@ -254,8 +255,8 @@ public class LightGBMBinaryClassificationModelTest {
      * If there are any differences in the models within such folders they are reported
      * in a colored report. Requires python3 with termcolor installed for best readability.
      *
-     * @param referenceModelsFolder Folder with reference models
-     * @param newModelsFolder       Folder with new models to compare to reference
+     * @param referenceModelsFolder Folder with reference models.
+     * @param newModelsFolder       Folder with new models to compare to reference.
      * @return true if there are no differences and all the dependencies are installed, false otherwise.
      * @throws IOException          In case the process errors.
      * @throws InterruptedException In case awaiting for the process to finish fails.
@@ -293,10 +294,10 @@ public class LightGBMBinaryClassificationModelTest {
     /**
      * Asserts that the two files have the same content.
      *
-     * @param name      name of the file to compare for the assert message.
-     * @param filepath1 path to the first file
-     * @param filepath2 path to the second file
-     * @throws IOException Raised in case of failure reading the files
+     * @param name      Name of the file to compare for the assert message.
+     * @param filepath1 Path to the first file.
+     * @param filepath2 Path to the second file.
+     * @throws IOException Raised in case of failure reading the files.
      * @since 1.0.19
      */
     private void assertEqualFileContents(final String name,
@@ -317,10 +318,10 @@ public class LightGBMBinaryClassificationModelTest {
      * The two reference models were generated with LightGBM's v3.0.0 code.
      * The two generated ones will use the current code in the current locale. There should be no mismatches.
      *
-     * @throws URISyntaxException    For invalid resource paths
-     * @throws ModelLoadingException Errors when loading the model resources
-     * @throws IOException           IO Errors opening/writing
-     * @throws InterruptedException  Thrown if the model report fails to await for the process
+     * @throws URISyntaxException    For invalid resource paths.
+     * @throws ModelLoadingException Errors when loading the model resources.
+     * @throws IOException           IO Errors opening/writing.
+     * @throws InterruptedException  Thrown if the model report fails to await for the process.
      * @since 1.0.19
      */
     @Test
