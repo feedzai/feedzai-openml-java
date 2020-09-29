@@ -20,6 +20,7 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.google.common.io.Files;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.FileUtils;
@@ -290,41 +291,41 @@ public class LightGBMBinaryClassificationModelTest {
             throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
 
         final Path referenceModelsFolder = TestResources.getResourcePath("standard_code_models");
-        final Path testOutputModelsFolder = Paths.get("new_code_models").toAbsolutePath();
         final String firstModelFilename = "4f.txt";
         final String secondModelFilename = "42f.txt";
 
-        // Create the output directory if it doesn't exist:
-        final File outputFolder = new File(testOutputModelsFolder.toString());
-        outputFolder.mkdir();
+        final File tempDir = Files.createTempDir();
+        final Path tempDirPath = tempDir.toPath();
 
-        // Round-trip read+write models 4f.txt and 42f.txt with the current code
+        try {
+            // Round-trip read+write models 4f.txt and 42f.txt with the current code
 
-        LightGBMSWIG swig = new LightGBMSWIG(
-                TestResources.getModelFilePath().toString(),
-                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
-                "");
-        swig.saveModelToDisk(testOutputModelsFolder.resolve(firstModelFilename));
+            LightGBMSWIG swig = new LightGBMSWIG(
+                    TestResources.getModelFilePath().toString(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                    "");
+            swig.saveModelToDisk(tempDirPath.resolve(firstModelFilename));
 
-        swig = new LightGBMSWIG(
-                TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
-                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
-                "");
-        swig.saveModelToDisk(testOutputModelsFolder.resolve(secondModelFilename));
+            swig = new LightGBMSWIG(
+                    TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                    "");
+            swig.saveModelToDisk(tempDirPath.resolve(secondModelFilename));
 
-        // Compare generated model files with the round-trip read+write models generated with LightGBM v3.0.0
+            // Compare generated model files with the round-trip read+write models generated with LightGBM v3.0.0
 
-        // Compare the rewritten models:
-        assertEqualFileContents(
-                firstModelFilename,
-                referenceModelsFolder.resolve(firstModelFilename),
-                testOutputModelsFolder.resolve(firstModelFilename));
+            // Compare the rewritten models:
+            assertEqualFileContents(
+                    firstModelFilename,
+                    referenceModelsFolder.resolve(firstModelFilename),
+                    tempDirPath.resolve(firstModelFilename));
 
-        assertEqualFileContents(
-                firstModelFilename,
-                referenceModelsFolder.resolve(secondModelFilename),
-                testOutputModelsFolder.resolve(secondModelFilename));
-
-        FileUtils.deleteDirectory(outputFolder); // Delete outputs if test succeeds.
+            assertEqualFileContents(
+                    firstModelFilename,
+                    referenceModelsFolder.resolve(secondModelFilename),
+                    tempDirPath.resolve(secondModelFilename));
+        } finally {
+            FileUtils.deleteDirectory(tempDir); // Recursive delete
+        }
     }
 }
