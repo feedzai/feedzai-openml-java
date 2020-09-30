@@ -28,5 +28,5 @@ git submodule update --init
 
 echo "Building LightGBM $LIGHTGBM_COMMIT_REF as lightgbmlib $LIGHTGBMLIB_VERSION"
 cd make-lightgbm
-bash make.sh "$LIGHTGBM_COMMIT_REF" "$LIGHTGBMLIB_VERSION"
+bash make.sh "$LIGHTGBM_COMMIT_REF" "$LIGHTGBMLIB_VERSION" --cache
 
