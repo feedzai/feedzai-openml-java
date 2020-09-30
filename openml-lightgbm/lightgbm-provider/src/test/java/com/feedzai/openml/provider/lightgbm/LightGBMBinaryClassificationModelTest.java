@@ -20,15 +20,19 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.google.common.io.Files;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -197,7 +201,7 @@ public class LightGBMBinaryClassificationModelTest {
      * (which also contains the reference score)
      * according to the schema.
      *
-     * @param model  Model that will score
+     * @param model  Model that will score.
      * @param schema Schema to use (controls CSVRecord extraction)
      * @param record Shall contain at least the features and refererence score (at field "score").
      * @return true if scores match, false if they don't.
@@ -217,10 +221,11 @@ public class LightGBMBinaryClassificationModelTest {
 
     /**
      * Compares two doubles, being equal if all but the last excludedDigits of the least precise double match.
-     * @param a First double.
-     * @param b Second double.
+     *
+     * @param a              First double.
+     * @param b              Second double.
      * @param excludedDigits Exclude comparison of this many digits from the least precise number and compare.
-     * @return true if and only if a == b (at the chosen precision level)
+     * @return true if and only if a == b (at the chosen precision level).
      */
     private boolean compareDoubles(final double a, final double b, final int excludedDigits) {
 
@@ -236,4 +241,81 @@ public class LightGBMBinaryClassificationModelTest {
         );
     }
 
+    /**
+     * Asserts that the two files have the same content.
+     *
+     * @param name      Name of the file to compare for the assert message.
+     * @param filepath1 Path to the first file.
+     * @param filepath2 Path to the second file.
+     * @throws IOException Raised in case of failure reading the files.
+     * @since 1.0.19
+     */
+    private void assertEqualFileContents(final String name,
+                                         final Path filepath1,
+                                         final Path filepath2) throws IOException {
+
+        final File file1 = new File(filepath1.toString());
+        final File file2 = new File(filepath2.toString());
+
+        assertThat(FileUtils.contentEquals(file1, file2))
+                .as(String.format("%s file comparison", name))
+                .isTrue();
+    }
+
+    /**
+     * This functional test ensures that LightGBM can read a model file and output one exactly alike the one read in.
+     * This is to ensure the new code to rewrite the model read/write layers is completely functional.
+     * The two reference models were generated with LightGBM's v3.0.0 code.
+     * The two generated ones will use the current code in the current locale. There should be no mismatches.
+     *
+     * @throws URISyntaxException    For invalid resource paths.
+     * @throws ModelLoadingException Errors when loading the model resources.
+     * @throws IOException           IO Errors opening/writing.
+     * @throws InterruptedException  Thrown if the model report fails to await for the process.
+     * @implNote If you have mismatches in the models, run test/resources/diff_models.py by giving it
+     * the two model folders. It will compare files with the same name across the two folders.
+     * @since 1.0.19
+     */
+    @Test
+    public void ensureModelReadWriteRoundTripMatchesStandardLightGBMOutput()
+            throws URISyntaxException, ModelLoadingException, IOException, InterruptedException {
+
+        final Path referenceModelsFolder = TestResources.getResourcePath("standard_code_models");
+        final String firstModelFilename = "4f.txt";
+        final String secondModelFilename = "42f.txt";
+
+        final File tempDir = Files.createTempDir();
+        final Path tempDirPath = tempDir.toPath();
+
+        try {
+            // Round-trip read+write models 4f.txt and 42f.txt with the current code
+
+            LightGBMSWIG swig = new LightGBMSWIG(
+                    TestResources.getModelFilePath().toString(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                    "");
+            swig.saveModelToDisk(tempDirPath.resolve(firstModelFilename));
+
+            swig = new LightGBMSWIG(
+                    TestResources.getResourcePath("lightgbm_model_42_numericals.txt").toString(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                    "");
+            swig.saveModelToDisk(tempDirPath.resolve(secondModelFilename));
+
+            // Compare generated model files with the round-trip read+write models generated with LightGBM v3.0.0
+
+            // Compare the rewritten models:
+            assertEqualFileContents(
+                    firstModelFilename,
+                    referenceModelsFolder.resolve(firstModelFilename),
+                    tempDirPath.resolve(firstModelFilename));
+
+            assertEqualFileContents(
+                    firstModelFilename,
+                    referenceModelsFolder.resolve(secondModelFilename),
+                    tempDirPath.resolve(secondModelFilename));
+        } finally {
+            FileUtils.deleteDirectory(tempDir); // Recursive delete
+        }
+    }
 }
