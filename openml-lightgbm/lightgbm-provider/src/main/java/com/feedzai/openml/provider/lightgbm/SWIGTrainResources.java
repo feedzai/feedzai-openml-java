@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
  * This class is responsible for initializing, managing and releasing all
  * LightGBM SWIG train resources and resource handlers in a memory-safe manner.
  *
+ *  UPDATE # TODO : only manages model resource now
+ *
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
@@ -40,30 +42,6 @@ class SWIGTrainResources implements AutoCloseable {
      * Logger for this class.
      */
     private static final Logger logger = LoggerFactory.getLogger(SWIGTrainResources.class);
-
-    /**
-     * Handle for the output parameter necessary for the LightGBM dataset instantiation.
-     */
-    public SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
-
-    /**
-     * SWIG pointer to the Features data array.
-     * This array stores elements in float64 format.
-     *
-     * In the current implementation, features are stored in row-major order, i.e.,
-     * each instance is stored contiguously.
-     */
-    public SWIGTYPE_p_double swigTrainFeaturesDataArray;
-
-    /**
-     * SWIG pointer to the labels array (array of float32 elements).
-     */
-    public SWIGTYPE_p_float swigTrainLabelDataArray;
-
-    /**
-     * SWIG LightGBM dataset handle.
-     */
-    public SWIGTYPE_p_void swigDatasetHandle;
 
     /**
      * SWIG pointer to the output LightGBM Booster Handle during Booster structure instantiation.
@@ -82,30 +60,15 @@ class SWIGTrainResources implements AutoCloseable {
      * in-memory LightGBM dataset + booster structures.
      *
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
-     * @see SWIGTrainResources#initSwigDatasetHandle()
      * @see SWIGTrainResources#initSwigBoosterHandle()
      *
-     * @param numInstances  The number of instances.
      * @param numFeatures   The number of features.
      */
-    public SWIGTrainResources(final int numInstances, final int numFeatures) {
-        this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
-
-        logger.debug("Allocating SWIG train data array.");
-        // 1-D Array in row-major-order that stores only the features (excludes label) in double format:
-        this.swigTrainFeaturesDataArray = lightgbmlib.new_doubleArray(((long)numInstances) * ((long)numFeatures));
-        // 1-D Array with the labels (float32):
-        this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(numInstances);
-
+    public SWIGTrainResources(final int numFeatures) {
         this.swigOutBoosterHandlePtr = lightgbmlib.voidpp_handle();
     }
 
-    /**
-     * Setup swigDatasetHandle after its setup.
-     */
-    public void initSwigDatasetHandle() {
-        this.swigDatasetHandle = lightgbmlib.voidpp_value(this.swigOutDatasetHandlePtr);
-    }
+
 
     /**
      * Setup swigBoosterHandle after its structure was created in-memory.
@@ -115,47 +78,10 @@ class SWIGTrainResources implements AutoCloseable {
     }
 
     /**
-     * Release the memory of the label array.
-     * This can be called after instantiating the dataset and setting the label in it.
-     */
-    public void destroySwigTrainLabelDataArray() {
-
-        if (this.swigTrainLabelDataArray != null) {
-            lightgbmlib.delete_floatArray(this.swigTrainLabelDataArray);
-            this.swigTrainLabelDataArray = null;
-        }
-    }
-
-    /**
-     * Release the memory of the features array.
-     * This can be called after instantiating the dataset.
-     */
-    public void destroySwigTrainFeaturesDataArray() {
-
-        if (this.swigTrainFeaturesDataArray != null) {
-            lightgbmlib.delete_doubleArray(this.swigTrainFeaturesDataArray);
-            this.swigTrainFeaturesDataArray = null;
-        }
-    }
-
-    /**
      * Release any allocated resources.
      * This operation is idempotent and can be safely called at any time as many times as you wish.
      */
     public void releaseResources() {
-
-        if (this.swigOutDatasetHandlePtr != null) {
-            lightgbmlib.delete_voidpp(this.swigOutDatasetHandlePtr);
-            this.swigOutDatasetHandlePtr = null;
-        }
-
-        destroySwigTrainFeaturesDataArray();
-        destroySwigTrainLabelDataArray();
-
-        if (this.swigDatasetHandle != null) {
-            lightgbmlib.LGBM_DatasetFree(this.swigDatasetHandle);
-            this.swigDatasetHandle = null;
-        }
 
         if (this.swigOutBoosterHandlePtr != null) {
             lightgbmlib.delete_voidpp(this.swigOutBoosterHandlePtr);

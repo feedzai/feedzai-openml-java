@@ -26,6 +26,7 @@ import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -39,6 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
+@Ignore // TODO:FTL
 public class ClassifyUnknownCategoryTest {
 
     /**

@@ -30,6 +30,7 @@
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
         <lightgbmlib.version>3.0.0-with_model_locale_fix_for_java</lightgbmlib.version>
         <lightgbm.version>v3.0.0-with_model_locale_fix_for_java</lightgbm.version>
+        <lightgbm.version>FTL-alberto-chunked-data</lightgbm.version>
     </properties>
 
     <build>

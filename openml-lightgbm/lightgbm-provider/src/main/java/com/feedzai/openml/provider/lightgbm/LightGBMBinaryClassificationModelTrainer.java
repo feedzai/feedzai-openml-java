@@ -60,6 +60,12 @@ final class LightGBMBinaryClassificationModelTrainer {
 
 
     /**
+     * Will read train data into intermediate C++ buffers
+     * of this size.
+     */
+    private static final int chunkSize = 10000;
+
+    /**
      * This class is not meant to be instantiated.
      */
     private LightGBMBinaryClassificationModelTrainer() {}
@@ -76,17 +82,20 @@ final class LightGBMBinaryClassificationModelTrainer {
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
         // This shouldn't be needed, but at this level of abstraction, Dataset does not provide a method for size:
-        final int numInstances = Iterators.size(dataset.getInstances());
-        logger.debug("The train dataset has {} instances.", numInstances);
+        //final int numInstances = Iterators.size(dataset.getInstances());
+        //logger.debug("The train dataset has {} instances.", numInstances);
         final List<Integer> categoricalFeatureIndicesWithoutLabel = getCategoricalFeaturesIndicesWithoutLabel(schema);
         final String trainParams = getLightGBMTrainParamsString(params, categoricalFeatureIndicesWithoutLabel);
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
-        final SWIGTrainResources swigTrainResources = new SWIGTrainResources(numInstances, numFeatures);
+        final SWIGTrainData swigTrainData = new SWIGTrainData(
+                numFeatures,
+                LightGBMBinaryClassificationModelTrainer.chunkSize);
+        final SWIGTrainResources swigTrainResources = new SWIGTrainResources(numFeatures);
 
         /// Create LightGBM dataset
-        createTrainDataset(dataset, numFeatures, numInstances, trainParams, swigTrainResources);
+        createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
 
         /// Create Booster from dataset
         createBoosterStructure(swigTrainResources, trainParams);
@@ -135,43 +144,43 @@ final class LightGBMBinaryClassificationModelTrainer {
      *
      * @param dataset            Dataset
      * @param numFeatures        Number of features
-     * @param numInstances       Number of instances in dataset
      * @param trainParams        LightGBM-formatted params string ("key1=value1 key2=value2 ...")
-     * @param swigTrainResources SWIGTrainResources object
+     * @param swigTrainData      SWIGTrainData object
      */
     private static void createTrainDataset(final Dataset dataset,
                                            final int numFeatures,
-                                           final int numInstances,
                                            final String trainParams,
-                                           final SWIGTrainResources swigTrainResources) {
+                                           final SWIGTrainData swigTrainData) {
 
         logger.info("Creating LightGBM dataset");
 
         logger.debug("Copying train data through SWIG.");
         copyTrainDataToSWIGArrays(
                 dataset,
-                swigTrainResources.swigTrainFeaturesDataArray,
-                swigTrainResources.swigTrainLabelDataArray
+                swigTrainData.swigTrainFeaturesDataArray,
+                swigTrainData.swigTrainLabelDataArray
         );
-
+        /* TODO: FTL
         initializeLightGBMTrainDataset(
-                swigTrainResources.swigOutDatasetHandlePtr,
+                swigTrainData.swigOutDatasetHandlePtr,
                 numFeatures,
                 numInstances,
                 trainParams,
-                swigTrainResources.swigTrainFeaturesDataArray
+                swigTrainData.swigTrainFeaturesDataArray
         );
-        swigTrainResources.initSwigDatasetHandle();
-        swigTrainResources.destroySwigTrainFeaturesDataArray();
+        swigTrainData.initSwigDatasetHandle();
+        swigTrainData.destroySwigTrainFeaturesDataArray();
 
         setLightGBMDatasetLabelData(
-                swigTrainResources.swigDatasetHandle,
-                swigTrainResources.swigTrainLabelDataArray,
+                swigTrainData.swigDatasetHandle,
+                swigTrainData.swigTrainLabelDataArray,
                 numInstances
         );
-        swigTrainResources.destroySwigTrainLabelDataArray();
+        */
 
-        setLightGBMDatasetFeatureNames(swigTrainResources.swigDatasetHandle, dataset.getSchema());
+        swigTrainData.destroySwigTrainLabelDataArray();
+
+        setLightGBMDatasetFeatureNames(swigTrainData.swigDatasetHandle, dataset.getSchema());
 
         logger.info("Created LightGBM dataset.");
     }
@@ -262,18 +271,21 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @see LightGBMBinaryClassificationModelTrainer#trainBooster(SWIGTYPE_p_void, int) .
      */
     static void createBoosterStructure(final SWIGTrainResources swigTrainResources, final String trainParams) {
-
+        /* TODO: FTL
         logger.debug("Initializing LightGBM model structure.");
         final int returnCodeLGBM = lightgbmlib.LGBM_BoosterCreate(
                 swigTrainResources.swigDatasetHandle,
                 trainParams,
                 swigTrainResources.swigOutBoosterHandlePtr
         );
+
         if (returnCodeLGBM == -1) {
             logger.error("LightGBM model structure creation failed.");
             throw new LightGBMException();
         }
 
+
+         */
         swigTrainResources.initSwigBoosterHandle();
     }
 
