@@ -4,6 +4,8 @@ import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
+import com.microsoft.ml.lightgbm.doubleChunkedArray;
+import com.microsoft.ml.lightgbm.floatChunkedArray;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +26,14 @@ public class SWIGTrainData implements AutoCloseable {
     public SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
 
     /**
-     * SWIG pointer to the Features data array.
-     * This array stores elements in float64 format.
+     * SWIG Features chunked data array.
+     * This objects stores elements in float64 format
+     * as a list of chunks that it manages automatically.
      *
      * In the current implementation, features are stored in row-major order, i.e.,
      * each instance is stored contiguously.
      */
-    public SWIGTYPE_p_double swigTrainFeaturesDataArray;
+    public doubleChunkedArray swigFeaturesChunkedArray;
 
     /**
      * SWIG pointer to the labels array (array of float32 elements).
@@ -42,7 +45,15 @@ public class SWIGTrainData implements AutoCloseable {
      */
     public SWIGTYPE_p_void swigDatasetHandle;
 
-    private final int chunkSize;
+    /**
+     * Number of instances to store in each chunk.
+     */
+    private final long numInstancesChunk;
+
+    /**
+     * SWIG object to hold the labels in chunks.
+     */
+    public floatChunkedArray swigLabelsChunkedArray;
 
     /**
      * Constructor.
@@ -55,17 +66,36 @@ public class SWIGTrainData implements AutoCloseable {
      *
      * @param numFeatures   The number of features.
      */
-    public SWIGTrainData(final int numFeatures, final int chunkSize) {
-        this.chunkSize = chunkSize;
+    public SWIGTrainData(final int numFeatures, final long numInstancesChunk) {
+        this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
 
         logger.debug("Allocating SWIG train data array.");
-        // 1-D Array in row-major-order that stores only the features (excludes label) in double format:
-        /* TODO: FTL
-        this.swigTrainFeaturesDataArray = lightgbmlib.new_doubleArray(((long)numInstances) * ((long)numFeatures));
+        // 1-D Array in row-major-order that stores only the features (excludes label) in double format by chunks:
+        this.swigFeaturesChunkedArray = new doubleChunkedArray(numFeatures * numInstancesChunk);
         // 1-D Array with the labels (float32):
-        this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(numInstances);
-        */
+        this.swigLabelsChunkedArray = new floatChunkedArray(numInstancesChunk);
+    }
+
+    public void addFeatureValue(double value) {
+        this.swigFeaturesChunkedArray.add(value);
+    }
+
+    public void addLabelValue(float value) {
+        this.swigLabelsChunkedArray.add(value);
+    }
+
+    public long getNumInstancesChunk() {
+        return numInstancesChunk;
+    }
+
+    /**
+     * Initializes the swigTrainLabelDataArray and copies
+     * the chunked labels array data to it.
+     */
+    public void initSwigTrainLabelDataArray() {
+        this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_added_count());
+        this.swigLabelsChunkedArray.coalesce_to(this.swigTrainLabelDataArray);
     }
 
     /**
@@ -88,15 +118,20 @@ public class SWIGTrainData implements AutoCloseable {
     }
 
     /**
-     * Release the memory of the features array.
+     * Release the memory of the chunked features array.
      * This can be called after instantiating the dataset.
+     *
+     * Although this simply calls `release()`.
+     * After this that object becomes unusable.
+     * To cleanup & reuse call `clear()` instead.
      */
-    public void destroySwigTrainFeaturesDataArray() {
+    public void destroySwigTrainFeaturesChunkedDataArray() {
+        this.swigFeaturesChunkedArray.release();
+    }
 
-        if (this.swigTrainFeaturesDataArray != null) {
-            lightgbmlib.delete_doubleArray(this.swigTrainFeaturesDataArray);
-            this.swigTrainFeaturesDataArray = null;
-        }
+    public void releaseChunkedResources() {
+        this.swigFeaturesChunkedArray.release();
+        this.swigLabelsChunkedArray.release();
     }
 
     /**
@@ -105,12 +140,14 @@ public class SWIGTrainData implements AutoCloseable {
      */
     public void releaseResources() {
 
+        releaseChunkedResources();
+
         if (this.swigOutDatasetHandlePtr != null) {
             lightgbmlib.delete_voidpp(this.swigOutDatasetHandlePtr);
             this.swigOutDatasetHandlePtr = null;
         }
 
-        destroySwigTrainFeaturesDataArray();
+        destroySwigTrainFeaturesChunkedDataArray();
         destroySwigTrainLabelDataArray();
 
         if (this.swigDatasetHandle != null) {
