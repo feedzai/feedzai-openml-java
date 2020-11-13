@@ -64,7 +64,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     private final static int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 100;
 
     /**
-     * Dataset resource name to use for both fit & validation stages during tests.
+     * Dataset resource name to use for both fit and validation stages during tests.
      */
     static final String DATASET_RESOURCE_NAME = "test_data/in_train_val.csv";
 

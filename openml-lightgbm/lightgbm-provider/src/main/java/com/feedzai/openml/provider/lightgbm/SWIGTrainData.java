@@ -123,7 +123,7 @@ public class SWIGTrainData implements AutoCloseable {
      *
      * Although this simply calls `release()`.
      * After this that object becomes unusable.
-     * To cleanup & reuse call `clear()` instead.
+     * To cleanup and reuse call `clear()` instead.
      */
     public void destroySwigTrainFeaturesChunkedDataArray() {
         this.swigFeaturesChunkedArray.release();

@@ -230,7 +230,7 @@ final class LightGBMBinaryClassificationModelTrainer {
     private static void setLightGBMDatasetLabelData(final SWIGTrainData swigTrainData) {
 
         final long numInstances = swigTrainData.swigLabelsChunkedArray.get_added_count();
-        swigTrainData.initSwigTrainLabelDataArray(); // Init & Copy from chunked data.
+        swigTrainData.initSwigTrainLabelDataArray(); // Init and copy from chunked data.
         logger.debug("FTL: #labels={}", numInstances);
 
         logger.debug("Setting label data.");
