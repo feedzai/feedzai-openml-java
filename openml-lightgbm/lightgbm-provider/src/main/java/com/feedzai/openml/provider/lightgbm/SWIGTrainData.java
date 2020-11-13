@@ -70,7 +70,7 @@ public class SWIGTrainData implements AutoCloseable {
         this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
 
-        logger.debug("Allocating SWIG train data array.");
+        logger.debug("Intermediate SWIG train buffers will be allocated in chunks of {} instances.", numInstancesChunk);
         // 1-D Array in row-major-order that stores only the features (excludes label) in double format by chunks:
         this.swigFeaturesChunkedArray = new doubleChunkedArray(numFeatures * numInstancesChunk);
         // 1-D Array with the labels (float32):

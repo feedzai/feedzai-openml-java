@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.18
  */
-@Ignore // TODO:FTL
 public class SWIGTrainResourcesTest {
 
     /**
@@ -53,8 +52,7 @@ public class SWIGTrainResourcesTest {
      */
     @Before
     public void setupTest() {
-/* TODO: FTL
-        swigTrainResources = new SWIGTrainResources(100, 10); */
+        swigTrainResources = new SWIGTrainResources(10);
     }
 
     /**
@@ -62,14 +60,10 @@ public class SWIGTrainResourcesTest {
      */
     @Test
     public void constructorInitializesPublicMembers() {
-/* TODO:FTL
-        assertThat(swigTrainResources.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNotNull();
-        assertThat(swigTrainResources.swigTrainFeaturesDataArray).as("swigTrainFeaturesDataArray").isNotNull();
-        assertThat(swigTrainResources.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNotNull();
-        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();*/
-        /* Cannot assert these two as they require external initialization:
+        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
+        /* Cannot assert this as it require external initialization:
          assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
-         assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNotNull(); */
+        */
     }
 
     /**
@@ -79,13 +73,9 @@ public class SWIGTrainResourcesTest {
     public void closeResetsAllPublicMembers() {
 
         swigTrainResources.releaseResources();
-/*TODO:FTL
-        assertThat(swigTrainResources.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNull();
-        assertThat(swigTrainResources.swigTrainFeaturesDataArray).as("swigTrainFeaturesDataArray").isNull();
-        assertThat(swigTrainResources.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNull();
+
         assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
-        assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNull();
-        assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNull();*/
+        assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNull();
     }
 
 }

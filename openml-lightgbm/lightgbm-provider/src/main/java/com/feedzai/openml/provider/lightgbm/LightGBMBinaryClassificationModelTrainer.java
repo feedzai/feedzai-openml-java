@@ -59,7 +59,7 @@ final class LightGBMBinaryClassificationModelTrainer {
      * Will read train data into intermediate C++ buffers
      * of this size.
      */
-    private static final int instancesChunkSize = 500;  // TODO:FTL -- increase after initial tests
+    private static final int instancesChunkSize = 3;  // TODO:FTL -- increase after initial tests
 
     /**
      * This class is not meant to be instantiated.
@@ -77,7 +77,6 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
-        //logger.debug("The train dataset has {} instances.", numInstances);
         final List<Integer> categoricalFeatureIndicesWithoutLabel = getCategoricalFeaturesIndicesWithoutLabel(schema);
         final String trainParams = getLightGBMTrainParamsString(params, categoricalFeatureIndicesWithoutLabel);
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
@@ -190,12 +189,14 @@ final class LightGBMBinaryClassificationModelTrainer {
         SWIGTYPE_p_int swigChunkSizes = lightgbmlib.new_intArray(numChunks);
         for (int i = 0; i < numChunks - 1; ++i) {
             lightgbmlib.intArray_setitem(swigChunkSizes, i, (int) chunkinstancesSize);
+            logger.debug("FTL: chunk-size report: chunk #{} is full-chunk of size {}", i, (int) chunkinstancesSize);
         }
         lightgbmlib.intArray_setitem(
                 swigChunkSizes,
                 numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count()
+                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures
         );
+        logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}", numChunks-1, (int)swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count()/numFeatures);
 
         /// Now create the LightGBM Dataset itself from the chunks:
         logger.debug("Creating LGBM_Dataset from chunked data...");
@@ -230,6 +231,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final long numInstances = swigTrainData.swigLabelsChunkedArray.get_added_count();
         swigTrainData.initSwigTrainLabelDataArray(); // Init & Copy from chunked data.
+        logger.debug("FTL: #labels={}", numInstances);
 
         logger.debug("Setting label data.");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
@@ -382,7 +384,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 }
             }
         }
-        logger.debug("Copied train data of size %ld into %ld chunked arrays.",
+        logger.debug("Copied train data of size {} into {} chunks.",
                 swigTrainData.swigLabelsChunkedArray.get_added_count(),
                 swigTrainData.swigLabelsChunkedArray.get_chunks_count()
         );

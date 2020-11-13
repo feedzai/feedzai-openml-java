@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * This class is responsible for initializing, managing and releasing all
  * LightGBM SWIG train resources and resource handlers in a memory-safe manner.
  *
- *  UPDATE # TODO : only manages model resource now
+ *  UPDATE # TODO:FTL-DOCSTRING only manages model resource now. what happens to @since?
  *
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
