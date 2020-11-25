@@ -26,7 +26,7 @@ Pull the provider from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-h2o</artifactId>
   <!-- See project tags for latest version -->
-  <version>1.0.14</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
@@ -41,7 +41,7 @@ Pull this module from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-datarobot</artifactId>
   <!-- See project tags for latest version -->
-  <version>1.0.14</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
@@ -56,6 +56,6 @@ Pull this module from Maven Central:
   <groupId>com.feedzai</groupId>
   <artifactId>openml-lightgbm</artifactId>
   <!-- See project tags for latest version -->
-  <version>1.0.14</version>
+  <version>1.1.0</version>
 </dependency>
 ```
