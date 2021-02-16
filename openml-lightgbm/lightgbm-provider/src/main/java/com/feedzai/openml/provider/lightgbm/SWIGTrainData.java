@@ -94,7 +94,7 @@ public class SWIGTrainData implements AutoCloseable {
      * the chunked labels array data to it.
      */
     public void initSwigTrainLabelDataArray() {
-        this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_added_count());
+        this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_add_count());
         this.swigLabelsChunkedArray.coalesce_to(this.swigTrainLabelDataArray);
     }
 

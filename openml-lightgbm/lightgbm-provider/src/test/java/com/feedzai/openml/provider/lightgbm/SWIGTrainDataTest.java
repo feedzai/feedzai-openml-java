@@ -50,15 +50,15 @@ public class SWIGTrainDataTest {
         assertThat(swigTrainData.swigLabelsChunkedArray.get_chunks_count())
                 .as("swigLabelsChunkedArray.get_chunks_count()")
                 .isOne();
-        assertThat(swigTrainData.swigLabelsChunkedArray.get_added_count())
-                .as("swigLabelsChunkedArray.get_added_count()")
+        assertThat(swigTrainData.swigLabelsChunkedArray.get_add_count())
+                .as("swigLabelsChunkedArray.get_add_count()")
                 .isZero();
 
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunks_count())
                 .as("swigFeaturesChunkedArray.get_chunks_count()")
                 .isOne();
-        assertThat(swigTrainData.swigFeaturesChunkedArray.get_added_count())
-                .as("swigFeaturesChunkedArray.get_added_count()")
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_add_count())
+                .as("swigFeaturesChunkedArray.get_add_count()")
                 .isZero();
 
         /* Cannot assert this as it requires external initialization:
@@ -83,15 +83,15 @@ public class SWIGTrainDataTest {
         assertThat(swigTrainData.swigLabelsChunkedArray.get_chunks_count())
                 .as("swigLabelsChunkedArray.get_chunks_count()")
                 .isZero();
-        assertThat(swigTrainData.swigLabelsChunkedArray.get_added_count())
-                .as("swigLabelsChunkedArray.get_added_count()")
+        assertThat(swigTrainData.swigLabelsChunkedArray.get_add_count())
+                .as("swigLabelsChunkedArray.get_add_count()")
                 .isZero();
 
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunks_count())
                 .as("swigFeaturesChunkedArray.get_chunks_count()")
                 .isZero();
-        assertThat(swigTrainData.swigFeaturesChunkedArray.get_added_count())
-                .as("swigFeaturesChunkedArray.get_added_count()")
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_add_count())
+                .as("swigFeaturesChunkedArray.get_add_count()")
                 .isZero();
     }
 

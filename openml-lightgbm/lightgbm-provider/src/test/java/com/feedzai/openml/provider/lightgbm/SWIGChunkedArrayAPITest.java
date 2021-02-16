@@ -98,11 +98,11 @@ public class SWIGChunkedArrayAPITest {
         for (int i = 0; i < chunkSize + 1; ++i) {
             x.add(i);
         }
-        final SWIGTYPE_p_double swigArr = lightgbmlib.new_doubleArray(x.get_added_count());
+        final SWIGTYPE_p_double swigArr = lightgbmlib.new_doubleArray(x.get_add_count());
 
         x.coalesce_to(swigArr);
 
-        for (int i = 0; i < x.get_added_count(); ++i) {
+        for (int i = 0; i < x.get_add_count(); ++i) {
             double v = lightgbmlib.doubleArray_getitem(swigArr, i);
             assertThat(v).as("value").isCloseTo(i, Offset.offset(1e-3));
         }

@@ -229,7 +229,7 @@ final class LightGBMBinaryClassificationModelTrainer {
      */
     private static void setLightGBMDatasetLabelData(final SWIGTrainData swigTrainData) {
 
-        final long numInstances = swigTrainData.swigLabelsChunkedArray.get_added_count();
+        final long numInstances = swigTrainData.swigLabelsChunkedArray.get_add_count();
         swigTrainData.initSwigTrainLabelDataArray(); // Init and copy from chunked data.
         logger.debug("FTL: #labels={}", numInstances);
 
@@ -385,12 +385,12 @@ final class LightGBMBinaryClassificationModelTrainer {
             }
         }
         logger.debug("Copied train data of size {} into {} chunks.",
-                swigTrainData.swigLabelsChunkedArray.get_added_count(),
+                swigTrainData.swigLabelsChunkedArray.get_add_count(),
                 swigTrainData.swigLabelsChunkedArray.get_chunks_count()
         );
-        if (swigTrainData.swigLabelsChunkedArray.get_added_count() == 0) {
+        if (swigTrainData.swigLabelsChunkedArray.get_add_count() == 0) {
             logger.error("Received empty train dataset!");
-            throw new LightGBMException();
+            throw new RuntimeException("Received empty train dataset for LightGBM!");
         }
     }
 
