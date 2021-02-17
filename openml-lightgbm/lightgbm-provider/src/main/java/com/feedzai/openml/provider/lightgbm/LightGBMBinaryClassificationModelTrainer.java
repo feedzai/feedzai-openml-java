@@ -100,18 +100,18 @@ final class LightGBMBinaryClassificationModelTrainer {
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk);
-        final SWIGTrainResources swigTrainResources = new SWIGTrainResources();
+        final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
 
         /// Create LightGBM dataset
         createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
 
         /// Create Booster from dataset
-        createBoosterStructure(swigTrainResources, swigTrainData, trainParams);
-        trainBooster(swigTrainResources.swigBoosterHandle, numIterations);
+        createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
+        trainBooster(swigTrainBooster.swigBoosterHandle, numIterations);
 
         /// Save model
-        saveModelFileToDisk(swigTrainResources.swigBoosterHandle, outputModelFilePath);
-        swigTrainResources.releaseResources(); // Explicitly release C++ resources right away. They're no longer needed.
+        saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
+        swigTrainBooster.releaseResources(); // Explicitly release C++ resources right away. They're no longer needed.
     }
 
     /**
@@ -308,12 +308,12 @@ final class LightGBMBinaryClassificationModelTrainer {
     /**
      * Creates the booster structure with all the parameters and training dataset resources (but doesn't train).
      *
-     * @param swigTrainResources An object with the training resources already initialized.
+     * @param swigTrainBooster An object with the training resources already initialized.
      * @param swigTrainData      SWIGTrainData object.
      * @param trainParams        the LightGBM string-formatted string with properties in the form "key1=value1 key2=value2 ...".
      * @see LightGBMBinaryClassificationModelTrainer#trainBooster(SWIGTYPE_p_void, int) .
      */
-    static void createBoosterStructure(final SWIGTrainResources swigTrainResources,
+    static void createBoosterStructure(final SWIGTrainBooster swigTrainBooster,
                                        final SWIGTrainData swigTrainData,
                                        final String trainParams) {
 
@@ -321,7 +321,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int returnCodeLGBM = lightgbmlib.LGBM_BoosterCreate(
                 swigTrainData.swigDatasetHandle,
                 trainParams,
-                swigTrainResources.swigOutBoosterHandlePtr
+                swigTrainBooster.swigOutBoosterHandlePtr
         );
 
         if (returnCodeLGBM == -1) {
@@ -329,7 +329,7 @@ final class LightGBMBinaryClassificationModelTrainer {
             throw new LightGBMException();
         }
 
-        swigTrainResources.initSwigBoosterHandle();
+        swigTrainBooster.initSwigBoosterHandle();
     }
 
     /**

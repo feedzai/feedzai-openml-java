@@ -27,9 +27,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for the SWIGTrainResources class to ensure all resources are properly/safely initialized and released.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 1.0.18
+ * @since @@@since.next.release@@@ (renamed from SWIGTrainResourcesTest)
  */
-public class SWIGTrainResourcesTest {
+public class SWIGTrainBoosterTest {
 
     /**
      * SWIGTrainResources instance common to all tests.

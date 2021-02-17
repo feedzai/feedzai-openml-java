@@ -26,20 +26,18 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is responsible for initializing, managing and releasing all
  * LightGBM SWIG train resources and resource handlers in a memory-safe manner.
- *
- *  UPDATE # TODO:FTL-DOCSTRING only manages model resource now. what happens to @since?
- *
+ * <p>
  * Whatever happens, it guarantees that no memory leaks are left behind.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 1.0.10
+ * @since @@@since.next.release@@@ (renamed from SWIGTrainResources)
  */
-class SWIGTrainResources implements AutoCloseable { // TODO: Rename to SWIGTrainBooster
+class SWIGTrainBooster implements AutoCloseable {
 
     /**
      * Logger for this class.
      */
-    private static final Logger logger = LoggerFactory.getLogger(SWIGTrainResources.class);
+    private static final Logger logger = LoggerFactory.getLogger(SWIGTrainBooster.class);
 
     /**
      * SWIG pointer to the output LightGBM Booster Handle during Booster structure instantiation.
@@ -59,9 +57,9 @@ class SWIGTrainResources implements AutoCloseable { // TODO: Rename to SWIGTrain
      * <p>
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
      *
-     * @see SWIGTrainResources#initSwigBoosterHandle()
+     * @see SWIGTrainBooster#initSwigBoosterHandle()
      */
-    public SWIGTrainResources() {
+    public SWIGTrainBooster() {
 
         this.swigOutBoosterHandlePtr = lightgbmlib.voidpp_handle();
     }
