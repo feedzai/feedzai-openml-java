@@ -198,37 +198,20 @@ final class LightGBMBinaryClassificationModelTrainer {
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
 
         /// First generate the array that has the chunk sizes for `LGBM_DatasetCreateFromMats`.
-        logger.debug("Retrieving chunked data block sizes...");
-        final long numChunks = swigTrainData.swigFeaturesChunkedArray.get_chunks_count();
-        final long chunkInstancesSize = swigTrainData.getNumInstancesChunk();
-        SWIGTYPE_p_int swigChunkSizes = lightgbmlib.new_intArray(numChunks);
-        // All but the last chunk have the same size:
-        for (int i = 0; i < numChunks - 1; ++i) {
-            lightgbmlib.intArray_setitem(swigChunkSizes, i, (int) chunkInstancesSize);
-            logger.debug("FTL: chunk-size report: chunk #{} is full-chunk of size {}", i, (int) chunkInstancesSize);
-        }
-        // The last chunk is usually partially filled:
-        lightgbmlib.intArray_setitem(
-                swigChunkSizes,
-                numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures
-        );
-        logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}",
-                numChunks-1,
-                (int)swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count()/numFeatures);
+        SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numFeatures);
 
         /// Now create the LightGBM Dataset itself from the chunks:
         logger.debug("Creating LGBM_Dataset from chunked data...");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
-                (int) numChunks,
-                swigTrainData.swigFeaturesChunkedArray.data_as_void(),
+                (int) swigTrainData.swigFeaturesChunkedArray.get_chunks_count(), // numChunks
+                swigTrainData.swigFeaturesChunkedArray.data_as_void(), // input data (void**)
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
-                swigChunkSizes,
+                swigChunkSizesArray,
                 numFeatures,
                 1, // rowMajor.
                 trainParams, // parameters.
                 null, // No alighment with other datasets.
-                swigTrainData.swigOutDatasetHandlePtr
+                swigTrainData.swigOutDatasetHandlePtr // Output LGBM Dataset
         );
         if (returnCodeLGBM == -1) {
             logger.error("Could not create LightGBM dataset.");
@@ -237,7 +220,42 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         swigTrainData.initSwigDatasetHandle();
         swigTrainData.destroySwigTrainFeaturesChunkedDataArray();
-        lightgbmlib.delete_intArray(swigChunkSizes);
+        lightgbmlib.delete_intArray(swigChunkSizesArray);
+    }
+
+    /**
+     * Generates a SWIG array of ints with the size of each train chunk (partition).
+     *
+     * @param swigTrainData SWIGTrainData object.
+     * @param numFeatures   Number of features used to predict.
+     * @return SWIG (int*) array of the train chunks' sizes.
+     */
+    private static SWIGTYPE_p_int genSWIGFeatureChunkSizesArray(
+            final SWIGTrainData swigTrainData,
+            final int numFeatures) {
+
+        logger.debug("Retrieving chunked data block sizes...");
+
+        final long numChunks = swigTrainData.swigFeaturesChunkedArray.get_chunks_count();
+        final long chunkInstancesSize = swigTrainData.getNumInstancesChunk();
+        final SWIGTYPE_p_int swigChunkSizesArray = lightgbmlib.new_intArray(numChunks);
+
+        // All but the last chunk have the same size:
+        for (int i = 0; i < numChunks - 1; ++i) {
+            lightgbmlib.intArray_setitem(swigChunkSizesArray, i, (int) chunkInstancesSize);
+            logger.debug("FTL: chunk-size report: chunk #{} is full-chunk of size {}", i, (int) chunkInstancesSize);
+        }
+        // The last chunk is usually partially filled:
+        lightgbmlib.intArray_setitem(
+                swigChunkSizesArray,
+                numChunks - 1,
+                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures
+        );
+        logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}",
+                numChunks - 1,
+                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures);
+
+        return swigChunkSizesArray;
     }
 
     /**
