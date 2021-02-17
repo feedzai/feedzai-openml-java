@@ -17,8 +17,6 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
@@ -55,20 +53,18 @@ class SWIGTrainResources implements AutoCloseable {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Allocates all the initial handles necessary to bootstrap (but not use) the
      * in-memory LightGBM dataset + booster structures.
-     *
+     * <p>
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
-     * @see SWIGTrainResources#initSwigBoosterHandle()
      *
-     * @param numFeatures   The number of features.
+     * @see SWIGTrainResources#initSwigBoosterHandle()
      */
-    public SWIGTrainResources(final int numFeatures) {
+    public SWIGTrainResources() {
+
         this.swigOutBoosterHandlePtr = lightgbmlib.voidpp_handle();
     }
-
-
 
     /**
      * Setup swigBoosterHandle after its structure was created in-memory.

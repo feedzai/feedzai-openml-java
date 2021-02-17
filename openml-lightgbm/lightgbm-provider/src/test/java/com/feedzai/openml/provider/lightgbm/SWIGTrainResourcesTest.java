@@ -19,7 +19,6 @@ package com.feedzai.openml.provider.lightgbm;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -52,7 +51,7 @@ public class SWIGTrainResourcesTest {
      */
     @Before
     public void setupTest() {
-        swigTrainResources = new SWIGTrainResources(10);
+        swigTrainResources = new SWIGTrainResources();
     }
 
     /**

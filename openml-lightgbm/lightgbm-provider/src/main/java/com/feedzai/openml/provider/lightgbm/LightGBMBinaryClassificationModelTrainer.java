@@ -100,7 +100,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk);
-        final SWIGTrainResources swigTrainResources = new SWIGTrainResources(numFeatures);
+        final SWIGTrainResources swigTrainResources = new SWIGTrainResources();
 
         /// Create LightGBM dataset
         createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
