@@ -130,7 +130,7 @@ public class SWIGChunkedArrayAPITest {
 
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
                 (int)x.get_chunks_count(),
-                x.void_data(),
+                x.data_as_void(),
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 chunkSizes,
                 numFeatures,

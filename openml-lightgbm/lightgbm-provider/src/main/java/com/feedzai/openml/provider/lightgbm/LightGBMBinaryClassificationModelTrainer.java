@@ -202,7 +202,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         logger.debug("Creating LGBM_Dataset from chunked data...");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
                 (int) numChunks,
-                swigTrainData.swigFeaturesChunkedArray.void_data(),
+                swigTrainData.swigFeaturesChunkedArray.data_as_void(),
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 swigChunkSizes,
                 numFeatures,
