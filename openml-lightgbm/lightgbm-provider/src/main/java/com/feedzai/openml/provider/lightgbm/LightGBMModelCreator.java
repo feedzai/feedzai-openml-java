@@ -49,7 +49,7 @@ import static com.feedzai.openml.util.validate.ValidationUtils.validateModelPath
 import static java.nio.file.Files.createTempFile;
 
 /**
- * Loads the scoring model.
+ * Loads and/or fits LightGBM models.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
@@ -104,6 +104,20 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     static final String ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING =
             "Random Forest Boosting type requires bagging. Please see bagging parameters.";
 
+    /**
+     * Number of instances per C++ train data chunk.
+     * Train data is copied from the input stream into an array of chunks.
+     * Each chunk will have this many instances. Must be set before `fit()`.
+     * <p>
+     * By default starts at 200k.
+     * <p>
+     * Performance overhead notes:
+     * - Too small? Performance overhead - excessive in-memory data fragmentation.
+     * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
+     *              Each instance might have upwards of 400 features. Each costs 8 bytes.
+     *              E.g.: 100k instances of 400 features =>  320MB / chunk
+     */
+    private long trainDataChunkInstancesSize = 200000;
 
     /**
      * Constructor.
@@ -131,7 +145,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         try {
-            LightGBMBinaryClassificationModelTrainer.fit(dataset, params, tmpModelFilePath);
+            LightGBMBinaryClassificationModelTrainer.fit(
+                    dataset, getTrainDataChunkInstancesSize(), params, tmpModelFilePath);
             return loadModel(tmpModelFilePath, dataset.getSchema());
         } catch (final Exception e) {
             logger.error("Could not train the model.");
@@ -382,5 +397,31 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         return isMatch;
+    }
+
+    /**
+     * Number of instances per C++ train data chunk.
+     * Train data is copied from the input stream into an array of chunks.
+     * Each chunk will have this many instances. Must be set before `fit()`.
+     */
+    public long getTrainDataChunkInstancesSize() {
+        return trainDataChunkInstancesSize;
+    }
+
+    /**
+     * Number of instances per C++ train data chunk.
+     * Train data is copied from the input stream into an array of chunks.
+     * Each chunk will have this many instances. Must be set before `fit()`.
+     * <p>
+     * Although customizable, by default starts at 200k.
+     * <p>
+     * Performance overhead notes:
+     * - Too small? Performance overhead - excessive in-memory data fragmentation.
+     * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
+     *              Each instance might have upwards of 400 features. Each costs 8 bytes.
+     *              E.g.: 100k instances of 400 features =>  320MB / chunk
+     */
+    public void setTrainDataChunkInstancesSize(final long trainDataChunkInstancesSize) {
+        this.trainDataChunkInstancesSize = trainDataChunkInstancesSize;
     }
 }

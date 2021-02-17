@@ -54,37 +54,52 @@ final class LightGBMBinaryClassificationModelTrainer {
      */
     private static final Logger logger = LoggerFactory.getLogger(LightGBMBinaryClassificationModelTrainer.class);
 
-
-    /**
-     * Will read train data into intermediate C++ buffers
-     * of this size.
-     */
-    private static final int instancesChunkSize = 3;  // TODO:FTL -- increase after initial tests
-
     /**
      * This class is not meant to be instantiated.
      */
     private LightGBMBinaryClassificationModelTrainer() {}
 
     /**
-     * Train a LightGBM model from scratch, using train data from an in-memory dataset.
+     * Train a LightGBM model from scratch, using streamed train data from a dataset iterator.
+     * <p>
+     * **Problem**
+     * For performance reasons, the Dataset is read with a single-pass, however its size
+     * is not known a priori.
+     * <p>
+     * **Solution**
+     * A "ChunkedArray" is used in C++ to hold the streamed data before creating a LightGBM Dataset.
+     * The ChunkedArray is a dynamic array of chunks (arrays), where all chunks have the same size.
+     * <p>
+     * Algorithm:
+     * 1. Initialize ChunkedArray (starts with a single chunk).
+     * 2. Add values from the input stream one by one to the end of the last chunk through array.add(value).
+     * 3. When the chunk is full, ChunkedArray adds another chunk and inserts the value there.
+     * 4. Repeat from 2 until the input is exhausted.
+     * <p>
+     * Computing the dataset size from the ChunkedArray is an O(1) operation.
+     * As all chunks have the same size:
+     * size = (num_chunks-1)*chunk_size + num_elements_in_last_chunk
      *
-     * @param dataset Train dataset
-     * @param params LightGBM model parameters
+     * @param dataset             Train dataset.
+     * @param instancesPerChunk   Number of instances for each train chunk in C++.
+     * @param params              LightGBM model parameters.
      * @param outputModelFilePath Output filepath for the model file in .txt format.
      */
-    static void fit(final Dataset dataset, final Map<String, String> params, final Path outputModelFilePath) {
+    static void fit(final Dataset dataset,
+                    final long instancesPerChunk,
+                    final Map<String, String> params,
+                    final Path outputModelFilePath) {
 
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
-        final List<Integer> categoricalFeatureIndicesWithoutLabel = getCategoricalFeaturesIndicesWithoutLabel(schema);
-        final String trainParams = getLightGBMTrainParamsString(params, categoricalFeatureIndicesWithoutLabel);
+        final String trainParams = getLightGBMTrainParamsString(params,
+                getCategoricalFeaturesIndicesWithoutLabel(schema));
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
-                LightGBMBinaryClassificationModelTrainer.instancesChunkSize);
+                instancesPerChunk);
         final SWIGTrainResources swigTrainResources = new SWIGTrainResources(numFeatures);
 
         /// Create LightGBM dataset
@@ -96,7 +111,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         /// Save model
         saveModelFileToDisk(swigTrainResources.swigBoosterHandle, outputModelFilePath);
-        swigTrainResources.releaseResources(); // Explicitly release C++ resources right away as they're no longer needed.
+        swigTrainResources.releaseResources(); // Explicitly release C++ resources right away. They're no longer needed.
     }
 
     /**
@@ -182,21 +197,25 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
 
-        /// First compute the chunk sizes array.
+        /// First generate the array that has the chunk sizes for `LGBM_DatasetCreateFromMats`.
         logger.debug("Retrieving chunked data block sizes...");
         final long numChunks = swigTrainData.swigFeaturesChunkedArray.get_chunks_count();
-        final long chunkinstancesSize = swigTrainData.getNumInstancesChunk();
+        final long chunkInstancesSize = swigTrainData.getNumInstancesChunk();
         SWIGTYPE_p_int swigChunkSizes = lightgbmlib.new_intArray(numChunks);
+        // All but the last chunk have the same size:
         for (int i = 0; i < numChunks - 1; ++i) {
-            lightgbmlib.intArray_setitem(swigChunkSizes, i, (int) chunkinstancesSize);
-            logger.debug("FTL: chunk-size report: chunk #{} is full-chunk of size {}", i, (int) chunkinstancesSize);
+            lightgbmlib.intArray_setitem(swigChunkSizes, i, (int) chunkInstancesSize);
+            logger.debug("FTL: chunk-size report: chunk #{} is full-chunk of size {}", i, (int) chunkInstancesSize);
         }
+        // The last chunk is usually partially filled:
         lightgbmlib.intArray_setitem(
                 swigChunkSizes,
                 numChunks - 1,
                 (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures
         );
-        logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}", numChunks-1, (int)swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count()/numFeatures);
+        logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}",
+                numChunks-1,
+                (int)swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count()/numFeatures);
 
         /// Now create the LightGBM Dataset itself from the chunks:
         logger.debug("Creating LGBM_Dataset from chunked data...");
@@ -206,12 +225,11 @@ final class LightGBMBinaryClassificationModelTrainer {
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 swigChunkSizes,
                 numFeatures,
-                1, // rowMajor
-                trainParams, // parameters
-                null,
+                1, // rowMajor.
+                trainParams, // parameters.
+                null, // No alighment with other datasets.
                 swigTrainData.swigOutDatasetHandlePtr
         );
-
         if (returnCodeLGBM == -1) {
             logger.error("Could not create LightGBM dataset.");
             throw new LightGBMException();

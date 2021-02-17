@@ -22,8 +22,9 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -75,6 +76,14 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     private static final String NUM_ITERATIONS_FOR_FAST_TESTS = "2";
 
     /**
+     * For unit tests, as train data is smaller, using the default chunk sizes to train
+     * would mean that performing fits with multiple chunks would not be tested.
+     * Hence, all model score tests are done with smaller chunk sizes to ensure
+     * fitting with chunked data works.
+     */
+    public static final int SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 421;
+
+    /**
      * Load the LightGBM utils or nothing will work.
      * Also changes parameters.
      */
@@ -100,7 +109,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestResources.SCORED_INSTANCES_NAME,
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
-                MAX_NUMBER_OF_INSTANCES_TO_SCORE
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
         assertThat(average(scoresPerClass.get(0))).as("score average per class")
@@ -121,7 +131,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
-                MAX_NUMBER_OF_INSTANCES_TO_SCORE
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
         assertThat(average(scoresPerClass.get(0))).as("score average per class")
@@ -146,26 +157,68 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
-                MAX_NUMBER_OF_INSTANCES_TO_SCORE
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
         final ArrayList<ArrayList<Double>> scoresPerClassForLabelInMiddle = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
-                MAX_NUMBER_OF_INSTANCES_TO_SCORE
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
         final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtEnd = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
-                MAX_NUMBER_OF_INSTANCES_TO_SCORE
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
         assertThat(scoresPerClassForLabelAtStart).as("scores")
                 .isEqualTo(scoresPerClassForLabelInMiddle)
                 .isEqualTo(scoresPerClassForLabelAtEnd);
+    }
+
+    /**
+     * Ensure the train chunk sizes don't affect the model scores.
+     * Doesn't matter if tiny, large, or that the data is held in a single huge chunk.
+     *
+     * @throws URISyntaxException In case of error retrieving the data resource path.
+     * @throws IOException        In case of error reading data.
+     */
+    @Test
+    public void fitResultsAreIndependentOfTrainChunkSizes() throws URISyntaxException, IOException {
+
+        final ArrayList<ArrayList<Double>> scoresWithSmallChunks = fitModelAndGetFirstScoresPerClass(
+                DATASET_RESOURCE_NAME,
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                15
+        );
+
+        final ArrayList<ArrayList<Double>> scoresWithChunks = fitModelAndGetFirstScoresPerClass(
+                DATASET_RESOURCE_NAME,
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                250
+        );
+
+        final ArrayList<ArrayList<Double>> scoresWithSingleChunk = fitModelAndGetFirstScoresPerClass(
+                DATASET_RESOURCE_NAME,
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
+                MAX_NUMBER_OF_INSTANCES_TO_SCORE,
+                10000000 // Try to have a single chunk (10M instances / chunk)
+        );
+
+        assertThat(scoresWithSmallChunks).as("scores")
+                .isEqualTo(scoresWithChunks)
+                .isEqualTo(scoresWithSingleChunk);
     }
 
     /**
@@ -247,6 +300,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param schema              Schema to use for train and validation.
      * @param maxInstancesToTrain Maximum number of instances to train.
      * @param maxInstancesToScore Maximum number of instances to score.
+     * @param chunkSizeInstances  Number of instances to store per Chunk.
      * @return array(arrayScoresClass0, arrayScoresClass1) Array of scores per class (binary case).
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
@@ -255,7 +309,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
             final String datasetResourceName,
             final DatasetSchema schema,
             final int maxInstancesToTrain,
-            final int maxInstancesToScore) throws URISyntaxException, IOException {
+            final int maxInstancesToScore,
+            final int chunkSizeInstances) throws URISyntaxException, IOException {
 
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(datasetResourceName),
@@ -263,7 +318,9 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+        final LightGBMModelCreator lightGBMModelCreator = new LightGBMModelCreator();
+        lightGBMModelCreator.setTrainDataChunkInstancesSize(chunkSizeInstances);
+        final LightGBMBinaryClassificationModel model = lightGBMModelCreator.fit(
                 dataset,
                 new Random(),
                 modelParams

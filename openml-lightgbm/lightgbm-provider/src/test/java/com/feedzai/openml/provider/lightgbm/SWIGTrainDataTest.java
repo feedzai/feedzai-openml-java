@@ -22,13 +22,14 @@ public class SWIGTrainDataTest {
     /**
      * Number of instances to store per chunk
      */
-    private long numInstancesPerChunk = 3;
+    private long numInstancesPerChunk = 16;
 
     /**
      * Set up the LightGBM libs.
      */
     @BeforeClass
     public static void setupFixture() {
+
         LightGBMUtils.loadLibs(); // Initialize LightGBM libs.
     }
 
@@ -37,7 +38,51 @@ public class SWIGTrainDataTest {
      */
     @Before
     public void setupTest() {
+
         swigTrainData = new SWIGTrainData((int)numFeatures, numInstancesPerChunk);
+    }
+
+    /**
+     * Assert the features ChunkedArray has the proper size.
+     */
+    @Test
+    public void featuresChunkedArraySize() {
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size())
+                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size()")
+                .isEqualTo(numFeatures * numInstancesPerChunk);
+    }
+
+    /**
+     * The Features ChunkedArray size MUST be multiple of the instance size (numFeatures).
+     * An instance cannot be broken across two partitions (chunks) when creating the
+     * LightGBM Dataset.
+     */
+    @Test
+    public void featuresChunkedArrayChunksHoldCompleteInstances() {
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() % numFeatures)
+                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size() % numFeatures")
+                .isEqualTo(0);
+    }
+
+    /**
+     * Ensure features' chunks can hold the requested number of features.
+     */
+    @Test
+    public void featuresChunkedArrayHoldsRequestedInstances() {
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() / numFeatures)
+                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size() / numFeatures")
+                .isEqualTo(numInstancesPerChunk);
+    }
+
+    /**
+     * Not only features', but labels' ChunkedArray must hold chunks of the requested
+     * `numInstancesPerChunk` size.
+     */
+    @Test
+    public void labelChunkedArrayHoldsRequestedInstances() {
+        assertThat(swigTrainData.swigLabelsChunkedArray.get_chunk_size())
+                .as("swigTrainData.swigLabelsChunkedArray.get_chunk_size()")
+                .isEqualTo(numInstancesPerChunk);
     }
 
     /**

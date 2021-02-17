@@ -77,14 +77,24 @@ public class SWIGTrainData implements AutoCloseable {
         this.swigLabelsChunkedArray = new floatChunkedArray(numInstancesChunk);
     }
 
+    /**
+     * Adds a value to the features' ChunkedArray.
+     * @param value value to insert.
+     */
     public void addFeatureValue(double value) {
         this.swigFeaturesChunkedArray.add(value);
     }
 
+    /**
+     * Adds a value to the labels' ChunkedArray.
+     */
     public void addLabelValue(float value) {
         this.swigLabelsChunkedArray.add(value);
     }
 
+    /**
+     * @return Return the chunk sizes (in instances).
+     */
     public long getNumInstancesChunk() {
         return numInstancesChunk;
     }
@@ -129,6 +139,10 @@ public class SWIGTrainData implements AutoCloseable {
         this.swigFeaturesChunkedArray.release();
     }
 
+    /**
+     * Releases the ChunkedArrays of both features and label.
+     * Idempotent. After calling this ChunkedArrays cannot be re-used.
+     */
     public void releaseChunkedResources() {
         this.swigFeaturesChunkedArray.release();
         this.swigLabelsChunkedArray.release();

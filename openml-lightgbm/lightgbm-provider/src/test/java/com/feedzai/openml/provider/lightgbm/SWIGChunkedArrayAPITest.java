@@ -89,6 +89,11 @@ public class SWIGChunkedArrayAPITest {
                 .isCloseTo(on_fail_sentinel_value, Offset.offset(1e-3));
     }
 
+    /**
+     * Assert that ChunkedArray's coalesce_to works.
+     * Inserted elements should be returned the same and in the same
+     * order at the output array.
+     */
     @Test
     public void ChunkedArrayCoalesceTo() {
         final int numFeatures = 3;
@@ -108,7 +113,10 @@ public class SWIGChunkedArrayAPITest {
         }
     }
 
-
+    /**
+     * Ensure that `LGBM_DatasetCreateFromMats` can be created
+     * from the ChunkedArray.
+     */
     @Test
     public void LGBM_DatasetCreateFromMatsFromChunkedArray() {
         final int numFeatures = 3;
