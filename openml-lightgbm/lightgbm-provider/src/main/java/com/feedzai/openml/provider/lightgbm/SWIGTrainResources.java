@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
-class SWIGTrainResources implements AutoCloseable {
+class SWIGTrainResources implements AutoCloseable { // TODO: Rename to SWIGTrainBooster
 
     /**
      * Logger for this class.
