@@ -35,7 +35,7 @@ public class SWIGTrainResourcesTest {
      * SWIGTrainResources instance common to all tests.
      * Fresh instance initialized before each test.
      */
-    private SWIGTrainResources swigTrainResources;
+    private SWIGTrainBooster swigTrainBooster;
 
     /**
      * Set up the LightGBM libs.
@@ -51,7 +51,7 @@ public class SWIGTrainResourcesTest {
      */
     @Before
     public void setupTest() {
-        swigTrainResources = new SWIGTrainResources();
+        swigTrainBooster = new SWIGTrainBooster();
     }
 
     /**
@@ -59,7 +59,7 @@ public class SWIGTrainResourcesTest {
      */
     @Test
     public void constructorInitializesPublicMembers() {
-        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
+        assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
         /* Cannot assert this as it require external initialization:
          assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
         */
@@ -71,10 +71,10 @@ public class SWIGTrainResourcesTest {
     @Test
     public void closeResetsAllPublicMembers() {
 
-        swigTrainResources.releaseResources();
+        swigTrainBooster.releaseResources();
 
-        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
-        assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNull();
+        assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
+        assertThat(swigTrainBooster.swigBoosterHandle).as("swigBoosterHandle").isNull();
     }
 
 }
