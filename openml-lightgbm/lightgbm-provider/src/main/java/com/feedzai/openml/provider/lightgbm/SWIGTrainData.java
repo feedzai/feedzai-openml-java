@@ -29,6 +29,15 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Handles train data resources and provides basic operations to manipulate train data.
+ *
+ *  This class is responsible for initializing, managing and releasing all
+ *  Handles train data resources and provides basic operations to manipulate train data.
+ *  LightGBM SWIG train resources and resource handlers in a memory-safe manner.
+ *
+ *  Whatever happens, it guarantees that no memory leaks are left behind.
+ *
+ *  @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ *  @since 1.0.10
  */
 public class SWIGTrainData implements AutoCloseable {
 
