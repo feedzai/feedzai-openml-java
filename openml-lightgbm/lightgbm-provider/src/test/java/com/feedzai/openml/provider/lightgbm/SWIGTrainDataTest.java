@@ -17,12 +17,12 @@ public class SWIGTrainDataTest {
     /**
      * Number of features for model.
      */
-    private long numFeatures = 5;
+    private static final long NUM_FEATURES = 5;
 
     /**
      * Number of instances to store per chunk
      */
-    private long numInstancesPerChunk = 16;
+    private static final long NUM_INSTANCES_PER_CHUNK = 16;
 
     /**
      * Set up the LightGBM libs.
@@ -39,7 +39,7 @@ public class SWIGTrainDataTest {
     @Before
     public void setupTest() {
 
-        swigTrainData = new SWIGTrainData((int)numFeatures, numInstancesPerChunk);
+        swigTrainData = new SWIGTrainData((int) NUM_FEATURES, NUM_INSTANCES_PER_CHUNK);
     }
 
     /**
@@ -48,8 +48,8 @@ public class SWIGTrainDataTest {
     @Test
     public void featuresChunkedArraySize() {
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size())
-                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size()")
-                .isEqualTo(numFeatures * numInstancesPerChunk);
+                .as("features' ChunkedArray chunk size == NUM_FEATURES * NUM_INSTANCES_PER_CHUNK")
+                .isEqualTo(NUM_FEATURES * NUM_INSTANCES_PER_CHUNK);
     }
 
     /**
@@ -59,9 +59,9 @@ public class SWIGTrainDataTest {
      */
     @Test
     public void featuresChunkedArrayChunksHoldCompleteInstances() {
-        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() % numFeatures)
-                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size() % numFeatures")
-                .isEqualTo(0);
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() % NUM_FEATURES)
+                .as("No instances split across feature chunks. chunkSize % numFeatures == 0")
+                .isZero();
     }
 
     /**
@@ -69,9 +69,9 @@ public class SWIGTrainDataTest {
      */
     @Test
     public void featuresChunkedArrayHoldsRequestedInstances() {
-        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() / numFeatures)
-                .as("swigTrainData.swigFeaturesChunkedArray.get_chunk_size() / numFeatures")
-                .isEqualTo(numInstancesPerChunk);
+        assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunk_size() / NUM_FEATURES)
+                .as("feature chunks hold requested number of instances")
+                .isEqualTo(NUM_INSTANCES_PER_CHUNK);
     }
 
     /**
@@ -81,8 +81,8 @@ public class SWIGTrainDataTest {
     @Test
     public void labelChunkedArrayHoldsRequestedInstances() {
         assertThat(swigTrainData.swigLabelsChunkedArray.get_chunk_size())
-                .as("swigTrainData.swigLabelsChunkedArray.get_chunk_size()")
-                .isEqualTo(numInstancesPerChunk);
+                .as("label chunks hold requested number of instances")
+                .isEqualTo(NUM_INSTANCES_PER_CHUNK);
     }
 
     /**
@@ -93,17 +93,17 @@ public class SWIGTrainDataTest {
         assertThat(swigTrainData.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNotNull();
 
         assertThat(swigTrainData.swigLabelsChunkedArray.get_chunks_count())
-                .as("swigLabelsChunkedArray.get_chunks_count()")
+                .as("starting count of label chunks")
                 .isOne();
         assertThat(swigTrainData.swigLabelsChunkedArray.get_add_count())
-                .as("swigLabelsChunkedArray.get_add_count()")
+                .as("starting add() count of label chunks")
                 .isZero();
 
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunks_count())
-                .as("swigFeaturesChunkedArray.get_chunks_count()")
+                .as("starting count of feature chunks")
                 .isOne();
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_add_count())
-                .as("swigFeaturesChunkedArray.get_add_count()")
+                .as("starting add() count of feature chunks")
                 .isZero();
     }
 
@@ -113,26 +113,28 @@ public class SWIGTrainDataTest {
     @Test
     public void closeResetsAllPublicMembers() {
 
+        // Simulate usage before close():
         swigTrainData.swigLabelsChunkedArray.add(1);
         swigTrainData.swigFeaturesChunkedArray.add(1);
+
         swigTrainData.close();
 
-        assertThat(swigTrainData.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNull();
-        assertThat(swigTrainData.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNull();
-        assertThat(swigTrainData.swigDatasetHandle).as("swigDatasetHandle").isNull();
+        assertThat(swigTrainData.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr after close()").isNull();
+        assertThat(swigTrainData.swigTrainLabelDataArray).as("swigTrainLabelDataArray after close()").isNull();
+        assertThat(swigTrainData.swigDatasetHandle).as("swigDatasetHandle after close()").isNull();
 
         assertThat(swigTrainData.swigLabelsChunkedArray.get_chunks_count())
-                .as("swigLabelsChunkedArray.get_chunks_count()")
+                .as("label chunks count after close()")
                 .isZero();
         assertThat(swigTrainData.swigLabelsChunkedArray.get_add_count())
-                .as("swigLabelsChunkedArray.get_add_count()")
+                .as("label chunks add() count after close()")
                 .isZero();
 
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_chunks_count())
-                .as("swigFeaturesChunkedArray.get_chunks_count()")
+                .as("feature chunks count after close()")
                 .isZero();
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_add_count())
-                .as("swigFeaturesChunkedArray.get_add_count()")
+                .as("feature chunks count after close()")
                 .isZero();
     }
 

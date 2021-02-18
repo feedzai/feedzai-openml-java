@@ -61,7 +61,7 @@ public class SWIGChunkedArrayAPITest {
         for (int i = 0; i < max_i; ++i) {
             final double ref_value = (i+1) * 1.1;
             assertThat(chunkedArray.getitem(chunk, pos, -1))
-                    .as("value")
+                    .as("Value at chunk %d, position %d", chunk, pos)
                     .isCloseTo(ref_value, Offset.offset(1e-3));
 
             ++pos;
@@ -83,11 +83,11 @@ public class SWIGChunkedArrayAPITest {
 
         // Test out of bounds chunk (only 1 exists, not 11):
         assertThat(chunkedArray.getitem(10, 0, on_fail_sentinel_value))
-                .as("output_sentinel")
+                .as("out-of-bounds return sentinel value")
                 .isCloseTo(on_fail_sentinel_value, Offset.offset(1e-3));
         // Test out of bounds on first chunk:
         assertThat(chunkedArray.getitem(0, 10, on_fail_sentinel_value))
-                .as("output_sentinel")
+                .as("out-of-bounds return sentinel value")
                 .isCloseTo(on_fail_sentinel_value, Offset.offset(1e-3));
     }
 
@@ -111,7 +111,7 @@ public class SWIGChunkedArrayAPITest {
 
         for (int i = 0; i < chunkedArray.get_add_count(); ++i) {
             double v = lightgbmlib.doubleArray_getitem(swigArr, i);
-            assertThat(v).as("value").isCloseTo(i, Offset.offset(1e-3));
+            assertThat(v).as("coalescedArray[%d]", i).isCloseTo(i, Offset.offset(1e-3));
         }
     }
 
@@ -150,7 +150,7 @@ public class SWIGChunkedArrayAPITest {
                 swigOutDatasetHandlePtr
         );
 
-        assertThat(returnCodeLGBM).as("returnCode").isEqualTo(0);
+        assertThat(returnCodeLGBM).as("LightGBM return code").isEqualTo(0);
     }
 
 }
