@@ -105,10 +105,6 @@ public class SWIGTrainDataTest {
         assertThat(swigTrainData.swigFeaturesChunkedArray.get_add_count())
                 .as("swigFeaturesChunkedArray.get_add_count()")
                 .isZero();
-
-        /* Cannot assert this as it requires external initialization:
-         assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
-        */
     }
 
     /**
@@ -119,7 +115,7 @@ public class SWIGTrainDataTest {
 
         swigTrainData.swigLabelsChunkedArray.add(1);
         swigTrainData.swigFeaturesChunkedArray.add(1);
-        swigTrainData.releaseResources();
+        swigTrainData.close();
 
         assertThat(swigTrainData.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNull();
         assertThat(swigTrainData.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNull();

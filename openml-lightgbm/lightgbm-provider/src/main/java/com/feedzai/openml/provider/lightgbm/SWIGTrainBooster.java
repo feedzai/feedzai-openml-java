@@ -75,7 +75,8 @@ class SWIGTrainBooster implements AutoCloseable {
      * Release any allocated resources.
      * This operation is idempotent and can be safely called at any time as many times as you wish.
      */
-    public void releaseResources() {
+    @Override
+    public void close() {
 
         if (this.swigOutBoosterHandlePtr != null) {
             lightgbmlib.delete_voidpp(this.swigOutBoosterHandlePtr);
@@ -86,11 +87,5 @@ class SWIGTrainBooster implements AutoCloseable {
             lightgbmlib.LGBM_BoosterFree(this.swigBoosterHandle);
             this.swigBoosterHandle = null;
         }
-
-    }
-
-    @Override
-    public void close() throws Exception {
-        releaseResources();
     }
 }

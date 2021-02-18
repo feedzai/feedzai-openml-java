@@ -62,19 +62,21 @@ final class LightGBMBinaryClassificationModelTrainer {
     /**
      * Train a LightGBM model from scratch, using streamed train data from a dataset iterator.
      * <p>
-     * **Problem**
+     * <b>Problem</b>
      * For performance reasons, the Dataset is read with a single-pass, however its size
      * is not known a priori.
      * <p>
-     * **Solution**
+     * <b>Solution</b>
      * A "ChunkedArray" is used in C++ to hold the streamed data before creating a LightGBM Dataset.
      * The ChunkedArray is a dynamic array of chunks (arrays), where all chunks have the same size.
      * <p>
      * Algorithm:
-     * 1. Initialize ChunkedArray (starts with a single chunk).
-     * 2. Add values from the input stream one by one to the end of the last chunk through array.add(value).
-     * 3. When the chunk is full, ChunkedArray adds another chunk and inserts the value there.
-     * 4. Repeat from 2 until the input is exhausted.
+     * <ol>
+     *     <li>Initialize ChunkedArray (starts with a single chunk).</li>
+     *     <li>Add values from the input stream one by one to the end of the last chunk through array.add(value).</li>
+     *     <li>When the chunk is full, ChunkedArray adds another chunk and inserts the value there.</li>
+     *     <li>Repeat from 2 until the input is exhausted.</li>
+     * </ol>
      * <p>
      * Computing the dataset size from the ChunkedArray is an O(1) operation.
      * As all chunks have the same size:
@@ -111,7 +113,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         /// Save model
         saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
-        swigTrainBooster.releaseResources(); // Explicitly release C++ resources right away. They're no longer needed.
+        swigTrainBooster.close(); // Explicitly release C++ resources right away. They're no longer needed.
     }
 
     /**

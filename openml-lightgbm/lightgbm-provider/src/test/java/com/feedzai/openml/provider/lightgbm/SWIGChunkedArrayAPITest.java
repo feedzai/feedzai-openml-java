@@ -38,27 +38,29 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SWIGChunkedArrayAPITest {
 
     /**
-     * Test that using a ChunkedArray<double> works.
+     * Test that using a ChunkedArray&ltdouble&gt works.
      * It is possible to:
-     *  - create
-     *  - add() values to it (generating multiple chunks)
-     *  - retrieve said values intact (assert through getitem())
+     * <ul>
+     *     <li>create</li>
+     *     <li>add() values to it (generating multiple chunks)</li>
+     *     <li>retrieve said values intact (assert through getitem())</li>
+     * </ul>
      */
     @Test
     public void doubleChunkedArrayValuesOK() {
         final int max_i = 10;
         final long chunk_size = 3;
-        final doubleChunkedArray x = new doubleChunkedArray(chunk_size);
+        final doubleChunkedArray chunkedArray = new doubleChunkedArray(chunk_size);
 
         for (int i = 1; i <= max_i; ++i) {
-            x.add(i * 1.1);
+            chunkedArray.add(i * 1.1);
         }
 
         int chunk = 0;
         int pos = 0;
         for (int i = 0; i < max_i; ++i) {
             final double ref_value = (i+1) * 1.1;
-            assertThat(x.getitem(chunk, pos, -1))
+            assertThat(chunkedArray.getitem(chunk, pos, -1))
                     .as("value")
                     .isCloseTo(ref_value, Offset.offset(1e-3));
 
@@ -77,14 +79,14 @@ public class SWIGChunkedArrayAPITest {
     @Test
     public void doubleChunkedArrayOutOfBoundsError() {
         final double on_fail_sentinel_value = -1;
-        final doubleChunkedArray x = new doubleChunkedArray(3);
+        final doubleChunkedArray chunkedArray = new doubleChunkedArray(3);
 
         // Test out of bounds chunk (only 1 exists, not 11):
-        assertThat(x.getitem(10, 0, on_fail_sentinel_value))
+        assertThat(chunkedArray.getitem(10, 0, on_fail_sentinel_value))
                 .as("output_sentinel")
                 .isCloseTo(on_fail_sentinel_value, Offset.offset(1e-3));
         // Test out of bounds on first chunk:
-        assertThat(x.getitem(0, 10, on_fail_sentinel_value))
+        assertThat(chunkedArray.getitem(0, 10, on_fail_sentinel_value))
                 .as("output_sentinel")
                 .isCloseTo(on_fail_sentinel_value, Offset.offset(1e-3));
     }
@@ -98,16 +100,16 @@ public class SWIGChunkedArrayAPITest {
     public void ChunkedArrayCoalesceTo() {
         final int numFeatures = 3;
         final int chunkSize = 2*numFeatures;  // Must be multiple
-        final doubleChunkedArray x = new doubleChunkedArray(chunkSize);
+        final doubleChunkedArray chunkedArray = new doubleChunkedArray(chunkSize);
         // Fill 1 chunk + some part of other
         for (int i = 0; i < chunkSize + 1; ++i) {
-            x.add(i);
+            chunkedArray.add(i);
         }
-        final SWIGTYPE_p_double swigArr = lightgbmlib.new_doubleArray(x.get_add_count());
+        final SWIGTYPE_p_double swigArr = lightgbmlib.new_doubleArray(chunkedArray.get_add_count());
 
-        x.coalesce_to(swigArr);
+        chunkedArray.coalesce_to(swigArr);
 
-        for (int i = 0; i < x.get_add_count(); ++i) {
+        for (int i = 0; i < chunkedArray.get_add_count(); ++i) {
             double v = lightgbmlib.doubleArray_getitem(swigArr, i);
             assertThat(v).as("value").isCloseTo(i, Offset.offset(1e-3));
         }
@@ -121,24 +123,24 @@ public class SWIGChunkedArrayAPITest {
     public void LGBM_DatasetCreateFromMatsFromChunkedArray() {
         final int numFeatures = 3;
         final int chunkSize = 2*numFeatures;  // Must be multiple
-        final doubleChunkedArray x = new doubleChunkedArray(chunkSize);
+        final doubleChunkedArray chunkedArray = new doubleChunkedArray(chunkSize);
         // Fill 1 chunk + some part of other
         for (int i = 0; i < chunkSize + 1; ++i) {
-            x.add(i);
+            chunkedArray.add(i);
         }
 
-        final long numChunks = x.get_chunks_count();
+        final long numChunks = chunkedArray.get_chunks_count();
         SWIGTYPE_p_int chunkSizes = lightgbmlib.new_intArray(numChunks);
         for (int i = 0; i < numChunks - 1; ++i) {
             lightgbmlib.intArray_setitem(chunkSizes, i, chunkSize);
         }
-        lightgbmlib.intArray_setitem(chunkSizes, numChunks-1, (int)x.get_current_chunk_added_count());
+        lightgbmlib.intArray_setitem(chunkSizes, numChunks-1, (int)chunkedArray.get_current_chunk_added_count());
 
         final SWIGTYPE_p_p_void swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();;
 
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
-                (int)x.get_chunks_count(),
-                x.data_as_void(),
+                (int)chunkedArray.get_chunks_count(),
+                chunkedArray.data_as_void(),
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 chunkSizes,
                 numFeatures,

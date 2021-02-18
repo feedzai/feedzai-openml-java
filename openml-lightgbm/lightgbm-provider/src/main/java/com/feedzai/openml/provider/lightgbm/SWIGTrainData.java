@@ -178,7 +178,8 @@ public class SWIGTrainData implements AutoCloseable {
      * Release any allocated resources.
      * This operation is idempotent and can be safely called at any time as many times as you wish.
      */
-    public void releaseResources() {
+    @Override
+    public void close() {
 
         releaseChunkedResources();
 
@@ -194,10 +195,5 @@ public class SWIGTrainData implements AutoCloseable {
             lightgbmlib.LGBM_DatasetFree(this.swigDatasetHandle);
             this.swigDatasetHandle = null;
         }
-    }
-
-    @Override
-    public void close() throws Exception {
-        releaseResources();
     }
 }

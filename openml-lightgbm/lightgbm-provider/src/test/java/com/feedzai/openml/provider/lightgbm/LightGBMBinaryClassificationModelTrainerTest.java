@@ -318,9 +318,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        final LightGBMModelCreator lightGBMModelCreator = new LightGBMModelCreator();
-        lightGBMModelCreator.setTrainDataChunkInstancesSize(chunkSizeInstances);
-        final LightGBMBinaryClassificationModel model = lightGBMModelCreator.fit(
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator(chunkSizeInstances).fit(
                 dataset,
                 new Random(),
                 modelParams

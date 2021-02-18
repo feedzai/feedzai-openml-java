@@ -109,26 +109,43 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
      * Train data is copied from the input stream into an array of chunks.
      * Each chunk will have this many instances. Must be set before `fit()`.
      * <p>
-     * By default starts at 200k.
-     * <p>
      * Performance overhead notes:
      * - Too small? Performance overhead - excessive in-memory data fragmentation.
      * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
      *              Each instance might have upwards of 400 features. Each costs 8 bytes.
      *              E.g.: 100k instances of 400 features =>  320MB / chunk
      */
-    private long trainDataChunkInstancesSize = 200000;
+    private final long trainDataChunkInstancesSize;
+
+    /**
+     * Default train chunk size used to initialize trainDataChunkInstancesSize
+     * when the default constructor with no arguments is called.
+     */
+    static final long DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 200000;
 
     /**
      * Constructor.
-     * Its only job is to load the libraries so that the rest of the classes work.
+     * Must load the libraries so that the rest of the classes work.
      * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
+     *
+     * Initializes trainDataChunkInstancesSize with DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE.
      */
     public LightGBMModelCreator() {
-        // Initialize libs. Before this call, no lightgbmlib* methods can be called:
-        LightGBMUtils.loadLibs();
+        this(DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
     }
 
+    /**
+     * Constructor.
+     * Must load the libraries so that the rest of the classes work.
+     * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
+     *
+     * @param numInstancesPerTrainChunk Number of instances stored in each train data chunk.
+     */
+    public LightGBMModelCreator(final long numInstancesPerTrainChunk) {
+        // Initialize libs. Before this call, no lightgbmlib* methods can be called:
+        LightGBMUtils.loadLibs();
+        trainDataChunkInstancesSize = numInstancesPerTrainChunk;
+    }
 
     @Override
     public LightGBMBinaryClassificationModel fit(final Dataset dataset,
@@ -146,7 +163,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         try {
             LightGBMBinaryClassificationModelTrainer.fit(
-                    dataset, getTrainDataChunkInstancesSize(), params, tmpModelFilePath);
+                    dataset, trainDataChunkInstancesSize, params, tmpModelFilePath);
             return loadModel(tmpModelFilePath, dataset.getSchema());
         } catch (final Exception e) {
             logger.error("Could not train the model.");
@@ -397,31 +414,5 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         return isMatch;
-    }
-
-    /**
-     * Number of instances per C++ train data chunk.
-     * Train data is copied from the input stream into an array of chunks.
-     * Each chunk will have this many instances. Must be set before `fit()`.
-     */
-    public long getTrainDataChunkInstancesSize() {
-        return trainDataChunkInstancesSize;
-    }
-
-    /**
-     * Number of instances per C++ train data chunk.
-     * Train data is copied from the input stream into an array of chunks.
-     * Each chunk will have this many instances. Must be set before `fit()`.
-     * <p>
-     * Although customizable, by default starts at 200k.
-     * <p>
-     * Performance overhead notes:
-     * - Too small? Performance overhead - excessive in-memory data fragmentation.
-     * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
-     *              Each instance might have upwards of 400 features. Each costs 8 bytes.
-     *              E.g.: 100k instances of 400 features =>  320MB / chunk
-     */
-    public void setTrainDataChunkInstancesSize(final long trainDataChunkInstancesSize) {
-        this.trainDataChunkInstancesSize = trainDataChunkInstancesSize;
     }
 }

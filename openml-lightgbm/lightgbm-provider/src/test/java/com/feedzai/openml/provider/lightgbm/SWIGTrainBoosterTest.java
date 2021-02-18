@@ -60,9 +60,6 @@ public class SWIGTrainBoosterTest {
     @Test
     public void constructorInitializesPublicMembers() {
         assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
-        /* Cannot assert this as it require external initialization:
-         assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
-        */
     }
 
     /**
@@ -71,7 +68,7 @@ public class SWIGTrainBoosterTest {
     @Test
     public void closeResetsAllPublicMembers() {
 
-        swigTrainBooster.releaseResources();
+        swigTrainBooster.close();
 
         assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
         assertThat(swigTrainBooster.swigBoosterHandle).as("swigBoosterHandle").isNull();
