@@ -105,46 +105,13 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             "Random Forest Boosting type requires bagging. Please see bagging parameters.";
 
     /**
-     * Number of instances per C++ train data chunk.
-     * Train data is copied from the input stream into an array of chunks.
-     * Each chunk will have this many instances. Must be set before `fit()`.
-     * <p>
-     * Performance overhead notes:
-     * - Too small? Performance overhead - excessive in-memory data fragmentation.
-     * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
-     *              Each instance might have upwards of 400 features. Each costs 8 bytes.
-     *              E.g.: 100k instances of 400 features =>  320MB / chunk
-     */
-    private final long trainDataChunkInstancesSize;
-
-    /**
-     * Default train chunk size used to initialize trainDataChunkInstancesSize
-     * when the default constructor with no arguments is called.
-     */
-    static final long DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 200000;
-
-    /**
      * Constructor.
      * Must load the libraries so that the rest of the classes work.
      * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
-     *
-     * Initializes trainDataChunkInstancesSize with DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE.
      */
     public LightGBMModelCreator() {
-        this(DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
-    }
-
-    /**
-     * Constructor.
-     * Must load the libraries so that the rest of the classes work.
-     * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
-     *
-     * @param numInstancesPerTrainChunk Number of instances stored in each train data chunk.
-     */
-    public LightGBMModelCreator(final long numInstancesPerTrainChunk) {
         // Initialize libs. Before this call, no lightgbmlib* methods can be called:
         LightGBMUtils.loadLibs();
-        trainDataChunkInstancesSize = numInstancesPerTrainChunk;
     }
 
     @Override
@@ -163,7 +130,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         try {
             LightGBMBinaryClassificationModelTrainer.fit(
-                    dataset, trainDataChunkInstancesSize, params, tmpModelFilePath);
+                    dataset, params, tmpModelFilePath);
             return loadModel(tmpModelFilePath, dataset.getSchema());
         } catch (final Exception e) {
             logger.error("Could not train the model.");
@@ -176,6 +143,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             }
         }
     }
+
+
 
     @Override
     public List<ParamValidationError> validateForFit(final Path pathToPersist,

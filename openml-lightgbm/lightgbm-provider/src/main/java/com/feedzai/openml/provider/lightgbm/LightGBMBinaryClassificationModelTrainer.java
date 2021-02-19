@@ -60,6 +60,37 @@ final class LightGBMBinaryClassificationModelTrainer {
     private LightGBMBinaryClassificationModelTrainer() {}
 
     /**
+     * Default number of instances per C++ train data chunk.
+     * Train data is copied from the input stream into an array of chunks.
+     * Each chunk will have this many instances. Must be set before `fit()`.
+     * <p>
+     * @implNote Performance overhead notes:
+     * - Too small? Performance overhead - excessive in-memory data fragmentation.
+     * - Too large? RAM overhead - in the worst case the last chunk has only 1 instance.
+     *              Each instance might have upwards of 400 features. Each costs 8 bytes.
+     *              E.g.: 100k instances of 400 features =>  320MB / chunk
+     */
+    static final long DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 200000;
+
+    /**
+     * See LightGBMBinaryClassificationModelTrainer#fit overload below.
+     * This version does not specify train data buffer chunk sizes to tune the memory layout.
+     *
+     * @param dataset             Train dataset.
+     * @param params              LightGBM model parameters.
+     * @param outputModelFilePath Output filepath for the model file in .txt format.
+     */
+    static void fit(final Dataset dataset,
+                    final Map<String, String> params,
+                    final Path outputModelFilePath) {
+
+        fit(dataset,
+            params,
+            outputModelFilePath,
+            DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
+    }
+
+    /**
      * Train a LightGBM model from scratch, using streamed train data from a dataset iterator.
      * <p>
      * <b>Problem</b>
@@ -83,14 +114,14 @@ final class LightGBMBinaryClassificationModelTrainer {
      * size = (num_chunks-1)*chunk_size + num_elements_in_last_chunk
      *
      * @param dataset             Train dataset.
-     * @param instancesPerChunk   Number of instances for each train chunk in C++.
      * @param params              LightGBM model parameters.
      * @param outputModelFilePath Output filepath for the model file in .txt format.
+     * @param instancesPerChunk   Number of instances for each train chunk in C++.
      */
     static void fit(final Dataset dataset,
-                    final long instancesPerChunk,
                     final Map<String, String> params,
-                    final Path outputModelFilePath) {
+                    final Path outputModelFilePath,
+                    final long instancesPerChunk) {
 
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
@@ -408,7 +439,11 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final DatasetSchema datasetSchema = dataset.getSchema();
         final int numFields = datasetSchema.getFieldSchemas().size();
-        final int targetIndex = datasetSchema.getTargetIndex().orElse(-1);
+        /* Supervised model. Target must be present.
+           This is ensured in validateForFit, by using the
+           ValidationUtils' validateCategoricalSchema:
+         */
+        final int targetIndex = datasetSchema.getTargetIndex().get();
 
         final Iterator<Instance> iterator = dataset.getInstances();
         while (iterator.hasNext()) {

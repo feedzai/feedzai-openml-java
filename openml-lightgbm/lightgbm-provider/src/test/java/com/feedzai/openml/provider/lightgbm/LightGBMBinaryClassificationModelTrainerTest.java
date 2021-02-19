@@ -21,13 +21,14 @@ import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.mocks.MockDataset;
+import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,6 +37,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -62,7 +64,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Maximum number of instances to score (to speed up tests).
      */
-    private final static int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 100;
+    private final static int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 300;
 
     /**
      * Dataset resource name to use for both fit and validation stages during tests.
@@ -81,7 +83,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Hence, all model score tests are done with smaller chunk sizes to ensure
      * fitting with chunked data works.
      */
-    public static final int SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 421;
+    public static final int SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 221;
 
     /**
      * Load the LightGBM utils or nothing will work.
@@ -99,11 +101,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Asserts that a model trained with numericals only and evaluated on the same datasource
      * has in average higher scores for the positive class (1) than for the negative one (0).
      *
-     * @throws URISyntaxException In case of error retrieving the data resource path.
-     * @throws IOException        In case of error reading data.
+     * @throws URISyntaxException    In case of error retrieving the data resource path.
+     * @throws IOException           In case of error reading data.
+     * @throws ModelLoadingException In case of error training the model.
      */
     @Test
-    public void fitWithNumericalsOnlyTest() throws URISyntaxException, IOException {
+    public void fitWithNumericalsOnly() throws URISyntaxException, IOException, ModelLoadingException {
 
         final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 TestResources.SCORED_INSTANCES_NAME,
@@ -121,11 +124,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Asserts that a model trained with numericals+categoricals and evaluated on the same datasource
      * has in average higher scores for the positive class (1) than for the negative one (0).
      *
-     * @throws URISyntaxException In case of error retrieving the data resource path.
-     * @throws IOException        In case of error reading data.
+     * @throws URISyntaxException    In case of error retrieving the data resource path.
+     * @throws IOException           In case of error reading data.
+     * @throws ModelLoadingException In case of error training the model.
      */
     @Test
-    public void fitWithNumericalsAndCategoricalsTest() throws URISyntaxException, IOException {
+    public void fitWithNumericalsAndCategoricals() throws URISyntaxException, IOException, ModelLoadingException {
 
         final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
@@ -142,16 +146,17 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Assert that in general, a model trained+scored on schemas where the position of
      * the label changes results in exactly the same scores.
-     *
+     * <p>
      * This tests for regressions on the copying data code during train that at the start
      * of development resulted in broken scores (mostly constant) that were very hard to diagnose.
      *
-     * @throws URISyntaxException In case of error retrieving the data resource path.
-     * @throws IOException        In case of error reading data.
+     * @throws URISyntaxException    In case of error retrieving the data resource path.
+     * @throws IOException           In case of error reading data.
+     * @throws ModelLoadingException In case of error training the model.
      */
     @Test
-    public void fitCategoricalsWithLabelInStartMiddleOrEndHasSameResultsTest()
-            throws URISyntaxException, IOException {
+    public void fitCategoricalsWithLabelInStartMiddleOrEndHasSameResults()
+            throws URISyntaxException, IOException, ModelLoadingException {
 
         final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtStart = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
@@ -186,11 +191,13 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Ensure the train chunk sizes don't affect the model scores.
      * Doesn't matter if tiny, large, or that the data is held in a single huge chunk.
      *
-     * @throws URISyntaxException In case of error retrieving the data resource path.
-     * @throws IOException        In case of error reading data.
+     * @throws URISyntaxException    In case of error retrieving the data resource path.
+     * @throws IOException           In case of error reading data.
+     * @throws ModelLoadingException In case of error training the model.
      */
     @Test
-    public void fitResultsAreIndependentOfTrainChunkSizes() throws URISyntaxException, IOException {
+    public void fitResultsAreIndependentOfTrainChunkSizes()
+            throws URISyntaxException, IOException, ModelLoadingException {
 
         final ArrayList<ArrayList<Double>> scoresWithSmallChunks = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
@@ -225,18 +232,18 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Assert that there's an error when training with no instances.
      */
     @Test
-    public void fitWithNoInstancesTest() {
+    public void fitWithNoInstances() {
 
         final List<Instance> noInstances = new ArrayList<>();
         final Dataset emptyDataset = new MockDataset(TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, noInstances);
 
-        assertThatThrownBy(() -> {
-                    final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+        assertThatThrownBy(() ->
+                    new LightGBMModelCreator().fit(
                             emptyDataset,
                             new Random(),
                             modelParams
-                    );
-                })
+                    )
+                )
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -248,7 +255,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException        For errors when reading the dataset.
      */
     @Test
-    public void fitWithInsufficientInstancesTest() throws URISyntaxException, IOException {
+    public void fitWithInsufficientInstances() throws URISyntaxException, IOException {
 
         final Dataset tinyDataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(DATASET_RESOURCE_NAME),
@@ -302,15 +309,16 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param maxInstancesToScore Maximum number of instances to score.
      * @param chunkSizeInstances  Number of instances to store per Chunk.
      * @return array(arrayScoresClass0, arrayScoresClass1) Array of scores per class (binary case).
-     * @throws URISyntaxException For errors when loading the dataset resource.
-     * @throws IOException        For errors when reading the dataset.
+     * @throws URISyntaxException    For errors when loading the dataset resource.
+     * @throws IOException           For errors when reading the dataset.
+     * @throws ModelLoadingException For errors training the model.
      */
     private static ArrayList<ArrayList<Double>> fitModelAndGetFirstScoresPerClass(
             final String datasetResourceName,
             final DatasetSchema schema,
             final int maxInstancesToTrain,
             final int maxInstancesToScore,
-            final int chunkSizeInstances) throws URISyntaxException, IOException {
+            final int chunkSizeInstances) throws URISyntaxException, IOException, ModelLoadingException {
 
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(datasetResourceName),
@@ -318,10 +326,10 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator(chunkSizeInstances).fit(
+        final LightGBMBinaryClassificationModel model = fit(
                 dataset,
-                new Random(),
-                modelParams
+                modelParams,
+                chunkSizeInstances
         );
 
         return getClassScores(dataset, model, maxInstancesToScore);
@@ -371,5 +379,31 @@ public class LightGBMBinaryClassificationModelTrainerTest {
             sum += x;
         }
         return (sum / inputArray.size());
+    }
+
+    /**
+     * Mimics LightGBMModelCreator#fit but allows customizing instancesPerChunk.
+     *
+     * @param dataset           train dataset.
+     * @param params            LightGBM params.
+     * @param instancesPerChunk tune memory layout for train data buffer.
+     * @return trained LightGBM model.
+     * @throws IOException           Can be thrown when creating a temporary model file.
+     * @throws ModelLoadingException If there was any issue training the model.
+     */
+    private static LightGBMBinaryClassificationModel fit(
+            final Dataset dataset,
+            final Map<String, String> params,
+            final long instancesPerChunk) throws IOException, ModelLoadingException {
+
+        final Path tmpModelFilePath = createTempFile("pulse_lightgbm_model_", null);
+
+        try {
+            LightGBMBinaryClassificationModelTrainer.fit(
+                    dataset, params, tmpModelFilePath, instancesPerChunk);
+            return new LightGBMModelCreator().loadModel(tmpModelFilePath, dataset.getSchema());
+        } finally {
+            Files.delete(tmpModelFilePath);
+        }
     }
 }
