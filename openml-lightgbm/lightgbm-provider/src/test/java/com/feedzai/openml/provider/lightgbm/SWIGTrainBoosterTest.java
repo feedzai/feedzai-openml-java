@@ -27,15 +27,15 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Tests for the SWIGTrainResources class to ensure all resources are properly/safely initialized and released.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 1.0.18
+ * @since 1.1.2 (renamed from SWIGTrainResourcesTest)
  */
-public class SWIGTrainResourcesTest {
+public class SWIGTrainBoosterTest {
 
     /**
      * SWIGTrainResources instance common to all tests.
      * Fresh instance initialized before each test.
      */
-    private SWIGTrainResources swigTrainResources;
+    private SWIGTrainBooster swigTrainBooster;
 
     /**
      * Set up the LightGBM libs.
@@ -51,8 +51,7 @@ public class SWIGTrainResourcesTest {
      */
     @Before
     public void setupTest() {
-
-        swigTrainResources = new SWIGTrainResources(100, 10);
+        swigTrainBooster = new SWIGTrainBooster();
     }
 
     /**
@@ -60,14 +59,7 @@ public class SWIGTrainResourcesTest {
      */
     @Test
     public void constructorInitializesPublicMembers() {
-
-        assertThat(swigTrainResources.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNotNull();
-        assertThat(swigTrainResources.swigTrainFeaturesDataArray).as("swigTrainFeaturesDataArray").isNotNull();
-        assertThat(swigTrainResources.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNotNull();
-        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
-        /* Cannot assert these two as they require external initialization:
-         assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNotNull();
-         assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNotNull(); */
+        assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNotNull();
     }
 
     /**
@@ -76,14 +68,10 @@ public class SWIGTrainResourcesTest {
     @Test
     public void closeResetsAllPublicMembers() {
 
-        swigTrainResources.releaseResources();
+        swigTrainBooster.close();
 
-        assertThat(swigTrainResources.swigOutDatasetHandlePtr).as("swigOutDatasetHandlePtr").isNull();
-        assertThat(swigTrainResources.swigTrainFeaturesDataArray).as("swigTrainFeaturesDataArray").isNull();
-        assertThat(swigTrainResources.swigTrainLabelDataArray).as("swigTrainLabelDataArray").isNull();
-        assertThat(swigTrainResources.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
-        assertThat(swigTrainResources.swigDatasetHandle).as("swigDatasetHandle").isNull();
-        assertThat(swigTrainResources.swigBoosterHandle).as("swigBoosterHandle").isNull();
+        assertThat(swigTrainBooster.swigOutBoosterHandlePtr).as("swigOutBoosterHandlePtr").isNull();
+        assertThat(swigTrainBooster.swigBoosterHandle).as("swigBoosterHandle").isNull();
     }
 
 }

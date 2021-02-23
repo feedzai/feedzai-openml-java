@@ -49,7 +49,7 @@ import static com.feedzai.openml.util.validate.ValidationUtils.validateModelPath
 import static java.nio.file.Files.createTempFile;
 
 /**
- * Loads the scoring model.
+ * Loads and/or fits LightGBM models.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
@@ -104,17 +104,15 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     static final String ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING =
             "Random Forest Boosting type requires bagging. Please see bagging parameters.";
 
-
     /**
      * Constructor.
-     * Its only job is to load the libraries so that the rest of the classes work.
+     * Must load the libraries so that the rest of the classes work.
      * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
      */
     public LightGBMModelCreator() {
         // Initialize libs. Before this call, no lightgbmlib* methods can be called:
         LightGBMUtils.loadLibs();
     }
-
 
     @Override
     public LightGBMBinaryClassificationModel fit(final Dataset dataset,
@@ -131,7 +129,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         try {
-            LightGBMBinaryClassificationModelTrainer.fit(dataset, params, tmpModelFilePath);
+            LightGBMBinaryClassificationModelTrainer.fit(
+                    dataset, params, tmpModelFilePath);
             return loadModel(tmpModelFilePath, dataset.getSchema());
         } catch (final Exception e) {
             logger.error("Could not train the model.");
@@ -144,6 +143,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             }
         }
     }
+
+
 
     @Override
     public List<ParamValidationError> validateForFit(final Path pathToPersist,

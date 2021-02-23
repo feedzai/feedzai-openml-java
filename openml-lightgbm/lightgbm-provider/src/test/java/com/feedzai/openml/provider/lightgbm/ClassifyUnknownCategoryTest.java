@@ -26,6 +26,7 @@ import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;

@@ -29,7 +29,7 @@ import static java.util.stream.Collectors.toList;
 /**
  * Class with utils for schema manipulation.
  * <p>
- * Adheres to OpenML Dataset & DataSchema API.
+ * Adheres to OpenML Dataset and DataSchema API.
  * <p>
  * Parameter conventions of such API's are mantained,
  * e.g., targetFieldIndex=-1 => no target field.
