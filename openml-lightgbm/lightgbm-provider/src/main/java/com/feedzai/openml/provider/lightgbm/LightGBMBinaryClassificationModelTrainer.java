@@ -463,7 +463,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         );
         if (swigTrainData.swigLabelsChunkedArray.get_add_count() == 0) {
             logger.error("Received empty train dataset!");
-            throw new RuntimeException("Received empty train dataset for LightGBM!");
+            throw new IllegalArgumentException("Received empty train dataset for LightGBM!");
         }
     }
 
