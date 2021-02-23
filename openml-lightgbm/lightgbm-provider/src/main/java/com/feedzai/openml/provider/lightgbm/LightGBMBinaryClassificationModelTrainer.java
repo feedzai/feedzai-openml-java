@@ -55,11 +55,6 @@ final class LightGBMBinaryClassificationModelTrainer {
     private static final Logger logger = LoggerFactory.getLogger(LightGBMBinaryClassificationModelTrainer.class);
 
     /**
-     * This class is not meant to be instantiated.
-     */
-    private LightGBMBinaryClassificationModelTrainer() {}
-
-    /**
      * Default number of instances per C++ train data chunk.
      * Train data is copied from the input stream into an array of chunks.
      * Each chunk will have this many instances. Must be set before `fit()`.
@@ -71,6 +66,11 @@ final class LightGBMBinaryClassificationModelTrainer {
      *              E.g.: 100k instances of 400 features =>  320MB / chunk
      */
     static final long DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 200000;
+
+    /**
+     * This class is not meant to be instantiated.
+     */
+    private LightGBMBinaryClassificationModelTrainer() {}
 
     /**
      * See LightGBMBinaryClassificationModelTrainer#fit overload below.
