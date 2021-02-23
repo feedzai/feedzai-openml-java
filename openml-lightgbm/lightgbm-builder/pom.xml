@@ -29,7 +29,7 @@
         <!--<lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url>-->
         <lightgbm.repo.url>https://github.com/feedzai/LightGBM.git</lightgbm.repo.url>
         <lightgbmlib.version>3.0.1-with_model_locale_fix_for_java_and_streaming</lightgbmlib.version>
-        <lightgbm.version>ft-af-ftl-streaming-support</lightgbm.version>
+        <lightgbm.version>v3.0.1-with_model_locale_fix_for_java_and_streaming</lightgbm.version>
     </properties>
 
     <build>
