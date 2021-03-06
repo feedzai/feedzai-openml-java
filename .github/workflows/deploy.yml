@@ -1,7 +1,9 @@
 name: Push openml-java packages to maven central repository
 
 on:
-  push: [ tags ]
+  push:
+    tags:
+      - '*.*.*'
 
 jobs:
 
