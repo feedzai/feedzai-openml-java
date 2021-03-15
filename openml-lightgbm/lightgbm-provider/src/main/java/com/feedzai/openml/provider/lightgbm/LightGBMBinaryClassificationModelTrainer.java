@@ -282,11 +282,11 @@ final class LightGBMBinaryClassificationModelTrainer {
         lightgbmlib.intArray_setitem(
                 swigChunkSizesArray,
                 numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures
+                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numFeatures
         );
         logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}",
                 numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_current_chunk_added_count() / numFeatures);
+                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numFeatures);
 
         return swigChunkSizesArray;
     }
