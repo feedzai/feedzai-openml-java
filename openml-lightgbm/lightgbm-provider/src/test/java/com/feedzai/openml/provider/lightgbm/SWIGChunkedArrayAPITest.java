@@ -45,8 +45,7 @@ public class SWIGChunkedArrayAPITest {
     @BeforeClass
     static public void setupFixture() {
         /* Needed as we'll directly call the low-level ChunkedArray class,
-         * without using the provider which usually handles this step for us.
-         * To avoid depending on test execution order we load the libraries explicitly:         
+         * without using the provider which usually loads the libraries for us.
          */
         LightGBMUtils.loadLibs();
     }
