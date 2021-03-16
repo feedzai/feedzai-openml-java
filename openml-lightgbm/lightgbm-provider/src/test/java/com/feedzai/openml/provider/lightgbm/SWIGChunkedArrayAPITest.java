@@ -24,6 +24,7 @@ import com.microsoft.ml.lightgbm.doubleChunkedArray;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import org.assertj.core.data.Offset;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,6 +37,18 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since @@@next.release@@@
  */
 public class SWIGChunkedArrayAPITest {
+
+    /**
+     * Must load the libraries so that the rest of the classes work.
+     * Without the libraries instantiated, not even LightGBM exceptions can be thrown.
+     */
+    @BeforeClass
+    static public void setupFixture() {
+        /* Needed as we'll directly call the low-level ChunkedArray class,
+         * without using the provider which usually loads the libraries for us.
+         */
+        LightGBMUtils.loadLibs();
+    }
 
     /**
      * Test that using a ChunkedArray&ltdouble&gt works.
