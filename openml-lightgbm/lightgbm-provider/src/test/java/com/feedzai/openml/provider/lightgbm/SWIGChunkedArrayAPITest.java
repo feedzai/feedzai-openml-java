@@ -17,7 +17,6 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
@@ -27,8 +26,6 @@ import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import org.assertj.core.data.Offset;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.net.URISyntaxException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
