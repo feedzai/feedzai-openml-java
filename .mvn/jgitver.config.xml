@@ -21,7 +21,7 @@
     <mavenLike>true</mavenLike>
     <branchPolicies>
         <branchPolicy>
-            <pattern>(hf-.*)</pattern> <!-- regex pattern for hotfix branches -->
+            <pattern>(hf-.*|master)</pattern> <!-- regex pattern for hotfix and master branches -->
             <transformations>
                 <transformation>IGNORE</transformation>
             </transformations>

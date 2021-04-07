@@ -3,8 +3,10 @@ name: Push openml-java packages to maven central repository
 on:
   push:
     tags:
-      - '*.*.*'
-
+      - '*.*.*'   # release tags
+    branches:
+      - 'master'
+      - 'hf-*'    # hotfix branches
 jobs:
 
   publish:
