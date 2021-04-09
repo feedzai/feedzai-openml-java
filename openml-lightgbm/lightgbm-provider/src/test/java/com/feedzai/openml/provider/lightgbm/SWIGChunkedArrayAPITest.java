@@ -34,7 +34,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * it operates smoothly according to the API.
  *
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since @@@next.release@@@
+ * @since 1.2.0
  */
 public class SWIGChunkedArrayAPITest {
 
