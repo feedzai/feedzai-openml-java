@@ -22,6 +22,7 @@ import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import hex.schemas.GBMV3.GBMParametersV3;
 
+import hex.tree.gbm.GBM;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParametersV3> {
+public final class H2OGbmUtils extends AbstractSupervisedH2OAlgoUtils<GBMParametersV3, GBM> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O GBM model.
@@ -56,13 +57,13 @@ public final class H2OGbmUtils extends AbstractSupervisedH2OParamUtils<GBMParame
         return h2oParams;
     }
 
-    /**
-     * Returns an empty representation of the algorithm specific parameters.
-     *
-     * @return An empty representation of the algorithm specific parameters.
-     */
     @Override
     protected GBMParametersV3 getEmptyParams() {
         return new GBMParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public GBM getModel(final GBMParametersV3 gbmParametersV3) {
+        return new GBM(gbmParametersV3.createAndFillImpl());
     }
 }

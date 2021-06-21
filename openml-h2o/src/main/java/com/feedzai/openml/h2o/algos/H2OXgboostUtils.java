@@ -17,13 +17,18 @@
 
 package com.feedzai.openml.h2o.algos;
 
+import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+
+import hex.schemas.XGBoostV3;
 import hex.schemas.XGBoostV3.XGBoostParametersV3;
 
+import hex.tree.xgboost.XGBoost;
 import java.util.Map;
 import java.util.Set;
+import water.fvec.Frame;
 
 /**
  * Utility class to hold relevant information to train H2O XGBoost models.
@@ -31,7 +36,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OXgboostUtils extends AbstractSupervisedH2OParamUtils<XGBoostParametersV3> {
+public class H2OXgboostUtils extends AbstractSupervisedH2OAlgoUtils<XGBoostParametersV3, XGBoost> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O XGBoost model.
@@ -61,4 +66,10 @@ public final class H2OXgboostUtils extends AbstractSupervisedH2OParamUtils<XGBoo
     protected XGBoostParametersV3 getEmptyParams() {
         return new XGBoostParametersV3().fillFromImpl();
     }
+
+    @Override
+    public XGBoost getModel(final XGBoostParametersV3 xgBoostParametersV3) {
+        return new XGBoost(xgBoostParametersV3.createAndFillImpl());
+    }
+
 }

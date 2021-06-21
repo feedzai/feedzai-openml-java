@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Feedzai
+ * Copyright 2018 Feedzai
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,38 +18,34 @@
 package com.feedzai.openml.h2o.algos;
 
 import com.feedzai.openml.data.schema.DatasetSchema;
+
+import hex.ModelBuilder;
 import water.api.schemas3.FrameV3;
 import water.api.schemas3.KeyV3;
 import water.api.schemas3.ModelParametersSchemaV3;
 import water.fvec.Frame;
 
 /**
- * Abstract class to parse H2O unsupervised algorithm params.
+ * Abstract class to parse H2O supervised algorithm params.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
  * @since 1.0.0
  * @author Joao Sousa (joao.sousa@feedzai.com)
  */
-public abstract class AbstractUnsupervisedH2OParamUtils<T extends ModelParametersSchemaV3> extends AbstractH2OParamUtils<T> {
+public abstract class AbstractSupervisedH2OAlgoUtils<T extends ModelParametersSchemaV3, M extends ModelBuilder> extends AbstractH2OAlgoUtils<T, M> {
 
-    /**
-     * Auxiliary method to setup the common training params to all algorithms/models.
-     *
-     * @param trainingFrame The dataset to be used.
-     * @param datasetSchema The schema correspondent to the training frame used.
-     * @return A modified version of the provided params object.
-     */
     @Override
-    protected T commonParams(final Frame trainingFrame, final DatasetSchema datasetSchema) {
+    protected T commonParams(final Frame trainingFrame, final DatasetSchema schema) {
         final T baseParams = getEmptyParams();
         baseParams.training_frame = new KeyV3.FrameKeyV3(trainingFrame._key);
         baseParams.ignore_const_cols = false;
 
-        datasetSchema.getTargetIndex().ifPresent(targetIndex -> {
-            final FrameV3.ColSpecifierV3 targetVar = new FrameV3.ColSpecifierV3();
-            targetVar.column_name = trainingFrame.name(targetIndex);
-            baseParams.response_column = targetVar;
-        });
+        final int targetIndex = schema.getTargetIndex()
+                .orElseThrow(() -> new IllegalArgumentException("Supervised algorithms require a target field."));
+
+        final FrameV3.ColSpecifierV3 targetVar = new FrameV3.ColSpecifierV3();
+        targetVar.column_name = trainingFrame.name(targetIndex);
+        baseParams.response_column = targetVar;
 
         return baseParams;
     }

@@ -22,6 +22,7 @@ import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import hex.schemas.DRFV3.DRFParametersV3;
 
+import hex.tree.drf.DRF;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +32,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2ODrfUtils extends AbstractSupervisedH2OParamUtils<DRFParametersV3> {
+public final class H2ODrfUtils extends AbstractSupervisedH2OAlgoUtils<DRFParametersV3, DRF> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O Distributed Random Forest model.
@@ -57,5 +58,10 @@ public final class H2ODrfUtils extends AbstractSupervisedH2OParamUtils<DRFParame
     @Override
     protected DRFParametersV3 getEmptyParams() {
         return new DRFParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public DRF getModel(final DRFParametersV3 drfParametersV3) {
+        return new DRF(drfParametersV3.createAndFillImpl());
     }
 }
