@@ -97,6 +97,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
 
     /**
      * Abstract method that creates and returns the Model that this class refers to.
+     *
      * @param h2oParams concrete implementation of {@link ModelParametersSchemaV3 algorithm params}.
      * @return concrete implementation of {@link ModelBuilder H20 Model Builder} created from the h2oParams.
      *
@@ -106,6 +107,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
 
     /**
      * Validates the h20 model parameters by building a model and validating it.
+     *
      * @param paramsToValidate H20 parameters to validate.
      * @param randomSeed       The source of randomness.
      *
@@ -120,6 +122,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
 
     /**
      * Trains the H20 model.
+     *
      * @param trainingFrame The dataset to be used.
      * @param params        The raw training params.
      * @param randomSeed    The source of randomness.
@@ -138,12 +141,14 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
     }
 
     /**
-     * Method that returns creates the model in a training scenario.
+     * Gets the ModelBuilder for a training scenario.
+     *
      * @param trainingFrame The dataset to be used.
      * @param params        The raw training params.
      * @param randomSeed    The source of randomness.
      * @param schema        The dataset schema.
-     * @return
+     * @return concrete {@link ModelBuilder H20 Model Builder} implementation
+     *
      * @since @@@feedzai.next.release@@@
      */
     private M getModel(final Frame trainingFrame,
@@ -155,14 +160,16 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
     }
 
     /**
+     * Method that validates a {@link ModelBuilder H20 Model Builder}
      *
-     * @param model
+     * @param model the ModelBuilder to validate
+     * @throws IllegalArgumentException if the model is invalid
      *
      * @since @@@feedzai.next.release@@@
      */
     private void validateModel(final M model) {
         if (model.error_count() > 0) {
-            //TODO: create a custom exception to throw ?
+            //FIXME: create a custom exception to throw ?
             throw new IllegalArgumentException("Model has errors: " + model.validationErrors());
         }
     }
