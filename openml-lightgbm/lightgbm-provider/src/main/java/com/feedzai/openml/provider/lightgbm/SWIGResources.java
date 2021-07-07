@@ -49,9 +49,16 @@ class SWIGResources implements AutoCloseable {
     public Long swigBoosterHandle;
 
     /**
-     * SWIG pointer to FastConfigHandle
+     * SWIG pointer to FastConfigHandle.
      */
     public Long swigFastConfigHandle;
+
+    /**
+     * SWIG pointer to FastConfigContributionsHandle.
+     *
+     * @since 1.2.2
+     */
+    public Long swigFastConfigContributionsHandle;
 
     /**
      * Useless variable in the C API, for we already have to preallocate swigOutScoresPtr,
@@ -68,6 +75,13 @@ class SWIGResources implements AutoCloseable {
      * SWIG Pointer to the scored array output (pre-allocated by us).
      */
     public Long swigOutScoresPtr;
+
+    /**
+     * SWIG Pointer to the features contributions array output (pre-allocated by us).
+     *
+     * @since 1.2.2
+     */
+    public Long swigOutContributionsPtr;
 
     /**
      * A handler to collect a pointer to int output.
@@ -116,6 +130,7 @@ class SWIGResources implements AutoCloseable {
         initModelResourcesFromFile(modelPath);
         initAuxiliaryModelResources();
         initBoosterFastPredictHandle(lightGBMParameters);
+        initBoosterFastContributionsHandle(lightGBMParameters);
     }
 
     /**
@@ -199,6 +214,41 @@ class SWIGResources implements AutoCloseable {
     }
 
     /**
+     * Initializes the FastConfigContributions object from a Booster.
+     * This FastConfig is responsible for caching Booster+Contributions settings for repeated prediction calls.
+     * It is used in the *Fast() predict methods instead of the Booster and prediction settings.
+     *
+     * @param LightGBMParameters String with custom LightGBM parameters.
+     * @since 1.2.2
+     * @throws ModelLoadingException in case there is a C++ back-end error creating the FastConfigContributions object.
+     */
+    private void initBoosterFastContributionsHandle(final String LightGBMParameters) throws ModelLoadingException {
+
+        final long swigOutFastConfigHandlePtr = lightgbmlibJNI.voidpp_handle();
+
+        try {
+            final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFastInit(
+                    swigBoosterHandle,
+                    lightgbmlibConstants.C_API_PREDICT_CONTRIB,
+                    0, // startIteration = 0 to use all iterations.
+                    -1, // numIterations = all.
+                    lightgbmlibConstants.C_API_DTYPE_FLOAT64,
+                    getBoosterNumFeatures(),
+                    LightGBMParameters,
+                    swigOutFastConfigHandlePtr
+            );
+
+            if (returnCodeLGBM == -1) {
+                releaseResourcesAndThrowModelLoadingException("Error initializing prediction FastConfig settings: ");
+            }
+
+            this.swigFastConfigContributionsHandle = lightgbmlibJNI.voidpp_value(swigOutFastConfigHandlePtr);
+        } finally {
+            lightgbmlibJNI.delete_voidpp(swigOutFastConfigHandlePtr);
+        }
+    }
+
+    /**
      * Assumes the model was already loaded from file.
      * Initializes the remaining SWIG resources needed to use the model.
      *
@@ -214,6 +264,7 @@ class SWIGResources implements AutoCloseable {
         this.swigOutLengthInt64Ptr = lightgbmlibJNI.new_int64_tp();
         this.swigInstancePtr = lightgbmlibJNI.new_doubleArray(getBoosterNumFeatures());
         this.swigOutScoresPtr = lightgbmlibJNI.new_doubleArray(BINARY_LGBM_NUM_CLASSES);
+        this.swigOutContributionsPtr = lightgbmlibJNI.new_doubleArray(this.boosterNumFeatures);
     }
 
     /**
@@ -251,11 +302,23 @@ class SWIGResources implements AutoCloseable {
             lightgbmlibJNI.delete_intp(this.swigOutIntPtr);
             this.swigOutIntPtr = null;
         }
+        if (this.swigOutContributionsPtr != null) {
+            lightgbmlibJNI.delete_doubleArray(this.swigOutContributionsPtr);
+            this.swigOutContributionsPtr = null;
+        }
 
         // Delete FastConfig configuration resource:
         if (this.swigFastConfigHandle != null) {
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_FastConfigFree(this.swigFastConfigHandle);
             this.swigFastConfigHandle = null;
+
+            if (returnCodeLGBM == -1) {
+                throw new LightGBMException();
+            }
+        }
+        if (this.swigFastConfigContributionsHandle != null) {
+            final int returnCodeLGBM = lightgbmlibJNI.LGBM_FastConfigFree(this.swigFastConfigContributionsHandle);
+            this.swigFastConfigContributionsHandle = null;
 
             if (returnCodeLGBM == -1) {
                 throw new LightGBMException();
