@@ -144,7 +144,43 @@ class LightGBMSWIG {
         }
     }
 
+    /**
+     * Returns the features contributions for the current instance.
+     *
+     * @since @@@feedzai.next.release@@@
+     *
+     * @param instance The instance from pulse.
+     * @return double[] array with features contributions.
+     */
+    public double[] getFeaturesContributions(final Instance instance) {
 
+        // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
+        synchronized (this.swigResources) {
+            final double[] contributions = new double[this.schemaNumFields];
+
+            copyDataToSWIGInstance(instance);
+            final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFast(
+                    this.swigResources.swigFastConfigContributionsHandle,
+                    this.swigResources.swigInstancePtr,
+                    this.swigResources.swigOutLengthInt64Ptr,
+                    this.swigResources.swigOutContributionsPtr // preallocated memory
+            );
+
+            if (returnCodeLGBM == -1) {
+                throw new LightGBMException();
+            }
+
+            for (int index = 0; index < this.schemaNumFields; ++index) {
+                contributions[index] = lightgbmlibJNI.doubleArray_getitem(
+                        this.swigResources.swigOutContributionsPtr,
+                        index
+                );
+            }
+
+            logger.trace("Features Contributions: {}", contributions);
+            return contributions;
+        }
+    }
 
     /**
      * Gets number of features in the model.
