@@ -284,7 +284,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Assert that non-ASCII feature names can be used for train.
      */
     @Test
-    public void fitWithNonASCIIFeatureNameIsPossible () {
+    public void fitWithNonASCIIFeatureNameIsPossible() {
 
         final Dataset dataset = new MockDataset(
                 TestSchemas.SCHEMA_WITH_TWO_NON_ASCII_FEATURES, 10, new Random());
@@ -298,6 +298,171 @@ public class LightGBMBinaryClassificationModelTrainerTest {
 
         assertThat(model.getClassDistribution(dataset.instance(0))[1]).as("score")
                 .isBetween(0.0, 1.0);
+    }
+
+    /**
+     * Test Contributions.
+     *
+     * @since @@@feedzai.next.release@@@
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void testFeatureContributionsTargetEnd() throws URISyntaxException, IOException {
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(DATASET_RESOURCE_NAME),
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
+                10000
+        );
+        final int targetIndex = dataset.getSchema().getTargetIndex().get();
+        final int num1Index = 1;
+        final int cat1Index = 4;
+
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
+
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+                dataset,
+                new Random(),
+                trainParams
+        );
+
+        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
+        num1.add(new ArrayList<>());
+        num1.add(new ArrayList<>());
+
+        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
+        cat1.add(new ArrayList<>());
+        cat1.add(new ArrayList<>());
+
+        // fetch one negative classification
+        for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
+            final Instance instance = it_neg.next();
+            final int classIndex = (int) instance.getValue(targetIndex);
+            final double[] featureContributions = model.getFeatureContributions(instance);
+
+            num1.get(classIndex).add(featureContributions[num1Index]);
+            cat1.get(classIndex).add(featureContributions[cat1Index]);
+        }
+
+        assertThat(average(num1.get(0)))
+                .as("num1 contribution average should be lower in negative class")
+                .isLessThan(average(num1.get(1)));
+
+        assertThat(average(cat1.get(0)))
+                .as("cat contribution average should be lower in negative class")
+                .isLessThan(average(cat1.get(1)));
+    }
+
+    /**
+     * Test Contributions.
+     *
+     * @since @@@feedzai.next.release@@@
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void testFeatureContributionsTargetMiddle() throws URISyntaxException, IOException {
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(DATASET_RESOURCE_NAME),
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
+                10000
+        );
+        final int targetIndex = dataset.getSchema().getTargetIndex().get();
+        final int num1Index = 1;
+        final int cat1Index = 4;
+
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
+
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+                dataset,
+                new Random(),
+                trainParams
+        );
+
+        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
+        num1.add(new ArrayList<>());
+        num1.add(new ArrayList<>());
+
+        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
+        cat1.add(new ArrayList<>());
+        cat1.add(new ArrayList<>());
+
+        // fetch one negative classification
+        for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
+            final Instance instance = it_neg.next();
+            final int classIndex = (int) instance.getValue(targetIndex);
+            final double[] featureContributions = model.getFeatureContributions(instance);
+
+            num1.get(classIndex).add(featureContributions[num1Index]);
+            cat1.get(classIndex).add(featureContributions[cat1Index]);
+        }
+
+        assertThat(average(num1.get(0)))
+                .as("num1 contribution average should be lower in negative class")
+                .isLessThan(average(num1.get(1)));
+
+        assertThat(average(cat1.get(0)))
+                .as("cat contribution average should be lower in negative class")
+                .isLessThan(average(cat1.get(1)));
+    }
+
+    /**
+     * Test Contributions.
+     *
+     * @since @@@feedzai.next.release@@@
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void testFeatureContributionsTargetBeginning() throws URISyntaxException, IOException {
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(DATASET_RESOURCE_NAME),
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
+                10000
+        );
+        final int targetIndex = dataset.getSchema().getTargetIndex().get();
+        final int num1Index = 1;
+        final int cat1Index = 4;
+
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
+
+        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
+                dataset,
+                new Random(),
+                trainParams
+        );
+
+        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
+        num1.add(new ArrayList<>());
+        num1.add(new ArrayList<>());
+
+        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
+        cat1.add(new ArrayList<>());
+        cat1.add(new ArrayList<>());
+
+        // fetch one negative classification
+        for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
+            final Instance instance = it_neg.next();
+            final int classIndex = (int) instance.getValue(targetIndex);
+            final double[] featureContributions = model.getFeatureContributions(instance);
+
+            num1.get(classIndex).add(featureContributions[num1Index]);
+            cat1.get(classIndex).add(featureContributions[cat1Index]);
+        }
+
+        assertThat(average(num1.get(0)))
+                .as("num1 contribution average should be lower in negative class")
+                .isLessThan(average(num1.get(1)));
+
+        assertThat(average(cat1.get(0)))
+                .as("cat contribution average should be lower in negative class")
+                .isLessThan(average(cat1.get(1)));
     }
 
     /**
