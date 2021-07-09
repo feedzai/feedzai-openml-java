@@ -25,10 +25,12 @@ import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.MachineLearningAlgorithmType;
+import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 
 import hex.Model;
 import hex.tree.isofor.IsolationForestModel;
+import java.util.List;
 import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -202,17 +204,19 @@ public class H2OApp<M extends Model> {
      * @param algorithmDescriptor The algorithm to train.
      * @param schema              The schema for the model to be trained.
      * @param params              The algorithm params.
+     * @return list of {@link ParamValidationError} validation errors
      *
      * @since @@@feedzai.next.release@@@
      */
-    public void validate(final MLAlgorithmDescriptor algorithmDescriptor,
-                                  final DatasetSchema schema,
-                                  final Map<String, String> params) {
+    public List<ParamValidationError> validate(final MLAlgorithmDescriptor algorithmDescriptor,
+                                               final DatasetSchema schema,
+                                               final Map<String, String> params) {
 
         AbstractH2OAlgoUtils h2OAlgoUtils = H2OAlgoUtilsFactory.getH2OAlgoUtils(algorithmDescriptor, schema);
 
         final long randomSeed = new Random().nextLong();
-        h2OAlgoUtils.validateParams(params, randomSeed);
+        return h2OAlgoUtils.validateParams(params, randomSeed);
+
     }
 
     /**

@@ -18,7 +18,13 @@
 package com.feedzai.openml.h2o.algos;
 
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
+
 import hex.ModelBuilder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import water.Job;
 import water.api.schemas3.ModelParametersSchemaV3;
@@ -27,12 +33,14 @@ import water.fvec.Frame;
 import java.util.Map;
 import java.util.Optional;
 
+import static java.util.Collections.emptyList;
+
 /**
  * Abstract class to parse H2O algorithm params, validate them and train the model.
  *
  * @param <T> The concrete type of {@link ModelParametersSchemaV3 algorithm params}.
  * @param <M> The concrete type of {@link ModelBuilder H20 Model Builder}.
- * @since 0.1.0 //todo: validate if this should stay or be changed since this class went under serious changes (including name and generic param)
+ * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  * @author Antonio Silva (antonio.silva@feedzai.com)
  */
@@ -79,9 +87,9 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      * @return The modified version of the given {@code h2oParams}.
      */
     protected final T parseParams(final Frame trainingFrame,
-                               final Map<String, String> params,
-                               final long randomSeed,
-                               final DatasetSchema datasetSchema) {
+                                  final Map<String, String> params,
+                                  final long randomSeed,
+                                  final DatasetSchema datasetSchema) {
         final T baseParams = commonParams(trainingFrame, datasetSchema);
         return parseSpecificParams(baseParams, params, randomSeed);
     }
@@ -101,7 +109,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      * @param h2oParams concrete implementation of {@link ModelParametersSchemaV3 algorithm params}.
      * @return concrete implementation of {@link ModelBuilder H20 Model Builder} created from the h2oParams.
      *
-     * @since @@@feedzai.next.release@@@
+     * @since 1.2.1
      */
     public abstract M getModel(T h2oParams);
 
@@ -110,14 +118,15 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      *
      * @param paramsToValidate H20 parameters to validate.
      * @param randomSeed       The source of randomness.
+     * @return list of {@link ParamValidationError} validation errors
      *
-     * @since @@@feedzai.next.release@@@
+     * @since 1.2.1
      */
-    public void validateParams(Map<String, String> paramsToValidate, final long randomSeed){
+    public List<ParamValidationError> validateParams(Map<String, String> paramsToValidate, final long randomSeed){
         final T baseParams = getEmptyParams();
         final T updatedParams = parseSpecificParams(baseParams, paramsToValidate, randomSeed);
         M modelBuilder = getModel(updatedParams);
-        validateModel(modelBuilder);
+        return validateModel(modelBuilder);
     }
 
     /**
@@ -129,7 +138,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      * @param schema        The dataset schema.
      * @return Job resulting from he model training.
      *
-     * @since @@@feedzai.next.release@@@
+     * @since 1.2.1
      */
     public Job train(final Frame trainingFrame,
                      final Map<String, String> params,
@@ -149,7 +158,7 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      * @param schema        The dataset schema.
      * @return concrete {@link ModelBuilder H20 Model Builder} implementation
      *
-     * @since @@@feedzai.next.release@@@
+     * @since 1.2.1
      */
     private M getModel(final Frame trainingFrame,
                        final Map<String, String> params,
@@ -163,14 +172,15 @@ public abstract class AbstractH2OAlgoUtils<T extends ModelParametersSchemaV3, M 
      * Method that validates a {@link ModelBuilder H20 Model Builder}
      *
      * @param model the ModelBuilder to validate
+     * @return list of {@link ParamValidationError} validation errors or an empty list if there are no errors
      * @throws IllegalArgumentException if the model is invalid
      *
-     * @since @@@feedzai.next.release@@@
+     * @since 1.2.1
      */
-    private void validateModel(final M model) {
+    private List<ParamValidationError> validateModel(final M model) {
         if (model.error_count() > 0) {
-            //FIXME: create a custom exception to throw ?
-            throw new IllegalArgumentException("Model has errors: " + model.validationErrors());
+            return Collections.singletonList(new ParamValidationError("Model has errors: " + model.validationErrors()));
         }
+        return Collections.emptyList();
     }
 }
