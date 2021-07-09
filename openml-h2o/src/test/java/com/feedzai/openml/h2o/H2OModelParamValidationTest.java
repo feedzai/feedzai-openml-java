@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * H2O Model Parameter validation test
  *
  * @author Antonio Silva (antonio.silva@feedzai.com)
+ *
  * @since 1.2.1
  */
 @RunWith(Parameterized.class)
@@ -104,7 +105,6 @@ public class H2OModelParamValidationTest {
      * @param algorithm  The H2O algorithm
      * @return           List of param validation errors
      *
-     * @since 1.2.1
      */
     private List<ParamValidationError> validateParamsForAlgorithm(final Map<String, String> params,
                                                                  final MLAlgorithmEnum algorithm) {
