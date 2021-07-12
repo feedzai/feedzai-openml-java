@@ -35,20 +35,42 @@ import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * H2O Model Parameter validation test
+ * H2O Model Parameter validation test. Validates if H2O model parameters are being properly validated.
  *
  * @author Antonio Silva (antonio.silva@feedzai.com)
- *
  * @since 1.2.1
  */
 @RunWith(Parameterized.class)
 public class H2OModelParamValidationTest {
 
+    /**
+     * The algorithm we want to check the params of.
+     */
     private final H2OAlgorithm h2OAlgorithm;
+
+    /**
+     * The default set of params for this algorithm.
+     */
     private final Map<String, String> defaultAlgoParams;
+
+    /**
+     * The name of the param we are going to change to check the validation.
+     */
     private final String badParamName;
+
+    /**
+     * The value to put in the param we are manipulating.
+     */
     private final String badParamValue;
 
+    /**
+     * Test class constructor used to inject parametrized values into the fields.
+     *
+     * @param h2OAlgorithm      The algorithm we want to check the params of.
+     * @param defaultAlgoParams The default set of params for this algorithm.
+     * @param badParamName      The name of the param we are going to change to check the validation.
+     * @param badParamValue     The value to put in the param we are manipulating.
+     */
     public H2OModelParamValidationTest(final H2OAlgorithm h2OAlgorithm,
                                        final Map<String, String> defaultAlgoParams,
                                        final String badParamName,
@@ -59,10 +81,14 @@ public class H2OModelParamValidationTest {
         this.badParamValue = badParamValue;
     }
 
+    /**
+     * Method that sets the parametrized data to use in the tests.
+     *
+     * @return data in the form of { algorithm, default parameters, bad parameter name, bad parameter value }.
+     */
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
-                // { algorithm, default parameters, bad parameter name, bad parameter value }
                 { H2OAlgorithm.NAIVE_BAYES_CLASSIFIER, H2OAlgorithmTestParams.getBayes(), "laplace", "-0.25" },
                 { H2OAlgorithm.ISOLATION_FOREST, H2OAlgorithmTestParams.getIsolationForest(), "mtries", "-3" },
                 { H2OAlgorithm.XG_BOOST, H2OAlgorithmTestParams.getXgboost(), "learn_rate", "2" },
@@ -81,7 +107,9 @@ public class H2OModelParamValidationTest {
     public final void testValidationOKWhenAllParametersAreValid() {
         final List<ParamValidationError> validationErrors = validateParamsForAlgorithm(defaultAlgoParams, h2OAlgorithm);
 
-        assertThat(validationErrors).isEmpty();
+        assertThat(validationErrors)
+                .as("There should be no validation errors when the params are all ok")
+                .isEmpty();
     }
 
     /**
@@ -95,16 +123,18 @@ public class H2OModelParamValidationTest {
         final List<ParamValidationError> validationErrors = validateParamsForAlgorithm(params, h2OAlgorithm);
 
         assertThat(validationErrors)
+                .as("There should be validation because there is an invalid parameter")
                 .isNotEmpty()
                 .allMatch(error -> error.getMessage().contains("Model has errors: "));
     }
 
     /**
-     * Validates params for a given algorithm
-     * @param params     The parameters to validate
-     * @param algorithm  The H2O algorithm
-     * @return           List of param validation errors
+     * Validates params for a given algorithm.
      *
+     * @param params     The parameters to validate.
+     * @param algorithm  The H2O algorithm.
+     *
+     * @return List of param validation errors.
      */
     private List<ParamValidationError> validateParamsForAlgorithm(final Map<String, String> params,
                                                                  final MLAlgorithmEnum algorithm) {
