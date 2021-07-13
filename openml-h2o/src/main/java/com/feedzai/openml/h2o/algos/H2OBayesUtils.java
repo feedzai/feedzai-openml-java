@@ -20,6 +20,8 @@ package com.feedzai.openml.h2o.algos;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+
+import hex.naivebayes.NaiveBayes;
 import hex.schemas.NaiveBayesV3.NaiveBayesParametersV3;
 
 import java.util.Map;
@@ -31,7 +33,7 @@ import java.util.Set;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2OBayesUtils extends AbstractSupervisedH2OParamUtils<NaiveBayesParametersV3> {
+public final class H2OBayesUtils extends AbstractSupervisedH2OAlgoUtils<NaiveBayesParametersV3, NaiveBayes> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O Bayes model.
@@ -56,13 +58,13 @@ public final class H2OBayesUtils extends AbstractSupervisedH2OParamUtils<NaiveBa
         return h2oParams;
     }
 
-    /**
-     * Returns an empty representation of the algorithm specific parameters.
-     *
-     * @return An empty representation of the algorithm specific parameters.
-     */
     @Override
     protected NaiveBayesParametersV3 getEmptyParams() {
         return new NaiveBayesParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public NaiveBayes getModel(final NaiveBayesParametersV3 naiveBayesParametersV3) {
+        return new NaiveBayes(naiveBayesParametersV3.createAndFillImpl());
     }
 }

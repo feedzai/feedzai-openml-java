@@ -20,7 +20,6 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
-import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.h2o.server.H2OApp;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
@@ -252,6 +251,8 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
         errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, params));
+
+        errorBuilder.addAll(this.h2OApp.validate(this.algorithm, schema, params));
 
         if (schema.getTargetIndex().isPresent()) {
             ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);

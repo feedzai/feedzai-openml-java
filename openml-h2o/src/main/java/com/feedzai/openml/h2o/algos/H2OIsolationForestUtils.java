@@ -20,8 +20,10 @@ package com.feedzai.openml.h2o.algos;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+
 import hex.schemas.IsolationForestV3.IsolationForestParametersV3;
 
+import hex.tree.isofor.IsolationForest;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,7 +33,7 @@ import java.util.Set;
  * @author Joao Sousa (joao.sousa@feedzai.com)
  * @since 1.0.0
  */
-public class H2OIsolationForestUtils extends AbstractUnsupervisedH2OParamUtils<IsolationForestParametersV3> {
+public class H2OIsolationForestUtils extends AbstractUnsupervisedH2OAlgoUtils<IsolationForestParametersV3, IsolationForest> {
 
     /**
      * The set of parameters that are possible to define during the creation of an H2O Isolation forest model.
@@ -57,6 +59,11 @@ public class H2OIsolationForestUtils extends AbstractUnsupervisedH2OParamUtils<I
     @Override
     protected IsolationForestParametersV3 getEmptyParams() {
         return new IsolationForestParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public IsolationForest getModel(final IsolationForestParametersV3 isolationForestParametersV3) {
+        return new IsolationForest(isolationForestParametersV3.createAndFillImpl());
     }
 
 }

@@ -23,6 +23,8 @@ import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+
+import hex.glm.GLM;
 import hex.glm.GLMModel;
 import hex.schemas.GLMV3.GLMParametersV3;
 import org.slf4j.Logger;
@@ -39,7 +41,7 @@ import java.util.stream.Collectors;
  * @since 0.1.0
  * @author Nuno Diegues (nuno.diegues@feedzai.com)
  */
-public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OParamUtils<GLMParametersV3> {
+public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OAlgoUtils<GLMParametersV3, GLM> {
 
     /**
      * Logger for this class.
@@ -111,5 +113,10 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OP
     @Override
     protected GLMParametersV3 getEmptyParams() {
         return new GLMParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public GLM getModel(final GLMParametersV3 glmParametersV3) {
+        return new GLM(glmParametersV3.createAndFillImpl());
     }
 }

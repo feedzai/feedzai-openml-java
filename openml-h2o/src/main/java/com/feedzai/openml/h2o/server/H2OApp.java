@@ -18,37 +18,20 @@
 package com.feedzai.openml.h2o.server;
 
 import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.h2o.H2OAlgorithm;
 import com.feedzai.openml.h2o.H2OConverter;
-import com.feedzai.openml.h2o.algos.H2OBayesUtils;
-import com.feedzai.openml.h2o.algos.H2ODeepLearningUtils;
-import com.feedzai.openml.h2o.algos.H2ODrfUtils;
-import com.feedzai.openml.h2o.algos.H2OGbmUtils;
-import com.feedzai.openml.h2o.algos.H2OGeneralizedLinearModelUtils;
-import com.feedzai.openml.h2o.algos.H2OIsolationForestUtils;
-import com.feedzai.openml.h2o.algos.H2OXgboostUtils;
+import com.feedzai.openml.h2o.algos.AbstractH2OAlgoUtils;
+import com.feedzai.openml.h2o.algos.H2OAlgoUtilsFactory;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.MachineLearningAlgorithmType;
+import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
-import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
+
 import hex.Model;
-import hex.deeplearning.DeepLearning;
-import hex.glm.GLM;
-import hex.naivebayes.NaiveBayes;
-import hex.schemas.DRFV3;
-import hex.schemas.DeepLearningV3;
-import hex.schemas.GBMV3;
-import hex.schemas.GLMV3;
-import hex.schemas.IsolationForestV3;
-import hex.schemas.NaiveBayesV3;
-import hex.schemas.XGBoostV3;
-import hex.tree.drf.DRF;
-import hex.tree.gbm.GBM;
-import hex.tree.isofor.IsolationForest;
 import hex.tree.isofor.IsolationForestModel;
-import hex.tree.xgboost.XGBoost;
+import java.util.List;
+import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,17 +174,6 @@ public class H2OApp<M extends Model> {
     }
 
     /**
-     * Resolves the H2O algorithm from the provided descriptor.
-     *
-     * @param algorithmDescriptor The algorithm descriptor from which the {@link H2OAlgorithm} is resolved.
-     * @return The resolve {@link H2OAlgorithm}.
-     */
-    private H2OAlgorithm getH2OAlgorithm(final MLAlgorithmDescriptor algorithmDescriptor) {
-        return MLAlgorithmEnum.getByName(H2OAlgorithm.values(), algorithmDescriptor.getAlgorithmName())
-                .orElseThrow(() -> new IllegalArgumentException("Unknown algorithm: " + algorithmDescriptor));
-    }
-
-    /**
      * Trains the specified algorithm in the H2O platform.
      *
      * @param algorithmDescriptor The algorithm to train.
@@ -218,66 +190,33 @@ public class H2OApp<M extends Model> {
                         final DatasetSchema schema,
                         final Map<String, String> params,
                         final long randomSeed) throws ModelTrainingException {
-        final Job<M> modelJob;
 
-        final H2OAlgorithm h2OAlgorithm = getH2OAlgorithm(algorithmDescriptor);
+        AbstractH2OAlgoUtils h2OAlgoUtils = H2OAlgoUtilsFactory.getH2OAlgoUtils(algorithmDescriptor, schema);
 
-        switch (h2OAlgorithm) {
-            case DISTRIBUTED_RANDOM_FOREST:
-                final DRFV3.DRFParametersV3 drfParams = new H2ODrfUtils().parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new DRF(drfParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case XG_BOOST:
-                final XGBoostV3.XGBoostParametersV3 xgboostParams = new H2OXgboostUtils().parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new XGBoost(xgboostParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case DEEP_LEARNING:
-                final DeepLearningV3.DeepLearningParametersV3 deepLearningParams = new H2ODeepLearningUtils().parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new DeepLearning(deepLearningParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case GRADIENT_BOOSTING_MACHINE:
-                final GBMV3.GBMParametersV3 gbmParams = new H2OGbmUtils().parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new GBM(gbmParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case NAIVE_BAYES_CLASSIFIER:
-                final NaiveBayesV3.NaiveBayesParametersV3 naiveBayesParams = new H2OBayesUtils().parseParams(trainingFrame, params, randomSeed, schema);
-                modelJob = train(() -> new NaiveBayes(naiveBayesParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case GENERALIZED_LINEAR_MODEL:
-                final GLMV3.GLMParametersV3 glmParams = new H2OGeneralizedLinearModelUtils(schema).parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new GLM(glmParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            case ISOLATION_FOREST:
-                final IsolationForestV3.IsolationForestParametersV3 isolationForestParams = new H2OIsolationForestUtils().parseParams(trainingFrame, params, randomSeed, schema);
-
-                modelJob = train(() -> new IsolationForest(isolationForestParams.createAndFillImpl()).trainModel())
-                        .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
-                break;
-
-            default:
-                final String errorMessage = String.format("Unsupported algorithm: %s", algorithmDescriptor.getAlgorithmName());
-                logger.error(errorMessage);
-                throw new IllegalArgumentException(errorMessage);
-        }
+        final Job<M> modelJob = train(() -> h2OAlgoUtils.train(trainingFrame, params, randomSeed, schema))
+                .orElseThrow(() -> createModelTrainingException(algorithmDescriptor));
 
         return waitForModelTrained(modelJob);
+    }
+
+    /**
+     * Validates the specified algorithm in the H2O platform.
+     * @param algorithmDescriptor The algorithm to train.
+     * @param schema              The schema for the model to be trained.
+     * @param params              The algorithm params.
+     * @return list of {@link ParamValidationError} validation errors
+     *
+     * @since @@@feedzai.next.release@@@
+     */
+    public List<ParamValidationError> validate(final MLAlgorithmDescriptor algorithmDescriptor,
+                                               final DatasetSchema schema,
+                                               final Map<String, String> params) {
+
+        AbstractH2OAlgoUtils h2OAlgoUtils = H2OAlgoUtilsFactory.getH2OAlgoUtils(algorithmDescriptor, schema);
+
+        final long randomSeed = new Random().nextLong();
+        return h2OAlgoUtils.validateParams(params, randomSeed);
+
     }
 
     /**

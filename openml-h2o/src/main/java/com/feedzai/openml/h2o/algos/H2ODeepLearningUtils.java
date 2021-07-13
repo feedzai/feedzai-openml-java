@@ -20,6 +20,8 @@ package com.feedzai.openml.h2o.algos;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+
+import hex.deeplearning.DeepLearning;
 import hex.schemas.DeepLearningV3.DeepLearningParametersV3;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,7 +35,7 @@ import java.util.stream.Stream;
  * @since 0.1.0
  * @author Pedro Rijo (pedro.rijo@feedzai.com)
  */
-public final class H2ODeepLearningUtils extends AbstractSupervisedH2OParamUtils<DeepLearningParametersV3> {
+public final class H2ODeepLearningUtils extends AbstractSupervisedH2OAlgoUtils<DeepLearningParametersV3, DeepLearning> {
 
     /**
      * H2O naming for hidden param.
@@ -78,5 +80,10 @@ public final class H2ODeepLearningUtils extends AbstractSupervisedH2OParamUtils<
     @Override
     protected DeepLearningParametersV3 getEmptyParams() {
         return new DeepLearningParametersV3().fillFromImpl();
+    }
+
+    @Override
+    public DeepLearning getModel(final DeepLearningParametersV3 deepLearningParametersV3) {
+        return new DeepLearning(deepLearningParametersV3.createAndFillImpl());
     }
 }
