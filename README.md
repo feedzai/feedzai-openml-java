@@ -6,12 +6,25 @@
 Implementations of the Feedzai OpenML API to allow support for machine
 learning models in Java. 
 
-
 ## Building
 This is a Maven project which you can build using the following command:
 ```bash
 mvn clean install
 ```
+
+## Releasing
+
+For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head (example below for releasing version 1.2.29):
+
+```bash
+# Ensure the tag is made on the udpated branch
+git fetch -a
+git checkout origin/hf-1.2.X
+git tag -a 1.2.29
+# Your EDITOR will open. Write a good message and save as it is used on Github as a release message
+git push origin 1.2.29
+```
+Then you need to [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) with this tag and the description according [to the previous ones](https://github.com/feedzai/feedzai-openml-java/releases).
 
 ## Modules
 
