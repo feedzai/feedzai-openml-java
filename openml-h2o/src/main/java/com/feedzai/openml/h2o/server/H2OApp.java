@@ -205,8 +205,6 @@ public class H2OApp<M extends Model> {
      * @param schema              The schema for the model to be trained.
      * @param params              The algorithm params.
      * @return list of {@link ParamValidationError} validation errors
-     *
-     * @since @@@feedzai.next.release@@@
      */
     public List<ParamValidationError> validate(final MLAlgorithmDescriptor algorithmDescriptor,
                                                final DatasetSchema schema,
