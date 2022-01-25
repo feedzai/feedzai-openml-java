@@ -147,10 +147,9 @@ class LightGBMSWIG {
     /**
      * Returns the features contributions for the current instance.
      *
-     * @since @@@feedzai.next.release@@@
-     *
      * @param instance The instance from pulse.
      * @return double[] array with features contributions.
+     * @since 1.2.2
      */
     public double[] getFeaturesContributions(final Instance instance) {
 

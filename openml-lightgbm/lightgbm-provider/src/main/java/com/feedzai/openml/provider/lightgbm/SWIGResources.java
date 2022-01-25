@@ -56,7 +56,7 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG pointer to FastConfigContributionsHandle.
      *
-     * @since next.version
+     * @since 1.2.2
      */
     public Long swigFastConfigContributionsHandle;
 
@@ -79,7 +79,7 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG Pointer to the features contributions array output (pre-allocated by us).
      *
-     * @since next.version
+     * @since 1.2.2
      */
     public Long swigOutContributionsPtr;
 
@@ -218,10 +218,8 @@ class SWIGResources implements AutoCloseable {
      * This FastConfig is responsible for caching Booster+Contributions settings for repeated prediction calls.
      * It is used in the *Fast() predict methods instead of the Booster and prediction settings.
      *
-     * @since @@@feedzai.next.release@@@
-     *
      * @param LightGBMParameters String with custom LightGBM parameters.
-     *
+     * @since 1.2.2
      * @throws ModelLoadingException in case there is a C++ back-end error creating the FastConfigContributions object.
      */
     private void initBoosterFastContributionsHandle(final String LightGBMParameters) throws ModelLoadingException {

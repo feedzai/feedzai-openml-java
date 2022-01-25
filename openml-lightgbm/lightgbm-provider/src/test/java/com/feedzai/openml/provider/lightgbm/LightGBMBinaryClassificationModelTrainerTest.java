@@ -303,10 +303,9 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Test Contributions.
      *
-     * @since @@@feedzai.next.release@@@
-     *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
+     * @since 1.2.2
      */
     @Test
     public void testFeatureContributionsTargetEnd() throws URISyntaxException, IOException {
@@ -358,10 +357,9 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Test Contributions.
      *
-     * @since @@@feedzai.next.release@@@
-     *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
+     * @since 1.2.2
      */
     @Test
     public void testFeatureContributionsTargetMiddle() throws URISyntaxException, IOException {
@@ -413,10 +411,9 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Test Contributions.
      *
-     * @since @@@feedzai.next.release@@@
-     *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
+     * @since 1.2.2
      */
     @Test
     public void testFeatureContributionsTargetBeginning() throws URISyntaxException, IOException {
