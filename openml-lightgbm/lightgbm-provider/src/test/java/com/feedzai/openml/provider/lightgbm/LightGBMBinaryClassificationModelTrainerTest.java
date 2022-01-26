@@ -32,6 +32,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -54,7 +55,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Parameters for model train.
      */
-    private final static Map<String, String> modelParams = TestParameters.getDefaultParameters();
+    private final static Map<String, String> MODEL_PARAMS = TestParameters.getDefaultParameters();
 
     /**
      * Maximum number of instances to train (to speed up tests).
@@ -94,7 +95,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         LightGBMUtils.loadLibs();
 
         // Override number of iterations in fit tests for faster tests:
-        modelParams.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
+        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }
 
     /**
@@ -108,7 +109,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     @Test
     public void fitWithNumericalsOnly() throws URISyntaxException, IOException, ModelLoadingException {
 
-        final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 TestResources.SCORED_INSTANCES_NAME,
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -131,7 +132,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     @Test
     public void fitWithNumericalsAndCategoricals() throws URISyntaxException, IOException, ModelLoadingException {
 
-        final ArrayList<ArrayList<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -158,7 +159,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     public void fitCategoricalsWithLabelInStartMiddleOrEndHasSameResults()
             throws URISyntaxException, IOException, ModelLoadingException {
 
-        final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtStart = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresPerClassForLabelAtStart = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -166,7 +167,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
-        final ArrayList<ArrayList<Double>> scoresPerClassForLabelInMiddle = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresPerClassForLabelInMiddle = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -174,7 +175,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
         );
 
-        final ArrayList<ArrayList<Double>> scoresPerClassForLabelAtEnd = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresPerClassForLabelAtEnd = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -199,7 +200,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     public void fitResultsAreIndependentOfTrainChunkSizes()
             throws URISyntaxException, IOException, ModelLoadingException {
 
-        final ArrayList<ArrayList<Double>> scoresWithSmallChunks = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresWithSmallChunks = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -207,7 +208,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 15
         );
 
-        final ArrayList<ArrayList<Double>> scoresWithChunks = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresWithChunks = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -215,7 +216,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 250
         );
 
-        final ArrayList<ArrayList<Double>> scoresWithSingleChunk = fitModelAndGetFirstScoresPerClass(
+        final ArrayList<List<Double>> scoresWithSingleChunk = fitModelAndGetFirstScoresPerClass(
                 DATASET_RESOURCE_NAME,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 MAX_NUMBER_OF_INSTANCES_TO_TRAIN,
@@ -241,7 +242,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                     new LightGBMModelCreator().fit(
                             emptyDataset,
                             new Random(),
-                            modelParams
+                            MODEL_PARAMS
                     )
                 )
                 .isInstanceOf(RuntimeException.class);
@@ -264,7 +265,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         );
 
         final int numRequestedTrainIterations = 50;
-        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, String.valueOf(numRequestedTrainIterations));
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -288,7 +289,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
 
         final Dataset dataset = new MockDataset(
                 TestSchemas.SCHEMA_WITH_TWO_NON_ASCII_FEATURES, 10, new Random());
-        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
                 dataset,
@@ -318,7 +319,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final int num1Index = 1;
         final int cat1Index = 4;
 
-        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -327,13 +328,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 trainParams
         );
 
-        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
-        num1.add(new ArrayList<>());
-        num1.add(new ArrayList<>());
-
-        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
-        cat1.add(new ArrayList<>());
-        cat1.add(new ArrayList<>());
+        final ArrayList<List<Double>> num1 = getListOfTwoLists();
+        final ArrayList<List<Double>> cat1 = getListOfTwoLists();
 
         // fetch one negative classification
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
@@ -372,7 +368,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final int num1Index = 1;
         final int cat1Index = 4;
 
-        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -381,13 +377,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 trainParams
         );
 
-        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
-        num1.add(new ArrayList<>());
-        num1.add(new ArrayList<>());
-
-        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
-        cat1.add(new ArrayList<>());
-        cat1.add(new ArrayList<>());
+        final ArrayList<List<Double>> num1 = getListOfTwoLists();
+        final ArrayList<List<Double>> cat1 = getListOfTwoLists();
 
         // fetch one negative classification
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
@@ -426,7 +417,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final int num1Index = 1;
         final int cat1Index = 4;
 
-        final Map<String, String> trainParams = new HashMap<>(modelParams);
+        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -435,13 +426,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 trainParams
         );
 
-        final ArrayList<ArrayList<Double>> num1 = new ArrayList<>();
-        num1.add(new ArrayList<>());
-        num1.add(new ArrayList<>());
-
-        final ArrayList<ArrayList<Double>> cat1 = new ArrayList<>();
-        cat1.add(new ArrayList<>());
-        cat1.add(new ArrayList<>());
+        final ArrayList<List<Double>> num1 = getListOfTwoLists();
+        final ArrayList<List<Double>> cat1 = getListOfTwoLists();
 
         // fetch one negative classification
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
@@ -475,7 +461,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException           For errors when reading the dataset.
      * @throws ModelLoadingException For errors training the model.
      */
-    private static ArrayList<ArrayList<Double>> fitModelAndGetFirstScoresPerClass(
+    private static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
             final String datasetResourceName,
             final DatasetSchema schema,
             final int maxInstancesToTrain,
@@ -490,7 +476,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
 
         final LightGBMBinaryClassificationModel model = fit(
                 dataset,
-                modelParams,
+                MODEL_PARAMS,
                 chunkSizeInstances
         );
 
@@ -506,15 +492,13 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param maxInstances Maximum number of instances to score (to reduce testing time).
      * @return Array with arrays of class scores.
      */
-    private static ArrayList<ArrayList<Double>> getClassScores(final Dataset dataset,
-                                                               final LightGBMBinaryClassificationModel model,
-                                                               final int maxInstances) {
+    private static ArrayList<List<Double>> getClassScores(final Dataset dataset,
+                                                          final LightGBMBinaryClassificationModel model,
+                                                          final int maxInstances) {
 
         final int targetIndex = dataset.getSchema().getTargetIndex().get(); // We need a label for the tests.
 
-        final ArrayList<ArrayList<Double>> classScores = new ArrayList<>();
-        classScores.add(new ArrayList<>());
-        classScores.add(new ArrayList<>());
+        final ArrayList<List<Double>> classScores = getListOfTwoLists();
 
         final Iterator<Instance> iterator = dataset.getInstances();
         for (int numInstances = 0; iterator.hasNext() && numInstances < maxInstances; ++numInstances) {
@@ -534,7 +518,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param inputArray Input array from which to compute the average.
      * @return Average
      */
-    private double average(final ArrayList<Double> inputArray) {
+    private double average(final List<Double> inputArray) {
 
         double sum = 0.0;
         for (final Double x : inputArray) {
@@ -567,5 +551,18 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         } finally {
             Files.delete(tmpModelFilePath);
         }
+    }
+
+    /**
+     * Method to create a {@link ArrayList} with two {@link LinkedList}
+     *
+     * @return A {@link ArrayList} of two {@link LinkedList}.
+     * @since 1.2.2
+     */
+    private static ArrayList<List<Double>> getListOfTwoLists() {
+        final ArrayList<List<Double>> list = new ArrayList<>(2);
+        list.add(new LinkedList<>());
+        list.add(new LinkedList<>());
+        return list;
     }
 }
