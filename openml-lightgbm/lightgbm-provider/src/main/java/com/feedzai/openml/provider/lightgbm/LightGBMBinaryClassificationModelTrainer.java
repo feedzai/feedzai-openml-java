@@ -223,15 +223,14 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param numFeatures   Number of features used to predict.
      * @param trainParams   LightGBM string with the train params ("key1=value1 key2=value2 ...").
      */
-    private static void initializeLightGBMTrainDatasetFeatures(
-            final SWIGTrainData swigTrainData,
-            final int numFeatures,
-            final String trainParams) {
+    private static void initializeLightGBMTrainDatasetFeatures(final SWIGTrainData swigTrainData,
+                                                               final int numFeatures,
+                                                               final String trainParams) {
 
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
 
         /// First generate the array that has the chunk sizes for `LGBM_DatasetCreateFromMats`.
-        SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numFeatures);
+        final SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numFeatures);
 
         /// Now create the LightGBM Dataset itself from the chunks:
         logger.debug("Creating LGBM_Dataset from chunked data...");
@@ -263,9 +262,8 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param numFeatures   Number of features used to predict.
      * @return SWIG (int*) array of the train chunks' sizes.
      */
-    private static SWIGTYPE_p_int genSWIGFeatureChunkSizesArray(
-            final SWIGTrainData swigTrainData,
-            final int numFeatures) {
+    private static SWIGTYPE_p_int genSWIGFeatureChunkSizesArray(final SWIGTrainData swigTrainData,
+                                                                final int numFeatures) {
 
         logger.debug("Retrieving chunked data block sizes...");
 

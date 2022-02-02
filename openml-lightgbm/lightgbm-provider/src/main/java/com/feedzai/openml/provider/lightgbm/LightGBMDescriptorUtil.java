@@ -92,8 +92,8 @@ public class LightGBMDescriptorUtil {
      * @return Double range with the specs above.
      */
     private static NumericFieldType doubleRange(final double minValue,
-                                                      final double maxValue,
-                                                      final double defaultValue) {
+                                                final double maxValue,
+                                                final double defaultValue) {
         return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.DOUBLE, defaultValue);
     }
 
@@ -106,8 +106,8 @@ public class LightGBMDescriptorUtil {
      * @return Integer range with the specs above.
      */
     private static NumericFieldType intRange(final int minValue,
-                                                   final int maxValue,
-                                                   final int defaultValue) {
+                                             final int maxValue,
+                                             final int defaultValue) {
         return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.INT, defaultValue);
     }
 
