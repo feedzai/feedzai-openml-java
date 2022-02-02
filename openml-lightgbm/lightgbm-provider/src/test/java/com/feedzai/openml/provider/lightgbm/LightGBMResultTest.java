@@ -11,15 +11,14 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
-import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -32,9 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.String.format;
 import static java.nio.file.Files.createTempFile;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * FIXME
@@ -43,6 +40,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 1.2.2
  */
 public class LightGBMResultTest {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(LightGBMResultTest.class);
 
     /**
      * Parameters for model train.
@@ -63,12 +65,12 @@ public class LightGBMResultTest {
      */
     public static final DatasetSchema SCHEMA = getTestSchema();
 
-    public static final int MAX_INSTANCES_TO_TRAIN = 100;
+    public static final int MAX_INSTANCES_TO_TRAIN = 40000;
 
-    public static final int CHUNK_SIZE_INSTANCES = 10;
+    public static final int CHUNK_SIZE_INSTANCES = 4;
 
     private static DatasetSchema getTestSchema() {
-        final List<FieldSchema> schema = new ArrayList<>(8);
+        final List<FieldSchema> schema = new ArrayList<>(9);
         schema.add(new FieldSchema("card", 0, new NumericValueSchema(false)));
         schema.add(new FieldSchema("amount", 1, new NumericValueSchema(false)));
         schema.add(new FieldSchema("cat1_generator", 2, new NumericValueSchema(false)));
@@ -77,9 +79,10 @@ public class LightGBMResultTest {
         schema.add(new FieldSchema("num1_float", 5, new NumericValueSchema(false)));
         schema.add(new FieldSchema("num2_float", 6, new NumericValueSchema(false)));
         schema.add(new FieldSchema("num3_float", 7, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("fraud_label", 8, new NumericValueSchema(false)));
 
         return new DatasetSchema(
-                0,
+                8,
                 schema
         );
     }
@@ -90,7 +93,7 @@ public class LightGBMResultTest {
         params.put("learning_rate", "0.05");
         params.put("boosting_type", "gbdt");
         params.put("objective", "binary");
-        params.put("metric", "binary_logloss");
+        //params.put("metric", "binary_logloss");
         params.put("num_leaves", "10");
         params.put("verbose", "-1");
         params.put("min_data", "100");
@@ -98,8 +101,8 @@ public class LightGBMResultTest {
         params.put("seed", "42");
         params.put("num_iterations", "100");
 
-        params.put("early_stopping_rounds", "50");
-        params.put("num_boost_round", "1000");
+        //params.put("early_stopping_rounds", "50");
+        //params.put("num_boost_round", "1000");
         return params;
     }
 
@@ -111,7 +114,6 @@ public class LightGBMResultTest {
     public static void setupFixture() {
         LightGBMUtils.loadLibs();
     }
-
 
     /**
      * Asserts that a model trained with numericals only and evaluated on the same datasource
@@ -155,10 +157,12 @@ public class LightGBMResultTest {
             final double[] featureContributions = model.getFeatureContributions(instance);
 
             for (int i = 0; i < scoreDistribution.length; i++) {
-                System.out.println(format("class index [%d] with distribution [%d]", i, scoreDistribution[i]));
+                //System.out.println(format("class index [%d] with distribution [%d]", i, scoreDistribution[i]));
+                logger.info("class index {} with distribution {}.", i, scoreDistribution[i]);
             }
             for (int i = 0; i < featureContributions.length; i++) {
-                System.out.println(format("class index [%d] with contribution [%d]", i, featureContributions[i]));
+                //System.out.println(format("class index [%d] with contribution [%d]", i, featureContributions[i]));
+                logger.info("class index {} with contribution {}.", i, featureContributions[i]);
             }
         }
     }
