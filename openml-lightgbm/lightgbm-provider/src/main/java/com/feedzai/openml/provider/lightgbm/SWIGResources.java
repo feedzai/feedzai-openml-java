@@ -219,8 +219,8 @@ class SWIGResources implements AutoCloseable {
      * It is used in the *Fast() predict methods instead of the Booster and prediction settings.
      *
      * @param LightGBMParameters String with custom LightGBM parameters.
-     * @since 1.2.2
      * @throws ModelLoadingException in case there is a C++ back-end error creating the FastConfigContributions object.
+     * @since 1.2.2
      */
     private void initBoosterFastContributionsHandle(final String LightGBMParameters) throws ModelLoadingException {
 
