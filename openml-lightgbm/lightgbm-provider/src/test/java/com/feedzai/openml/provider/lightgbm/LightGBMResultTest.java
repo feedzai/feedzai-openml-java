@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.nio.file.Files.createTempFile;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 /**
  * FIXME
@@ -53,17 +54,37 @@ public class LightGBMResultTest {
 
 
     /**
-     * Schema:
-     * card -> int
-     * amount -> int
-     * cat1_generator  -> int
-     * cat2_generator -> int
-     * cat3_generator -> int
-     * num1_float -> float
-     * num2_float -> float
-     * num3_float -> float
+     * Result Schema:
+     * <ul>
+     *     <li>card -> number</li>
+     *     <li>amount -> number</li>
+     *     <li>cat1_generator -> number</li>
+     *     <li>cat2_generator -> number</li>
+     *     <li>cat3_generator -> number</li>
+     *     <li>num1_float -> number</li>
+     *     <li>num2_float -> number</li>
+     *     <li>num3_float -> number</li>
+     *     <li>fraud_label -> number</li>
+     * </ul>
      */
     public static final DatasetSchema SCHEMA = getTestSchema();
+
+    /**
+     * Result Schema:
+     * <ul>
+     *     <li>card -> number</li>
+     *     <li>amount -> number</li>
+     *     <li>cat1_generator -> number</li>
+     *     <li>cat2_generator -> number</li>
+     *     <li>cat3_generator -> number</li>
+     *     <li>num1_float -> number</li>
+     *     <li>num2_float -> number</li>
+     *     <li>num3_float -> number</li>
+     *     <li>bias -> number</li>
+     *     <li>predictions -> number</li>
+     * </ul>
+     */
+    public static final DatasetSchema RESULT_SCHEMA = getTestResultSchema();
 
     public static final int MAX_INSTANCES_TO_TRAIN = 40000;
 
@@ -71,14 +92,7 @@ public class LightGBMResultTest {
 
     private static DatasetSchema getTestSchema() {
         final List<FieldSchema> schema = new ArrayList<>(9);
-        schema.add(new FieldSchema("card", 0, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("amount", 1, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("cat1_generator", 2, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("cat2_generator", 3, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("cat3_generator", 4, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("num1_float", 5, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("num2_float", 6, new NumericValueSchema(false)));
-        schema.add(new FieldSchema("num3_float", 7, new NumericValueSchema(false)));
+        addFields(schema);
         schema.add(new FieldSchema("fraud_label", 8, new NumericValueSchema(false)));
 
         return new DatasetSchema(
@@ -87,13 +101,35 @@ public class LightGBMResultTest {
         );
     }
 
+    private static DatasetSchema getTestResultSchema() {
+        final List<FieldSchema> schema = new ArrayList<>(10);
+        addFields(schema);
+        schema.add(new FieldSchema("bias", 8, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("predictions", 9, new NumericValueSchema(false)));
+
+        return new DatasetSchema(
+                0, // not used
+                schema
+        );
+    }
+
+    private static void addFields(final List<FieldSchema> schema) {
+        schema.add(new FieldSchema("card", 0, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("amount", 1, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("cat1_generator", 2, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("cat2_generator", 3, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("cat3_generator", 4, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("num1_float", 5, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("num2_float", 6, new NumericValueSchema(false)));
+        schema.add(new FieldSchema("num3_float", 7, new NumericValueSchema(false)));
+    }
+
     private static Map<String, String> getTestParams() {
         final Map<String, String> params = new HashMap<>(12, 1);
         params.put("max_bin", "512");
         params.put("learning_rate", "0.05");
         params.put("boosting_type", "gbdt");
         params.put("objective", "binary");
-        //params.put("metric", "binary_logloss");
         params.put("num_leaves", "10");
         params.put("verbose", "-1");
         params.put("min_data", "100");
@@ -101,8 +137,6 @@ public class LightGBMResultTest {
         params.put("seed", "42");
         params.put("num_iterations", "100");
 
-        //params.put("early_stopping_rounds", "50");
-        //params.put("num_boost_round", "1000");
         return params;
     }
 
@@ -137,8 +171,6 @@ public class LightGBMResultTest {
                 CHUNK_SIZE_INSTANCES
         );
 
-        final int targetIndex = dataset.getSchema().getTargetIndex().get();
-
         final ArrayList<List<Double>> classScores = new ArrayList<>(2);
         classScores.add(new LinkedList<>());
         classScores.add(new LinkedList<>());
@@ -148,23 +180,41 @@ public class LightGBMResultTest {
 
         final Iterator<Instance> iterator = dataset.getInstances();
 
-        final int maxInstances = 100;   // FIXME
-        for (int numInstances = 0; iterator.hasNext() && numInstances < maxInstances; ++numInstances) {
+        final Dataset resultDataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath("treeshap_t/treeshap_result.csv"),
+                RESULT_SCHEMA,
+                MAX_INSTANCES_TO_TRAIN
+        );
+
+        final Iterator<Instance> resultIterator = resultDataset.getInstances();
+
+        while (iterator.hasNext() && resultIterator.hasNext()) {
             final Instance instance = iterator.next();
-            // final int classIndex = (int) instance.getValue(targetIndex);
-            // get scores and contributions
+            final Instance resultInstance = resultIterator.next();
+
             final double[] scoreDistribution = model.getClassDistribution(instance);
             final double[] featureContributions = model.getFeatureContributions(instance);
 
-            for (int i = 0; i < scoreDistribution.length; i++) {
-                //System.out.println(format("class index [%d] with distribution [%d]", i, scoreDistribution[i]));
-                logger.info("class index {} with distribution {}.", i, scoreDistribution[i]);
-            }
+            assertThat(scoreDistribution.length)
+                    .as("Class distribution should contain two values.")
+                    .isEqualTo(2);
+
+            final double prediction = resultInstance.getValue(9);
+            assertThat(isNearlyEquals(scoreDistribution[1], prediction))
+                    .as("The score should be expected.")
+                    .isTrue();
+
             for (int i = 0; i < featureContributions.length; i++) {
-                //System.out.println(format("class index [%d] with contribution [%d]", i, featureContributions[i]));
-                logger.info("class index {} with contribution {}.", i, featureContributions[i]);
+                assertThat(isNearlyEquals(featureContributions[i], resultInstance.getValue(i)))
+                        .as("The contribution should be expected.")
+                        .isTrue();
             }
         }
+    }
+
+    private boolean isNearlyEquals(final double d1, final double d2) {
+        final double epsilon = 0.0000000000000001d;
+        return Math.abs(d1 - d2) < epsilon;
     }
 
     /**
