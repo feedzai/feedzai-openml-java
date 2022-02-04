@@ -103,10 +103,10 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
     }
 
     /**
-     * Get features contributions double [ ].
+     * Gets the features contributions.
      *
-     * @param instance the instance
-     * @return the double [ ]
+     * @param instance The instance.
+     * @return the feature contributions.
      * @since 1.2.2
      */
     public double[] getFeatureContributions(final Instance instance) {

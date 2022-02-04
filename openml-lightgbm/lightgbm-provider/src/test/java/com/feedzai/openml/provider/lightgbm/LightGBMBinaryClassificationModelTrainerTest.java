@@ -361,7 +361,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     public void testFeatureContributionsTargetMiddle() throws URISyntaxException, IOException {
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(DATASET_RESOURCE_NAME),
-                TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
+                TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 10000
         );
         final int targetIndex = dataset.getSchema().getTargetIndex().get();
