@@ -156,7 +156,6 @@ class LightGBMSWIG {
 
         // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
         synchronized (this.swigResources) {
-            final double[] contributions = new double[this.schemaNumFields];
 
             copyDataToSWIGInstance(instance);
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFast(
@@ -170,6 +169,7 @@ class LightGBMSWIG {
                 throw new LightGBMException();
             }
 
+            final double[] contributions = new double[this.schemaNumFields];
             for (int index = 0; index < this.schemaNumFields; ++index) {
                 contributions[index] = lightgbmlibJNI.doubleArray_getitem(
                         this.swigResources.swigOutContributionsPtr,
