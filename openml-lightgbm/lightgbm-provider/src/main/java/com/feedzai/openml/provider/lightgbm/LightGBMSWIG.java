@@ -176,7 +176,10 @@ class LightGBMSWIG {
                 );
             }
 
-            logger.trace("Features Contributions: {}", contributions);
+            if (logger.isTraceEnabled()) {
+                logger.trace("Features Contributions: {}", Arrays.toString(contributions));
+            }
+
             return contributions;
         }
     }
