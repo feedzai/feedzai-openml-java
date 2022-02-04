@@ -302,7 +302,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     }
 
     /**
-     * Test Contributions.
+     * Test Feature Contributions with target at end.
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
@@ -315,43 +315,11 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 10000
         );
-        final int targetIndex = dataset.getSchema().getTargetIndex().get();
-        final int num1Index = 1;
-        final int cat1Index = 4;
-
-        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
-        trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
-
-        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
-                dataset,
-                new Random(),
-                trainParams
-        );
-
-        final ArrayList<List<Double>> num1 = getListOfTwoLists();
-        final ArrayList<List<Double>> cat1 = getListOfTwoLists();
-
-        // fetch one negative classification
-        for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
-            final Instance instance = it_neg.next();
-            final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
-
-            num1.get(classIndex).add(featureContributions[num1Index]);
-            cat1.get(classIndex).add(featureContributions[cat1Index]);
-        }
-
-        assertThat(average(num1.get(0)))
-                .as("num1 contribution average should be lower in negative class")
-                .isLessThan(average(num1.get(1)));
-
-        assertThat(average(cat1.get(0)))
-                .as("cat contribution average should be lower in negative class")
-                .isLessThan(average(cat1.get(1)));
+        ensureFeatureContributions(dataset);
     }
 
     /**
-     * Test Contributions.
+     * Test Feature Contributions with target at middle.
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
@@ -364,43 +332,11 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 10000
         );
-        final int targetIndex = dataset.getSchema().getTargetIndex().get();
-        final int num1Index = 1;
-        final int cat1Index = 4;
-
-        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
-        trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
-
-        final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
-                dataset,
-                new Random(),
-                trainParams
-        );
-
-        final ArrayList<List<Double>> num1 = getListOfTwoLists();
-        final ArrayList<List<Double>> cat1 = getListOfTwoLists();
-
-        // fetch one negative classification
-        for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
-            final Instance instance = it_neg.next();
-            final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
-
-            num1.get(classIndex).add(featureContributions[num1Index]);
-            cat1.get(classIndex).add(featureContributions[cat1Index]);
-        }
-
-        assertThat(average(num1.get(0)))
-                .as("num1 contribution average should be lower in negative class")
-                .isLessThan(average(num1.get(1)));
-
-        assertThat(average(cat1.get(0)))
-                .as("cat contribution average should be lower in negative class")
-                .isLessThan(average(cat1.get(1)));
+        ensureFeatureContributions(dataset);
     }
 
     /**
-     * Test Contributions.
+     * Test Feature Contributions with target at beginning.
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
@@ -413,6 +349,16 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 10000
         );
+        ensureFeatureContributions(dataset);
+    }
+
+    /**
+     * Ensures feature contributions results by given dataset.
+     *
+     * @param dataset The {@link Dataset}.
+     * @since 1.2.2
+     */
+    private void ensureFeatureContributions(final Dataset dataset) {
         final int targetIndex = dataset.getSchema().getTargetIndex().get();
         final int num1Index = 1;
         final int cat1Index = 4;
