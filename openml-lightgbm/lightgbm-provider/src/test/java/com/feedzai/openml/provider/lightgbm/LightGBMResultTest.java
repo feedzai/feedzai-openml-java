@@ -56,10 +56,9 @@ public class LightGBMResultTest {
     private static final Logger logger = LoggerFactory.getLogger(LightGBMResultTest.class);
 
     /**
-     * Parameters for model train.
+     * Parameters for model training.
      */
-    private static final Map<String, String> MODEL_PARAMS = getTestParams();
-
+    private static final Map<String, String> MODEL_TRAINING_PARAMS = getTestParams();
 
     /**
      * Result Schema:
@@ -201,7 +200,7 @@ public class LightGBMResultTest {
         );
         final LightGBMBinaryClassificationModel model = fit(
                 dataset,
-                MODEL_PARAMS,
+                MODEL_TRAINING_PARAMS,
                 CHUNK_SIZE_INSTANCES
         );
 
@@ -247,7 +246,7 @@ public class LightGBMResultTest {
     }
 
     /**
-     * Compares two double values with precision to 16 decimal number of decimal places.
+     * Compares two double values to a precision of 16 decimal places.
      *
      * @param d1 The first double value.
      * @param d2 The second double value.

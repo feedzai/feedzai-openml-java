@@ -50,13 +50,13 @@ data_df['fraud_label'] = data_df.apply(lambda x : x['amount'] > 400 and x['amoun
 To summarize, we have the following rules for each generated field:
 ```
 amount          RANDBETWEEN(0,1000)
-card	        RANDBETWEEN(0,100)
-cat1_generator	RANDBETWEEN(0,3)
-cat2_generator	RANDBETWEEN(0,2)
-cat3_generator	RANDBETWEEN(0,5)
-num1_float  	RANDBETWEEN(1,1000)+0.4
-num2_float  	RANDBETWEEN(200000,40000000)-0.3
-num3_float  	RANDBETWEEN(10000,12000)
+card            RANDBETWEEN(0,100)
+cat1_generator  RANDBETWEEN(0,3)
+cat2_generator  RANDBETWEEN(0,2)
+cat3_generator  RANDBETWEEN(0,5)
+num1_float      RANDBETWEEN(1,1000)+0.4
+num2_float      RANDBETWEEN(200000,40000000)-0.3
+num3_float      RANDBETWEEN(10000,12000)
 fraud_label     400<amount<700 & cat1_generator="2" & num1_float < 700
 ```
 The [results](lightgbm-provider/src/test/resources/treeshap_t/treeshap_result.csv) were produced using
@@ -76,5 +76,5 @@ params = {
     "num_iterations": 100
 }
 ```
-Finally, the implementation is ensured based on given input dataset and expected results using
+Finally, the implementation is validated based on a given input dataset and its expected results, using
 [LightGBMResultTest](lightgbm-provider/src/test/java/com/feedzai/openml/provider/lightgbm/LightGBMResultTest.java).
