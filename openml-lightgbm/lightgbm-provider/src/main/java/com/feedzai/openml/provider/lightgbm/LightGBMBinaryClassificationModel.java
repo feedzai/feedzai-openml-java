@@ -20,7 +20,6 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.model.ClassificationMLModel;
-import com.feedzai.openml.model.ExplainableClassificationModel;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,7 @@ import java.nio.file.Path;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
-public class LightGBMBinaryClassificationModel implements ExplainableClassificationModel<LightGBMExplanationsConfig> {
+public class LightGBMBinaryClassificationModel implements ClassificationMLModel {
 
     /**
      * Logger for this class.
@@ -108,20 +107,9 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
      *
      * @param instance the instance
      * @return the double [ ]
+     * @deprecated use {@link LightGBMExplanationsAlgorithm#getFeatureContributions(Instance)} instead.
      */
     public double[] getFeatureContributions(final Instance instance) {
-        return getFeatureContributions(instance, new LightGBMExplanationsConfig());
-    }
-
-    /**
-     * Get features contributions double [ ].
-     *
-     * @param instance the instance
-     * @param explanationsConfig TODO
-     * @return the double [ ]
-     * @since 1.2.2
-     */
-    public double[] getFeatureContributions(final Instance instance, final LightGBMExplanationsConfig explanationsConfig) {
         return this.lgbm.getFeaturesContributions(instance);
     }
 
