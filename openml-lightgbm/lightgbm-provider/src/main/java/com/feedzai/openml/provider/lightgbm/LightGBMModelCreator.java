@@ -223,13 +223,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     public LightGBMBinaryClassificationModel loadModel(final Path modelPath,
                                                        final DatasetSchema schema)  throws ModelLoadingException {
 
-        // If modelPath is a directory, look for the model file inside:
-        final Path modelFilePath;
-        if (Files.isDirectory(modelPath)) {
-            modelFilePath = modelPath.resolve(MODEL_BINARY_RESOURCE_FILE_NAME);
-        } else {
-            modelFilePath = modelPath;
-        }
+        final Path modelFilePath = getPath(modelPath);
 
         logger.info("Loading LightGBM model from " + modelFilePath.toAbsolutePath().toString());
         final LightGBMBinaryClassificationModel model = new LightGBMBinaryClassificationModel(
@@ -237,7 +231,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         );
 
         // LightGBM considers binary classification as a special case of 1 class:
-        if (! model.isModelBinary()) {
+        if (!model.isModelBinary()) {
             throw new ModelLoadingException(ERROR_MSG_CANNOT_LOAD_NON_BINARY_LIGHTGBM_MODEL);
         }
 
@@ -250,6 +244,22 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         return model;
+    }
+
+    /**
+     * Gets the model {@link Path}. If modelPath is a directory, gets the model file inside.
+     *
+     * @param modelPath The model {@link Path}.
+     * @return The model file path.
+     * @since 1.2.2
+     */
+    private Path getPath(final Path modelPath) {
+
+        if (Files.isDirectory(modelPath)) {
+            return modelPath.resolve(MODEL_BINARY_RESOURCE_FILE_NAME);
+        }
+
+        return modelPath;
     }
 
     @Override
@@ -323,9 +333,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             } else {
                 return Optional.empty();
             }
-        } else {
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     /**

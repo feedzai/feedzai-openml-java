@@ -41,7 +41,7 @@ public class TestParameters {
      */
     public static Map<String, String> getDefaultParameters() {
 
-        final Map<String, String> mapParams = new HashMap<>();
+        final Map<String, String> mapParams = new HashMap<>(LightGBMDescriptorUtil.PARAMS.size(), 1);
         for (final ModelParameter modelParameter : LightGBMDescriptorUtil.PARAMS) {
             final String defaultValue;
             final ModelParameterType type = modelParameter.getFieldType();

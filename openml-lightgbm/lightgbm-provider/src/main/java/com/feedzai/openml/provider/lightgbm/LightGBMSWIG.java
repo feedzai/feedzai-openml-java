@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMUtils.BINARY_LGBM_NUM_CLASSES;
 
@@ -144,7 +145,45 @@ class LightGBMSWIG {
         }
     }
 
+    /**
+     * Returns the features contributions for the current instance.
+     *
+     * @param instance The instance from pulse.
+     * @return double[] array with features contributions.
+     * @since 1.2.2
+     */
+    public double[] getFeaturesContributions(final Instance instance) {
 
+        // we need to lock the resources to avoid having multiple threads sharing the same swig resources.
+        synchronized (this.swigResources) {
+
+            copyDataToSWIGInstance(instance);
+            final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFast(
+                    this.swigResources.swigFastConfigContributionsHandle,
+                    this.swigResources.swigInstancePtr,
+                    this.swigResources.swigOutLengthInt64Ptr,
+                    this.swigResources.swigOutContributionsPtr // preallocated memory
+            );
+
+            if (returnCodeLGBM == -1) {
+                throw new LightGBMException();
+            }
+
+            final double[] contributions = new double[this.schemaNumFields];
+            for (int index = 0; index < this.schemaNumFields; ++index) {
+                contributions[index] = lightgbmlibJNI.doubleArray_getitem(
+                        this.swigResources.swigOutContributionsPtr,
+                        index
+                );
+            }
+
+            if (logger.isTraceEnabled()) {
+                logger.trace("Features Contributions: {}", Arrays.toString(contributions));
+            }
+
+            return contributions;
+        }
+    }
 
     /**
      * Gets number of features in the model.
