@@ -24,10 +24,13 @@ With the whole project built, you can now build this module "alone". Use the sam
 
 The first build is lengthier (might take up to 15 minutes) as it needs to create [make-lightgbm](https://github.com/feedzai/make-lightgbm/)'s docker image and fetch maven dependencies. After that each build takes around 10-30 seconds.
 
-## LightGBM dataset
+## LightGBM test dataset
 The [training dataset](lightgbm-provider/src/test/resources/treeshap_t/treeshap_train.csv) is generated based on
 the following python code:
 ```python
+import numpy as np
+import pandas as pd
+
 np.random.seed(8000)
 card = np.random.randint(low=0, high=101, size=50000)
 amount = np.random.randint(low=0, high=1000, size=50000)

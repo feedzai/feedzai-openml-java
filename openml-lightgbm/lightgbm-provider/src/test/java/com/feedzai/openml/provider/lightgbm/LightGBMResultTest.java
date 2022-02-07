@@ -1,10 +1,17 @@
 /*
- * The copyright of this file belongs to Feedzai. The file cannot be
- * reproduced in whole or in part, stored in a retrieval system,
- * transmitted in any form, or by any means electronic, mechanical,
- * photocopying, or otherwise, without the prior permission of the owner.
+ * Copyright 2022 Feedzai
  *
- * (c) 2022 Feedzai, Strictly Confidential
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.feedzai.openml.provider.lightgbm;
@@ -35,7 +42,8 @@ import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 /**
- * FIXME
+ * Test class to ensure that Microsoft LightGBM predicts the expected
+ * <i>class distribution</i> and <i>feature contributions</i>.
  *
  * @author Sheng Wang (sheng.wang@feedzai.com)
  * @since 1.2.2
@@ -86,10 +94,21 @@ public class LightGBMResultTest {
      */
     public static final DatasetSchema RESULT_SCHEMA = getTestResultSchema();
 
+    /**
+     * The max number of instance to train, i.e., the number of lines in the file {@link treeshap_t treeshap_train.csv}.
+     */
     public static final int MAX_INSTANCES_TO_TRAIN = 40000;
 
+    /**
+     * The chunk size instances, i.e., the number of chunk instances it keeps in memory.
+     */
     public static final int CHUNK_SIZE_INSTANCES = 4;
 
+    /**
+     * Gets test schema.
+     *
+     * @return a {@link DatasetSchema}.
+     */
     private static DatasetSchema getTestSchema() {
         final List<FieldSchema> schema = new ArrayList<>(9);
         addFields(schema);
@@ -101,6 +120,11 @@ public class LightGBMResultTest {
         );
     }
 
+    /**
+     * Gets test result schema.
+     *
+     * @return a {@link DatasetSchema}.
+     */
     private static DatasetSchema getTestResultSchema() {
         final List<FieldSchema> schema = new ArrayList<>(10);
         addFields(schema);
@@ -113,6 +137,11 @@ public class LightGBMResultTest {
         );
     }
 
+    /**
+     * Adds fields for both {@link #getTestSchema()} and {@link #getTestResultSchema()}.
+     *
+     * @param schema The {@link List} to add new fields.
+     */
     private static void addFields(final List<FieldSchema> schema) {
         schema.add(new FieldSchema("card", 0, new NumericValueSchema(false)));
         schema.add(new FieldSchema("amount", 1, new NumericValueSchema(false)));
@@ -124,6 +153,11 @@ public class LightGBMResultTest {
         schema.add(new FieldSchema("num3_float", 7, new NumericValueSchema(false)));
     }
 
+    /**
+     * Gets the parameters for LightGBM test.
+     *
+     * @return {@link Map} of key and values.
+     */
     private static Map<String, String> getTestParams() {
         final Map<String, String> params = new HashMap<>(12, 1);
         params.put("max_bin", "512");
@@ -150,8 +184,8 @@ public class LightGBMResultTest {
     }
 
     /**
-     * Asserts that a model trained with numericals only and evaluated on the same datasource
-     * has in average higher scores for the positive class (1) than for the negative one (0).
+     * Ensures that every train on LightGBM with the provided train dataset produces
+     * the expected <i>class distribution</i> and <i>feature contributions</i>.
      *
      * @throws URISyntaxException    In case of error retrieving the data resource path.
      * @throws IOException           In case of error reading data.
@@ -212,6 +246,13 @@ public class LightGBMResultTest {
         }
     }
 
+    /**
+     * Compares two double values with precision to 16 decimal number of decimal places.
+     *
+     * @param d1 The first double value.
+     * @param d2 The second double value.
+     * @return {@code true} if values are nearly equal, otherwise {@code false}.
+     */
     private boolean isNearlyEquals(final double d1, final double d2) {
         final double epsilon = 0.0000000000000001d;
         return Math.abs(d1 - d2) < epsilon;
