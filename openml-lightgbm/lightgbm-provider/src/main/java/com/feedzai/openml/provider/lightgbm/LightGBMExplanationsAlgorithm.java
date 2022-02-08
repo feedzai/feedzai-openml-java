@@ -18,23 +18,33 @@
 package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Instance;
-import com.feedzai.openml.explanations.BaseExplanationsAlgorithm;
+import com.feedzai.openml.explanations.ModelExplainer;
 
 /**
  * A feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
  */
-public class LightGBMExplanationsAlgorithm extends BaseExplanationsAlgorithm<LightGBMBinaryClassificationModel> {
+public class LightGBMExplanationsAlgorithm implements ModelExplainer<LightGBMBinaryClassificationModel> {
+    /**
+     * The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
+     */
+    private final LightGBMBinaryClassificationModel model;
+
     /**
      * Constructor.
      *
      * @param model The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
      */
     public LightGBMExplanationsAlgorithm(final LightGBMBinaryClassificationModel model) {
-        super(model);
+        this.model = model;
     }
 
     @Override
     public double[] getFeatureContributions(final Instance instance) {
         return getModel().getFeatureContributions(instance);
+    }
+
+    @Override
+    public LightGBMBinaryClassificationModel getModel() {
+        return model;
     }
 }
