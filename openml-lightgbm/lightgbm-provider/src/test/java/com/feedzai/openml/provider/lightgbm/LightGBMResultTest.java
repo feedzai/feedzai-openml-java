@@ -94,7 +94,7 @@ public class LightGBMResultTest {
     public static final DatasetSchema RESULT_SCHEMA = getTestResultSchema();
 
     /**
-     * The max number of instance to train, i.e., the number of lines in the file {@link treeshap_t treeshap_train.csv}.
+     * The max number of instances to train, i.e., the number of lines in the file {@link treeshap_t treeshap_train.csv}.
      */
     public static final int MAX_INSTANCES_TO_TRAIN = 40000;
 
