@@ -14,6 +14,7 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
+import com.feedzai.openml.explanations.ExplanationAlgorithmConfig;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -154,7 +155,10 @@ public class LightGBMResultTest {
             // final int classIndex = (int) instance.getValue(targetIndex);
             // get scores and contributions
             final double[] scoreDistribution = model.getClassDistribution(instance);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = model.getFeatureContributions(
+                    instance,
+                    ExplanationAlgorithmConfig.builder().build()
+            );
 
             for (int i = 0; i < scoreDistribution.length; i++) {
                 //System.out.println(format("class index [%d] with distribution [%d]", i, scoreDistribution[i]));

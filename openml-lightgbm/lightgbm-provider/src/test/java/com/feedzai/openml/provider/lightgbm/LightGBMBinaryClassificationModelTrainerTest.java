@@ -20,6 +20,7 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.explanations.ExplanationAlgorithmConfig;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.junit.BeforeClass;
@@ -335,7 +336,10 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
             final Instance instance = it_neg.next();
             final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = model.getFeatureContributions(
+                    instance,
+                    ExplanationAlgorithmConfig.builder().build()
+            );
 
             num1.get(classIndex).add(featureContributions[num1Index]);
             cat1.get(classIndex).add(featureContributions[cat1Index]);
@@ -384,7 +388,10 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
             final Instance instance = it_neg.next();
             final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = model.getFeatureContributions(
+                    instance,
+                    ExplanationAlgorithmConfig.builder().build()
+            );
 
             num1.get(classIndex).add(featureContributions[num1Index]);
             cat1.get(classIndex).add(featureContributions[cat1Index]);
@@ -433,7 +440,10 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
             final Instance instance = it_neg.next();
             final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = model.getFeatureContributions(
+                    instance,
+                    ExplanationAlgorithmConfig.builder().build()
+            );
 
             num1.get(classIndex).add(featureContributions[num1Index]);
             cat1.get(classIndex).add(featureContributions[cat1Index]);

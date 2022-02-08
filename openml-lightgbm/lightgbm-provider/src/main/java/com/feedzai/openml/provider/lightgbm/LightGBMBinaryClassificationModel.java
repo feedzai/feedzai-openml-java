@@ -19,8 +19,9 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.explanations.BaseExplanationsAlgorithm;
+import com.feedzai.openml.explanations.ExplanationAlgorithmConfig;
 import com.feedzai.openml.model.ClassificationMLModel;
-import com.feedzai.openml.model.ExplainableClassificationModel;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,7 @@ import java.nio.file.Path;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
-public class LightGBMBinaryClassificationModel implements ExplainableClassificationModel<LightGBMExplanationsConfig> {
+public class LightGBMBinaryClassificationModel implements ClassificationMLModel, BaseExplanationsAlgorithm {
 
     /**
      * Logger for this class.
@@ -66,16 +67,16 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
      */
     LightGBMBinaryClassificationModel(final Path modelPath, final DatasetSchema schema) throws ModelLoadingException {
         this.schema = schema;
-        lgbm = new LightGBMSWIG(modelPath.toString(), schema, LIGHTGBM_PREDICTION_PARAMETERS);
+        this.lgbm = new LightGBMSWIG(modelPath.toString(), schema, LIGHTGBM_PREDICTION_PARAMETERS);
     }
 
     @Override
-    public double[] getClassDistribution(final Instance instance) { return lgbm.getBinaryClassDistribution(instance); }
+    public double[] getClassDistribution(final Instance instance) { return this.lgbm.getBinaryClassDistribution(instance); }
 
     @Override
     public int classify(final Instance instance) {
         // Assuming binary classification:
-        double score0 = getClassDistribution(instance)[0];
+        final double score0 = getClassDistribution(instance)[0];
         if (score0 > 0.5)
             return 0;
         else
@@ -86,7 +87,7 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
     public boolean save(final Path dir, final String name) {
 
         try {
-            lgbm.saveModelToDisk(dir.resolve(LightGBMModelCreator.MODEL_BINARY_RESOURCE_FILE_NAME));
+            this.lgbm.saveModelToDisk(dir.resolve(LightGBMModelCreator.MODEL_BINARY_RESOURCE_FILE_NAME));
         } catch (final Exception e) {
             logger.error("Failed to save model to disk: {}", e.getMessage());
             return false;
@@ -104,24 +105,13 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
     }
 
     /**
-     * Get features contributions double [ ].
+     * Gets the features contributions.
      *
-     * @param instance the instance
-     * @return the double [ ]
+     * @param instance The instance.
+     * @return the feature contributions.
+     * @since 1.2.2
      */
-    public double[] getFeatureContributions(final Instance instance) {
-        return getFeatureContributions(instance, new LightGBMExplanationsConfig());
-    }
-
-    /**
-     * Get features contributions double [ ].
-     *
-     * @param instance the instance
-     * @param explanationsConfig TODO
-     * @return the double [ ]
-     * @since @@@feedzai.next.release@@@
-     */
-    public double[] getFeatureContributions(final Instance instance, final LightGBMExplanationsConfig explanationsConfig) {
+    public double[] getFeatureContributions(final Instance instance, final ExplanationAlgorithmConfig config) {
         return this.lgbm.getFeaturesContributions(instance);
     }
 
@@ -129,7 +119,7 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
      * @return Number of features used in the model.
      */
     public int getBoosterNumFeatures() {
-        return lgbm.getBoosterNumFeatures();
+        return this.lgbm.getBoosterNumFeatures();
     }
 
     /**
@@ -137,19 +127,19 @@ public class LightGBMBinaryClassificationModel implements ExplainableClassificat
      * @since 1.0.18
      */
     public String[] getBoosterFeatureNames() {
-        return lgbm.getBoosterFeatureNames();
+        return this.lgbm.getBoosterFeatureNames();
     }
 
     /**
      * @return The number of booster iterations in the model.
      */
-    public int getBoosterNumIterations() { return lgbm.getBoosterNumIterations(); }
+    public int getBoosterNumIterations() { return this.lgbm.getBoosterNumIterations(); }
 
     /**
      * @return Returns true if the model is binary.
      */
     public boolean isModelBinary() {
-        return lgbm.isModelBinary();
+        return this.lgbm.isModelBinary();
     }
 
 }
