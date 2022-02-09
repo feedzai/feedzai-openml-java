@@ -192,7 +192,6 @@ class SWIGResources implements AutoCloseable {
         final long swigOutFastConfigHandlePtr = lightgbmlibJNI.voidpp_handle();
 
         try {
-            // https://github.com/microsoft/LightGBM/blob/ceb6265fba14be11b9ef086018d9cc67ff7f5450/src/c_api.cpp#L2114-L2152
             final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterPredictForMatSingleRowFastInit(
                     swigBoosterHandle,
                     lightgbmlibConstants.C_API_PREDICT_NORMAL,
