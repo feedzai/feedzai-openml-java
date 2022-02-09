@@ -23,7 +23,7 @@ import com.feedzai.openml.explanations.ModelExplainer;
 /**
  * A feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
  */
-public class LightGBMExplanationsAlgorithm implements ModelExplainer<LightGBMBinaryClassificationModel> {
+public class LightGBMExplainer implements ModelExplainer<LightGBMBinaryClassificationModel> {
     /**
      * The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
      */
@@ -34,12 +34,13 @@ public class LightGBMExplanationsAlgorithm implements ModelExplainer<LightGBMBin
      *
      * @param model The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
      */
-    public LightGBMExplanationsAlgorithm(final LightGBMBinaryClassificationModel model) {
+    public LightGBMExplainer(final LightGBMBinaryClassificationModel model) {
         this.model = model;
     }
 
     @Override
     public double[] getFeatureContributions(final Instance instance) {
+        // TODO move the logic somewhere so that we stop using the deprecated method
         return getModel().getFeatureContributions(instance);
     }
 

@@ -108,6 +108,7 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
      * @param instance The instance.
      * @return the feature contributions.
      * @since 1.2.2
+     * @deprecated use {@link LightGBMExplainer#getFeatureContributions(Instance)} instead.
      */
     public double[] getFeatureContributions(final Instance instance) {
         return this.lgbm.getFeaturesContributions(instance);
