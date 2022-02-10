@@ -191,7 +191,7 @@ public class LightGBMResultTest {
      * @throws ModelLoadingException In case of error training the model.
      */
     @Test
-    public void trainLightgbm() throws URISyntaxException, IOException, ModelLoadingException {
+    public void ensureLightgbmScoresAndContributions() throws URISyntaxException, IOException, ModelLoadingException {
 
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath("treeshap_t/treeshap_train.csv"),
