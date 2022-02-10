@@ -40,7 +40,6 @@ public class LightGBMExplainer implements ModelExplainer<LightGBMBinaryClassific
 
     @Override
     public double[] getFeatureContributions(final Instance instance) {
-        // TODO move the logic somewhere so that we stop using the deprecated method
         return model.getFeatureContributions(instance);
     }
 }

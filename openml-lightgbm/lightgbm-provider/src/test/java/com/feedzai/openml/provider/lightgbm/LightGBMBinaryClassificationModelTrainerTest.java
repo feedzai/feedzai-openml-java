@@ -375,11 +375,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final ArrayList<List<Double>> num1 = getListOfTwoLists();
         final ArrayList<List<Double>> cat1 = getListOfTwoLists();
 
+        final LightGBMExplainer explainer = new LightGBMExplainer(model);
         // fetch one negative classification
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
             final Instance instance = it_neg.next();
             final int classIndex = (int) instance.getValue(targetIndex);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = explainer.getFeatureContributions(instance);
 
             num1.get(classIndex).add(featureContributions[num1Index]);
             cat1.get(classIndex).add(featureContributions[cat1Index]);
