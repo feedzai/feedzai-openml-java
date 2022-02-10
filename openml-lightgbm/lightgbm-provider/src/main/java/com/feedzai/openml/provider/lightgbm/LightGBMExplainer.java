@@ -25,14 +25,14 @@ import com.feedzai.openml.explanations.ModelExplainer;
  */
 public class LightGBMExplainer implements ModelExplainer<LightGBMBinaryClassificationModel> {
     /**
-     * The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
+     * The {@link LightGBMBinaryClassificationModel} whose predictions will be explained.
      */
     private final LightGBMBinaryClassificationModel model;
 
     /**
      * Constructor.
      *
-     * @param model The {@link LightGBMBinaryClassificationModel} which predictions will be explained.
+     * @param model The {@link LightGBMBinaryClassificationModel} whose predictions will be explained.
      */
     public LightGBMExplainer(final LightGBMBinaryClassificationModel model) {
         this.model = model;
@@ -41,11 +41,6 @@ public class LightGBMExplainer implements ModelExplainer<LightGBMBinaryClassific
     @Override
     public double[] getFeatureContributions(final Instance instance) {
         // TODO move the logic somewhere so that we stop using the deprecated method
-        return getModel().getFeatureContributions(instance);
-    }
-
-    @Override
-    public LightGBMBinaryClassificationModel getModel() {
-        return model;
+        return model.getFeatureContributions(instance);
     }
 }
