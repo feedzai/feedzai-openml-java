@@ -22,6 +22,7 @@ import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import org.assertj.core.data.Offset;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -233,28 +234,18 @@ public class LightGBMResultTest {
                     .isEqualTo(2);
 
             final double prediction = resultInstance.getValue(9);
-            assertThat(isNearlyEquals(scoreDistribution[1], prediction))
+            final Offset<Double> offset = Offset.offset(1.0e-16);
+
+            assertThat(scoreDistribution[1])
                     .as("The score should be expected.")
-                    .isTrue();
+                    .isCloseTo(prediction, offset);
 
             for (int i = 0; i < featureContributions.length; i++) {
-                assertThat(isNearlyEquals(featureContributions[i], resultInstance.getValue(i)))
+                assertThat(featureContributions[i])
                         .as("The contribution should be expected.")
-                        .isTrue();
+                        .isCloseTo(resultInstance.getValue(i), offset);
             }
         }
-    }
-
-    /**
-     * Compares two double values to a precision of 16 decimal places.
-     *
-     * @param d1 The first double value.
-     * @param d2 The second double value.
-     * @return {@code true} if values are nearly equal, otherwise {@code false}.
-     */
-    private boolean isNearlyEquals(final double d1, final double d2) {
-        final double epsilon = 0.0000000000000001d;
-        return Math.abs(d1 - d2) < epsilon;
     }
 
     /**
