@@ -23,7 +23,7 @@ import com.feedzai.openml.explanations.ModelExplainer;
 /**
  * A feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
  */
-public class LightGBMExplainer implements ModelExplainer<LightGBMBinaryClassificationModel> {
+public class LightGBMExplainer implements ModelExplainer {
     /**
      * The {@link LightGBMBinaryClassificationModel} whose predictions will be explained.
      */
