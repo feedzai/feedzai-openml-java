@@ -23,7 +23,7 @@ import com.feedzai.openml.explanations.ModelExplainer;
 /**
  * A feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
  */
-public class LightGBMExplainer implements ModelExplainer {
+public class LightGBMTreeSHAPFeatureContributionExplainer implements ModelExplainer {
     /**
      * The {@link LightGBMBinaryClassificationModel} whose predictions will be explained.
      */
@@ -34,7 +34,7 @@ public class LightGBMExplainer implements ModelExplainer {
      *
      * @param model The {@link LightGBMBinaryClassificationModel} whose predictions will be explained.
      */
-    public LightGBMExplainer(final LightGBMBinaryClassificationModel model) {
+    public LightGBMTreeSHAPFeatureContributionExplainer(final LightGBMBinaryClassificationModel model) {
         this.model = model;
     }
 

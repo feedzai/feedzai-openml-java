@@ -204,7 +204,7 @@ public class LightGBMResultTest {
                 MODEL_TRAINING_PARAMS,
                 CHUNK_SIZE_INSTANCES
         );
-        final LightGBMExplainer explainer = new LightGBMExplainer(model);
+        final LightGBMTreeSHAPFeatureContributionExplainer explainer = new LightGBMTreeSHAPFeatureContributionExplainer(model);
 
         final ArrayList<List<Double>> classScores = new ArrayList<>(2);
         classScores.add(new LinkedList<>());

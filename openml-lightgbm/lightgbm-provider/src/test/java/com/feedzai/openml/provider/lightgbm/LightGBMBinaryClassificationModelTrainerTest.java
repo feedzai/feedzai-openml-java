@@ -375,7 +375,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final ArrayList<List<Double>> num1 = getListOfTwoLists();
         final ArrayList<List<Double>> cat1 = getListOfTwoLists();
 
-        final LightGBMExplainer explainer = new LightGBMExplainer(model);
+        final LightGBMTreeSHAPFeatureContributionExplainer explainer = new LightGBMTreeSHAPFeatureContributionExplainer(model);
         // fetch one negative classification
         for (final Iterator<Instance> it_neg = dataset.getInstances(); it_neg.hasNext(); ) {
             final Instance instance = it_neg.next();
