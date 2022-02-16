@@ -109,7 +109,7 @@ public class LightGBMBinaryClassificationModel implements ClassificationMLModel 
      * @return the feature contributions.
      * @since 1.2.2
      */
-    protected double[] getFeatureContributions(final Instance instance) {
+    double[] getFeatureContributions(final Instance instance) {
         return this.lgbm.getFeaturesContributions(instance);
     }
 
