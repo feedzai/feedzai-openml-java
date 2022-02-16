@@ -21,7 +21,10 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.explanations.ModelExplainer;
 
 /**
- * A feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
+ * A TreeSHAP feature contribution provider for the predictions of the {@link LightGBMBinaryClassificationModel}.
+ *
+ * @author Miguel Lobo (miguel.lobo@feedzai.com)
+ * @since 1.2.2
  */
 public class LightGBMTreeSHAPFeatureContributionExplainer implements ModelExplainer {
     /**
