@@ -251,7 +251,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
      *
      * @param modelPath The model {@link Path}.
      * @return The model file path.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     private Path getPath(final Path modelPath) {
 

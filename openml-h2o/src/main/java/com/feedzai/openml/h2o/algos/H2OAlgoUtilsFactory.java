@@ -29,7 +29,7 @@ import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
  * Factory class responsible for providing the correct H20 Algorithm util.
  *
  * @author Antonio Silva (antonio.silva@feedzai.com)
- * @since @since 1.2.1
+ * @since 1.3.0
  */
 public class H2OAlgoUtilsFactory {
 
