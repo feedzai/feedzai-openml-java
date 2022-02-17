@@ -204,6 +204,7 @@ public class LightGBMResultTest {
                 MODEL_TRAINING_PARAMS,
                 CHUNK_SIZE_INSTANCES
         );
+        final LightGBMTreeSHAPFeatureContributionExplainer explainer = new LightGBMTreeSHAPFeatureContributionExplainer(model);
 
         final ArrayList<List<Double>> classScores = new ArrayList<>(2);
         classScores.add(new LinkedList<>());
@@ -227,7 +228,7 @@ public class LightGBMResultTest {
             final Instance resultInstance = resultIterator.next();
 
             final double[] scoreDistribution = model.getClassDistribution(instance);
-            final double[] featureContributions = model.getFeatureContributions(instance);
+            final double[] featureContributions = explainer.getFeatureContributions(instance);
 
             assertThat(scoreDistribution.length)
                     .as("Class distribution should contain two values.")
