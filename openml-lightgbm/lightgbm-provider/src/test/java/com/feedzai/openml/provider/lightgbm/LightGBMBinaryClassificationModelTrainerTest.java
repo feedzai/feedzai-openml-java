@@ -306,7 +306,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     @Test
     public void testFeatureContributionsTargetEnd() throws URISyntaxException, IOException {
@@ -323,7 +323,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     @Test
     public void testFeatureContributionsTargetMiddle() throws URISyntaxException, IOException {
@@ -340,7 +340,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     @Test
     public void testFeatureContributionsTargetBeginning() throws URISyntaxException, IOException {
@@ -356,7 +356,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Ensures feature contributions results by given dataset.
      *
      * @param dataset The {@link Dataset}.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     private void ensureFeatureContributions(final Dataset dataset) {
         final int targetIndex = dataset.getSchema().getTargetIndex().get();
@@ -504,7 +504,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * Method to create a {@link ArrayList} with two {@link LinkedList}
      *
      * @return A {@link ArrayList} of two {@link LinkedList}.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     private static ArrayList<List<Double>> getListOfTwoLists() {
         final ArrayList<List<Double>> list = new ArrayList<>(2);

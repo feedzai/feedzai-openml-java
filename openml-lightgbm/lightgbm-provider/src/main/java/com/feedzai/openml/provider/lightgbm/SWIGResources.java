@@ -56,7 +56,7 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG pointer to FastConfigContributionsHandle.
      *
-     * @since 1.2.2
+     * @since 1.3.0
      */
     public Long swigFastConfigContributionsHandle;
 
@@ -79,7 +79,7 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG Pointer to the features contributions array output (pre-allocated by us).
      *
-     * @since 1.2.2
+     * @since 1.3.0
      */
     public Long swigOutContributionsPtr;
 
@@ -220,7 +220,7 @@ class SWIGResources implements AutoCloseable {
      *
      * @param LightGBMParameters String with custom LightGBM parameters.
      * @throws ModelLoadingException in case there is a C++ back-end error creating the FastConfigContributions object.
-     * @since 1.2.2
+     * @since 1.3.0
      */
     private void initBoosterFastContributionsHandle(final String LightGBMParameters) throws ModelLoadingException {
 

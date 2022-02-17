@@ -47,7 +47,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
  * <i>class distribution</i> and <i>feature contributions</i>.
  *
  * @author Sheng Wang (sheng.wang@feedzai.com)
- * @since 1.2.2
+ * @since 1.3.0
  */
 public class LightGBMResultTest {
 

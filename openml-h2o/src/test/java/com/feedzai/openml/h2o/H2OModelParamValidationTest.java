@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * H2O Model Parameter validation test. Validates if H2O model parameters are being properly validated.
  *
  * @author Antonio Silva (antonio.silva@feedzai.com)
- * @since 1.2.1
+ * @since 1.3.0
  */
 @RunWith(Parameterized.class)
 public class H2OModelParamValidationTest {
