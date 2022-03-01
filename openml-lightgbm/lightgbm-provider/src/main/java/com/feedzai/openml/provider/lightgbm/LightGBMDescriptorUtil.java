@@ -36,27 +36,27 @@ public class LightGBMDescriptorUtil {
     /**
      * Boosting type parameter name.
      */
-    static final String BOOSTING_TYPE_PARAMETER_NAME = "boosting_type";
+    public static final String BOOSTING_TYPE_PARAMETER_NAME = "boosting_type";
 
     /**
      * The number of boosting iterations parameter name.
      */
-    static final String NUM_ITERATIONS_PARAMETER_NAME = "num_iterations";
+    public static final String NUM_ITERATIONS_PARAMETER_NAME = "num_iterations";
 
     /**
      * Bagging fraction parameter name.
      */
-    static final String BAGGING_FRACTION_PARAMETER_NAME = "bagging_fraction";
+    public static final String BAGGING_FRACTION_PARAMETER_NAME = "bagging_fraction";
 
     /**
      * Bagging frequency parameter name.
      */
-    static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
+    public static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
 
     /**
      * Global seed parameter name.
      */
-    static final String SEED_PARAMETER_DESCRIPTION = "Seed";
+    public static final String SEED_PARAMETER_DESCRIPTION = "Seed";
 
     /**
      * Public-visible (UI) description of the bagging fraction parameter.
@@ -124,7 +124,7 @@ public class LightGBMDescriptorUtil {
                             + "'goss' is faster but slightly less accurate,\n"
                             + "'dart' is much slower but might improve performance,\n"
                             + "'rf' is the random forest mode.",
-                    MANDATORY,
+                    NOT_MANDATORY,
                     new ChoiceFieldType(
                             ImmutableSet.of("gbdt", "rf", "dart", "goss"),
                             "gbdt"
@@ -135,7 +135,7 @@ public class LightGBMDescriptorUtil {
                     "Number of booster iterations",
                     "LightGBM uses num_trees = num_classes * num_iterations for multi-classification.\n"
                             + "For binary classification it equals the number of trees.",
-                    MANDATORY,
+                    NOT_MANDATORY,
                     intRange(0, Integer.MAX_VALUE, 100)
             ),
             new ModelParameter(
@@ -384,7 +384,7 @@ public class LightGBMDescriptorUtil {
                     "is_unbalance",
                     "Unbalanced label",
                     "Set to true if training data is unbalanced. \nWhilst enabling this should increase the overall performance metric of the model, it will also result in poor estimates of the individual class probabilities. Cannot be used at the same time as 'scale_pos_weight'.", // TODO nam parameter in ui (scale_pos_weight)
-                    MANDATORY,
+                    NOT_MANDATORY,
                     new BooleanFieldType(false)
             )
             // TODO: https://lightgbm.readthedocs.io/en/latest/Parameters.html#scale_pos_weight ?? would require setting the pos label
