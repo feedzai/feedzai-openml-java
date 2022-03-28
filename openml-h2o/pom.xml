@@ -30,7 +30,7 @@
     <description>Contains classes and logic related with the import of H2O models.</description>
 
     <properties>
-        <h2o.version>3.30.0.7</h2o.version>
+        <h2o.version>3.36.0.3</h2o.version>
     </properties>
 
     <dependencies>
@@ -86,10 +86,16 @@
             <groupId>ai.h2o</groupId>
             <artifactId>h2o-core</artifactId>
             <version>${h2o.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>log4j</artifactId>
+                    <groupId>log4j</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>ai.h2o</groupId>
-            <artifactId>h2o-jetty-9</artifactId>
+            <artifactId>h2o-jetty-9-minimal</artifactId>
             <version>${h2o.version}</version>
         </dependency>
         <dependency>
@@ -134,6 +140,12 @@
         <dependency>
             <groupId>ai.h2o</groupId>
             <artifactId>h2o-ext-xgboost</artifactId>
+            <version>${h2o.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ai.h2o</groupId>
+            <artifactId>h2o-logging-impl-log4j2</artifactId>
             <version>${h2o.version}</version>
         </dependency>
 
@@ -238,7 +250,7 @@
                             <relocations>
                                 <relocation>
                                     <pattern>org.eclipse.jetty</pattern>
-                                    <shadedPattern>feedzai.jetty8.shaded.org.eclipse.jetty</shadedPattern>
+                                    <shadedPattern>feedzai.jetty9.shaded.org.eclipse.jetty</shadedPattern>
                                 </relocation>
                             </relocations>
                             <filters>
