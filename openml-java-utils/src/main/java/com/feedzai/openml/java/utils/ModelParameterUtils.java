@@ -57,9 +57,13 @@ public final class ModelParameterUtils {
 
         final Map<String, String> defaultValues = getDefaultModelParameterValues(algorithm);
         final MapDifference<String, String> difference = Maps.difference(defaultValues, newParams);
+        final Map<String, String> rightParamsFromEntriesInCommon = difference.entriesDiffering().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, a -> a.getValue().rightValue()));
+
         final ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
         builder.putAll(difference.entriesOnlyOnLeft());
-        builder.putAll(newParams);
+        builder.putAll(difference.entriesInCommon());
+        builder.putAll(rightParamsFromEntriesInCommon);
 
         return builder.build();
     }
