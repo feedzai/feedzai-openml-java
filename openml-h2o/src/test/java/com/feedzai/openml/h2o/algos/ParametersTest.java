@@ -65,7 +65,7 @@ public class ParametersTest {
 
             assertThat(parameters.size())
                     .as("The number of parameters")
-                    .isGreaterThanOrEqualTo(10);
+                    .isGreaterThanOrEqualTo(5);
 
             assertThat(parameters.stream().anyMatch(ModelParameter::isMandatory))
                     .as("There is at least 1 mandatory parameter")

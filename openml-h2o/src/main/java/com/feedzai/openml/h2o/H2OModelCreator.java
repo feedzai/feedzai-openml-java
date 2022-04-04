@@ -20,7 +20,6 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
-import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.h2o.server.H2OApp;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
@@ -60,6 +59,8 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.feedzai.openml.java.utils.ModelParameterUtils.getEffectiveModelParameterValues;
 
 /**
  * Implementation of the {@link MachineLearningModelLoader}.
@@ -209,9 +210,10 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                                       final DatasetSchema schema,
                                                       final Map<String, String> params) {
 
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
         final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
 
-        errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, params));
+        errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, effectiveModelParams));
         errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
 
         if (schema.getTargetIndex().isPresent()) {
@@ -225,9 +227,11 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
     public AbstractClassificationH2OModel fit(final Dataset dataset,
                                               final Random random,
                                               final Map<String, String> params) throws ModelTrainingException {
+
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
         try {
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);
-            final Model model = this.h2OApp.train(this.algorithm, datasetPath, dataset.getSchema(), params, random.nextLong());
+            final Model model = this.h2OApp.train(this.algorithm, datasetPath, dataset.getSchema(), effectiveModelParams, random.nextLong());
 
             final Path exportPath = Files.createTempDirectory(H2OUtils.FEEDZAI_H2O_PREFIX + model._output._job._result.toString());
             final Path modelPath = Files.createDirectory(exportPath.resolve(LoadModelUtils.MODEL_FOLDER));
@@ -248,10 +252,11 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                                      final DatasetSchema schema,
                                                      final Map<String, String> params) {
 
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
         final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
-        errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, params));
+        errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, effectiveModelParams));
 
         if (schema.getTargetIndex().isPresent()) {
             ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
