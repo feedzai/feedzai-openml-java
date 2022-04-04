@@ -283,9 +283,10 @@ public class H2OModelProviderTrainTest extends AbstractProviderModelTrainTest<Ab
                 params
         );
 
-        assertThat(paramValidationErrors.size())
+        assertThat(paramValidationErrors)
                 .as("The list parameter validation errors must be null.")
-                .isEqualTo(0);
+                .asList()
+                .isEmpty();
     }
 
 }
