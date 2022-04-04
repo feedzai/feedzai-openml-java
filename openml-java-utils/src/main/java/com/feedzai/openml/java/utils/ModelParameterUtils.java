@@ -23,11 +23,9 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -56,16 +54,11 @@ public final class ModelParameterUtils {
                                                                        final Map<String, String> newParams) {
 
         final Map<String, String> defaultValues = getDefaultModelParameterValues(algorithm);
-        final MapDifference<String, String> difference = Maps.difference(defaultValues, newParams);
-        final Map<String, String> rightParamsFromEntriesInCommon = difference.entriesDiffering().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, a -> a.getValue().rightValue()));
-
-        final ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        builder.putAll(difference.entriesOnlyOnLeft());
-        builder.putAll(difference.entriesInCommon());
-        builder.putAll(rightParamsFromEntriesInCommon);
-
-        return builder.build();
+        return defaultValues.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> newParams.getOrDefault(entry.getKey(), entry.getValue())
+                ));
     }
 
     /**
