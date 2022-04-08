@@ -24,8 +24,9 @@ import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,19 +47,27 @@ public final class ModelParameterUtils {
      * Retrieves the effective model parameters to be used by an OpenML provider. The effective instance is retrieved
      * after getting the values of the default model parameters, then it is merged with the new model parameters.
      *
-     * @param algorithm The description of a Machine Learning algorithm.
-     * @param newParams The collection of new model parameters.
+     * @param algorithm      The description of a Machine Learning algorithm.
+     * @param parameterNames The complete list of model parameter names.
+     * @param newParams      The collection of new model parameters.
      * @return The collection of effective model parameters.
      */
     public static Map<String, String> getEffectiveModelParameterValues(final MLAlgorithmDescriptor algorithm,
+                                                                       final Set<String> parameterNames,
                                                                        final Map<String, String> newParams) {
 
         final Map<String, String> defaultValues = getDefaultModelParameterValues(algorithm);
-        return defaultValues.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> newParams.getOrDefault(entry.getKey(), entry.getValue())
-                ));
+
+        final Map<String, String> effectiveModelParameter = new HashMap<>();
+
+        defaultValues.entrySet().stream()
+                .filter(entry -> !newParams.containsKey(entry.getKey()))
+                .forEach(entry -> effectiveModelParameter.put(entry.getKey(), entry.getValue()));
+        parameterNames.stream()
+                .filter(newParams::containsKey)
+                .forEach(parameter -> effectiveModelParameter.put(parameter, newParams.get(parameter)));
+
+        return effectiveModelParameter;
     }
 
     /**

@@ -52,6 +52,7 @@ public class ModelParameterUtilsTest {
                 "param0", "false",
                 "param2", "2.0",
                 "param3", "3",
+                "param4", "53",
                 "param1", "99"
         );
 
@@ -67,9 +68,11 @@ public class ModelParameterUtilsTest {
 
         final Map<String, String> effectiveParams = ModelParameterUtils.getEffectiveModelParameterValues(
                 mlAlgorithmDescriptor,
+                ImmutableSet.of("param0", "param1", "param2", "param3", "param4"),
                 ImmutableMap.of(
                         "param0", "false",
                         "param1", "99",
+                        "param4", "53",
                         "param5", "100"
                 )
         );
