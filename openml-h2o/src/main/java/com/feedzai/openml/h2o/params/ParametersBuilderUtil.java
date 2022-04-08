@@ -124,7 +124,20 @@ public final class ParametersBuilderUtil {
     }
 
     /**
-     * Gets the parameters descriptions for the given algorithm.
+     * Gets all the model parameter names for the given algorithm.
+     *
+     * @param paramsClass The corresponding class with fields whose values are default values for each parameter.
+     * @return all model parameter names.
+     */
+    public static Set<String> getAllParametersNamesFor(final Class<? extends water.bindings.pojos.ModelParametersSchemaV3> paramsClass) {
+        final Map<String, String> paramName2FieldName = getParamNameToFieldNameMapping(paramsClass);
+        return paramName2FieldName.keySet();
+    }
+
+    /**
+     * Gets the default parameters descriptions for the given algorithm. Take into account that this method doesn't
+     * return all available parameters this because some of them are being filtered, like for example to only return
+     * parameters that use primitive data types.
      *
      * @param algorithmClass The class with the meta-description of the parameters.
      * @param paramsClass    The corresponding class with fields whose values are default values for each parameter.

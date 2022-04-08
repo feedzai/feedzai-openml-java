@@ -1,0 +1,88 @@
+/*
+ * Copyright 2021 Feedzai
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
+package com.feedzai.openml.h2o.algos;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.feedzai.openml.h2o.H2OAlgorithm;
+import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
+import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
+
+import java.util.Set;
+
+/**
+ * Factory class responsible for providing the correct H20 Algorithm util.
+ *
+ * @author Antonio Silva (antonio.silva@feedzai.com)
+ */
+public class H2OAlgoUtilsFactory {
+
+    /**
+     * Logger for this class.
+     */
+    private static final Logger logger = LoggerFactory.getLogger(H2OAlgoUtilsFactory.class);
+
+    /**
+     * Private constructor to avoid class instantiation.
+     *
+     */
+    private H2OAlgoUtilsFactory() {
+    }
+
+    /**
+     * Gets the complete collection of model parameter names for a given algorithm.
+     *
+     * @param algorithmDescriptor Descriptor for the algorithm we want the utils for.
+     * @return the model parameter names.
+     */
+    public static Set<String> getModelParameterNames(final MLAlgorithmDescriptor algorithmDescriptor) {
+        switch (getH2OAlgorithm(algorithmDescriptor)) {
+            case DISTRIBUTED_RANDOM_FOREST:
+                return H2ODrfUtils.PARAMETER_NAMES;
+            case XG_BOOST:
+                return H2OXgboostUtils.PARAMETER_NAMES;
+            case DEEP_LEARNING:
+                return H2ODeepLearningUtils.PARAMETER_NAMES;
+            case GRADIENT_BOOSTING_MACHINE:
+                return H2OGbmUtils.PARAMETER_NAMES;
+            case NAIVE_BAYES_CLASSIFIER:
+                return H2OBayesUtils.PARAMETER_NAMES;
+            case GENERALIZED_LINEAR_MODEL:
+                return H2OGeneralizedLinearModelUtils.PARAMETER_NAMES;
+            case ISOLATION_FOREST:
+                return H2OIsolationForestUtils.PARAMETER_NAMES;
+            default:
+                final String errorMessage = String.format("Unsupported algorithm: %s", algorithmDescriptor.getAlgorithmName());
+                logger.error(errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    /**
+     * Resolves the H2O algorithm from the provided descriptor.
+     *
+     * @param algorithmDescriptor The algorithm descriptor from which the {@link H2OAlgorithm} is resolved.
+     * @return The resolve {@link H2OAlgorithm}.
+     *
+     */
+    private static H2OAlgorithm getH2OAlgorithm(final MLAlgorithmDescriptor algorithmDescriptor) {
+        return MLAlgorithmEnum.getByName(H2OAlgorithm.values(), algorithmDescriptor.getAlgorithmName())
+                              .orElseThrow(() -> new IllegalArgumentException("Unknown algorithm: " + algorithmDescriptor));
+    }
+}
