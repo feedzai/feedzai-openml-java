@@ -80,6 +80,7 @@ public final class H2OAlgorithmTestParams {
                 .put("nbins", "20")
                 .put("sample_rate", "1")
                 .put("mtries", "-1")
+                .put("max_hit_ratio_k", "0")
                 .build();
     }
 

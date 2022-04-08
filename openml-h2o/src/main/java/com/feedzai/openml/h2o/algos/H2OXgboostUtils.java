@@ -17,18 +17,15 @@
 
 package com.feedzai.openml.h2o.algos;
 
-import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.h2o.params.ParamsValueSetter;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 
-import hex.schemas.XGBoostV3;
 import hex.schemas.XGBoostV3.XGBoostParametersV3;
 
 import hex.tree.xgboost.XGBoost;
 import java.util.Map;
 import java.util.Set;
-import water.fvec.Frame;
 
 /**
  * Utility class to hold relevant information to train H2O XGBoost models.
@@ -43,6 +40,12 @@ public class H2OXgboostUtils extends AbstractSupervisedH2OAlgoUtils<XGBoostParam
      */
     public static final Set<ModelParameter> PARAMETERS =
             ParametersBuilderUtil.getParametersFor(XGBoostParametersV3.class, water.bindings.pojos.XGBoostParametersV3.class);
+
+    /**
+     * The complete collection of model parameter names of an H2O XGBoost model.
+     */
+    public static final Set<String> PARAMETER_NAMES =
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.XGBoostParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.
