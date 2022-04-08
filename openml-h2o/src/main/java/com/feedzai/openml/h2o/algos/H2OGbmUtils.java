@@ -44,7 +44,7 @@ public final class H2OGbmUtils extends AbstractSupervisedH2OAlgoUtils<GBMParamet
      * The complete collection of model parameter names of an H2O GBM model.
      */
     public static final Set<String> PARAMETER_NAMES =
-            ParametersBuilderUtil.getParametersNamesFor(water.bindings.pojos.GBMParametersV3.class);
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.GBMParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.

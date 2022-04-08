@@ -44,7 +44,7 @@ public final class H2ODrfUtils extends AbstractSupervisedH2OAlgoUtils<DRFParamet
      * The complete collection of model parameter names of an H2O Distributed Random Forest model.
      */
     public static final Set<String> PARAMETER_NAMES =
-            ParametersBuilderUtil.getParametersNamesFor(water.bindings.pojos.DRFParametersV3.class);
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.DRFParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.

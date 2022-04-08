@@ -45,7 +45,7 @@ public class H2OIsolationForestUtils extends AbstractUnsupervisedH2OAlgoUtils<Is
      * The complete collection of model parameter names of an H2O Isolation forest model.
      */
     public static final Set<String> PARAMETER_NAMES =
-            ParametersBuilderUtil.getParametersNamesFor(water.bindings.pojos.IsolationForestParametersV3.class);
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.IsolationForestParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.

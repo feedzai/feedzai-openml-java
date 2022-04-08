@@ -45,7 +45,7 @@ public final class H2OBayesUtils extends AbstractSupervisedH2OAlgoUtils<NaiveBay
      * The complete collection of model parameter names of an H2O Bayes model.
      */
     public static final Set<String> PARAMETER_NAMES =
-            ParametersBuilderUtil.getParametersNamesFor(water.bindings.pojos.NaiveBayesParametersV3.class);
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.NaiveBayesParametersV3.class);
 
     /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.
