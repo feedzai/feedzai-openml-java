@@ -25,6 +25,8 @@ import com.feedzai.openml.h2o.H2OAlgorithm;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
 
+import java.util.Set;
+
 /**
  * Factory class responsible for providing the correct H20 Algorithm util.
  *
@@ -70,6 +72,35 @@ public class H2OAlgoUtilsFactory {
                 return new H2OGeneralizedLinearModelUtils(schema);
             case ISOLATION_FOREST:
                 return new H2OIsolationForestUtils();
+            default:
+                final String errorMessage = String.format("Unsupported algorithm: %s", algorithmDescriptor.getAlgorithmName());
+                logger.error(errorMessage);
+                throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    /**
+     * Gets the complete collection of model parameter names for a given algorithm.
+     *
+     * @param algorithmDescriptor Descriptor for the algorithm we want the utils for.
+     * @return the model parameter names.
+     */
+    public static Set<String> getModelParameterNames(final MLAlgorithmDescriptor algorithmDescriptor) {
+        switch (getH2OAlgorithm(algorithmDescriptor)) {
+            case DISTRIBUTED_RANDOM_FOREST:
+                return H2ODrfUtils.PARAMETER_NAMES;
+            case XG_BOOST:
+                return H2OXgboostUtils.PARAMETER_NAMES;
+            case DEEP_LEARNING:
+                return H2ODeepLearningUtils.PARAMETER_NAMES;
+            case GRADIENT_BOOSTING_MACHINE:
+                return H2OGbmUtils.PARAMETER_NAMES;
+            case NAIVE_BAYES_CLASSIFIER:
+                return H2OBayesUtils.PARAMETER_NAMES;
+            case GENERALIZED_LINEAR_MODEL:
+                return H2OGeneralizedLinearModelUtils.PARAMETER_NAMES;
+            case ISOLATION_FOREST:
+                return H2OIsolationForestUtils.PARAMETER_NAMES;
             default:
                 final String errorMessage = String.format("Unsupported algorithm: %s", algorithmDescriptor.getAlgorithmName());
                 logger.error(errorMessage);

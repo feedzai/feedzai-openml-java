@@ -20,6 +20,7 @@ package com.feedzai.openml.h2o;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.h2o.algos.H2OAlgoUtilsFactory;
 import com.feedzai.openml.h2o.server.H2OApp;
 import com.feedzai.openml.h2o.server.export.MojoExported;
 import com.feedzai.openml.h2o.server.export.PojoExported;
@@ -88,6 +89,11 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
     private final H2OApp h2OApp;
 
     /**
+     * The complete collection of the model parameter names that can be used when using {@link #algorithm}.
+     */
+    private final Set<String> modelParameterNames;
+
+    /**
      * Creates an instance for the specified {@link MLAlgorithmDescriptor}.
      *
      * @param algorithm The {@link MLAlgorithmDescriptor} that describes the algorithm to be instantiated.
@@ -95,6 +101,7 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
     public H2OModelCreator(final MLAlgorithmDescriptor algorithm) {
         this.algorithm = algorithm;
         this.h2OApp = H2OApp.getInstance();
+        this.modelParameterNames = H2OAlgoUtilsFactory.getModelParameterNames(this.algorithm);
     }
 
     /**
@@ -210,7 +217,11 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                                       final DatasetSchema schema,
                                                       final Map<String, String> params) {
 
-        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(
+                this.algorithm,
+                this.modelParameterNames,
+                params
+        );
         final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
 
         errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, effectiveModelParams));
@@ -228,7 +239,11 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                               final Random random,
                                               final Map<String, String> params) throws ModelTrainingException {
 
-        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(
+                this.algorithm,
+                this.modelParameterNames,
+                params
+        );
         try {
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);
             final Model model = this.h2OApp.train(this.algorithm, datasetPath, dataset.getSchema(), effectiveModelParams, random.nextLong());
@@ -252,13 +267,17 @@ public class H2OModelCreator implements MachineLearningModelTrainer<AbstractClas
                                                      final DatasetSchema schema,
                                                      final Map<String, String> params) {
 
-        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(this.algorithm, params);
+        final Map<String, String> effectiveModelParams = getEffectiveModelParameterValues(
+                this.algorithm,
+                this.modelParameterNames,
+                params
+        );
         final ImmutableList.Builder<ParamValidationError> errorBuilder = ImmutableList.builder();
 
         errorBuilder.addAll(ValidationUtils.validateModelPathToTrain(pathToPersist));
         errorBuilder.addAll(ValidationUtils.checkParams(this.algorithm, effectiveModelParams));
 
-        errorBuilder.addAll(this.h2OApp.validate(this.algorithm, schema, params));
+        errorBuilder.addAll(this.h2OApp.validate(this.algorithm, schema, effectiveModelParams));
 
         if (schema.getTargetIndex().isPresent()) {
             ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
