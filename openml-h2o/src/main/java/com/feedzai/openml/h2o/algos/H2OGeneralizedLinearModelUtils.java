@@ -68,6 +68,12 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OP
                     .collect(Collectors.toSet());
 
     /**
+     * The complete collection of model parameter names of an H2O GLM model.
+     */
+    public static final Set<String> PARAMETER_NAMES =
+            ParametersBuilderUtil.getAllParametersNamesFor(water.bindings.pojos.GLMParametersV3.class);
+
+    /**
      * The setter capable of assigning a value of a parameter to the right H2O REST POJO field.
      */
     private static final ParamsValueSetter<GLMParametersV3> PARAMS_SETTER =
