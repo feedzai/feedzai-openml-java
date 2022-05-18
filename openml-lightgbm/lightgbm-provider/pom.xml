@@ -22,10 +22,10 @@
     <groupId>com.feedzai</groupId>
     <artifactId>openml-lightgbm</artifactId>
 
-    <description>OpenML Microsoft LightGBM Machine Learning Model and Classifier provider</description>
+    <description>OpenML LightGBM Machine Learning Model and Classifier provider</description>
 
     <properties>
-        <lightgbmlib.version>3.0.1-with_model_locale_fix_for_java_and_streaming</lightgbmlib.version>
+        <lightgbmlib.version>v3.2.1-fairgbm-beta</lightgbmlib.version>
     </properties>
 
     <dependencies>
