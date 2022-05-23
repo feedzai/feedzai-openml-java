@@ -20,11 +20,13 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import com.feedzai.openml.provider.descriptor.fieldtype.BooleanFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
+import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to return the LightGBM Algorithm's default parameters.
@@ -39,7 +41,7 @@ public class TestParameters {
      *
      * @return Returns all LightGBM ModelParameters with the default values.
      */
-    public static Map<String, String> getDefaultParameters() {
+    public static Map<String, String> getDefaultLightGBMParameters() {
 
         final Map<String, String> mapParams = new HashMap<>(LightGBMDescriptorUtil.PARAMS.size(), 1);
         for (final ModelParameter modelParameter : LightGBMDescriptorUtil.PARAMS) {
@@ -66,4 +68,35 @@ public class TestParameters {
         }
         return mapParams;
     }
+
+    public static Map<String, String> getDefaultFairGBMParameters() {
+
+        final Map<String, String> mapParams = new HashMap<>(FairGBMDescriptorUtil.PARAMS.size());
+        for (final ModelParameter modelParameter : FairGBMDescriptorUtil.PARAMS) {
+            final String defaultValue;
+            final ModelParameterType type = modelParameter.getFieldType();
+
+            if (type instanceof NumericFieldType) {
+                final NumericFieldType numericType = (NumericFieldType) type;
+                final double value = numericType.getDefaultValue();
+                if (numericType.getParameterType() == NumericFieldType.ParameterConfigType.INT) {
+                    defaultValue = String.valueOf((int) value);
+                } else {
+                    defaultValue = String.valueOf(value);
+                }
+            } else if (type instanceof ChoiceFieldType) {
+                defaultValue = String.valueOf(((ChoiceFieldType) type).getDefaultValue());
+            } else if (type instanceof BooleanFieldType) {
+                defaultValue = String.valueOf(((BooleanFieldType) type).isDefaultTrue());
+            } else if (type instanceof FreeTextFieldType) {
+                defaultValue = String.valueOf(((FreeTextFieldType) type).getDefaultValue());
+            } else {
+                throw new RuntimeException("Invalid parameter type received.");
+            }
+
+            mapParams.put(modelParameter.getName(), defaultValue);
+        }
+        return mapParams;
+    }
+
 }

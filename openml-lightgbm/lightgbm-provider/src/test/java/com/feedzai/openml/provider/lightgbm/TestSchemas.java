@@ -83,6 +83,8 @@ public class TestSchemas {
                             ImmutableSet.of("aaacat2", "bcat2", "Ccat2", "dDdcat2"))))
             .add(new FieldSchema("cat3_string", 6, new CategoricalValueSchema(true,
                             ImmutableSet.of("aaacat3", "bcat3", "Ccat3", "dDdcat3", "sdofij", "blahblah"))))
+            .add(new FieldSchema("sensitive_group", 7, new CategoricalValueSchema(false,
+                            ImmutableSet.of("0", "1"))))
             .build();
 
     /**
@@ -105,14 +107,14 @@ public class TestSchemas {
      *
      * Raw data columns @ test_data/in_train_val.csv: "card","amount","event_timestamp","is_fraud_label",
      * "uuid","cat1_generator","cat2_generator","cat3_generator","num1_float","num2_double","num3_int",
-     * "cat1_string","cat2_string","cat3_string"
+     * "cat1_string","cat2_string","cat3_string", "sensitive_group"
      */
     public static final DatasetSchema CATEGORICALS_SCHEMA_LABEL_AT_END = new DatasetSchema(
-            7,
+            8,
             ImmutableList.<FieldSchema>builder()
                     .addAll(CATEGORICAL_SCHEMA_FEATURES)
-                    .add(new FieldSchema("is_fraud_label", 7,
-                            new CategoricalValueSchema(true, ImmutableSet.of("FALSE", "TRUE"))))
+                    .add(new FieldSchema("is_fraud_label", 8,
+                            new CategoricalValueSchema(true, ImmutableSet.of("False", "True"))))
                     .build()
     );
 

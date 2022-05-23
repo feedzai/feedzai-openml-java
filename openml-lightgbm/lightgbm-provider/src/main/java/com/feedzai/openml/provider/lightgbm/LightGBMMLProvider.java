@@ -38,7 +38,7 @@ public class LightGBMMLProvider implements TrainingMachineLearningProvider<Light
     /**
      * The reported name of this provider.
      */
-    private static final String PROVIDER_NAME = "Microsoft LightGBM";
+    private static final String PROVIDER_NAME = "Feedzai GBM";
 
     @Override
     public String getName() {

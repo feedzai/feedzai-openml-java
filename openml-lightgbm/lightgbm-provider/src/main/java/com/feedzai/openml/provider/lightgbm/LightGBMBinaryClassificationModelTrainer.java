@@ -23,10 +23,13 @@ import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import com.microsoft.ml.lightgbm.lightgbmlibConstants;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -473,14 +476,21 @@ final class LightGBMBinaryClassificationModelTrainer {
     private static String getLightGBMTrainParamsString(final Map<String, String> mapParams,
                                                        final List<Integer> categoricalFeatureIndices) {
 
-        final ImmutableMap<String, String> allMapParams = ImmutableMap.<String, String>builder()
+        final ImmutableMap.Builder<String, String> allMapParamsBuilder = ImmutableMap.<String, String>builder()
                 .putAll(mapParams)
-                .put("application", "binary")
-                .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","))
-                .build();
+                .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","));
+
+        // All aliases of the "objective" parameter https://lightgbm.readthedocs.io/en/latest/Parameters.html#objective
+        Set<String> applicationAliases = ImmutableSet.of("objective", "objective_type", "app", "application", "loss");
+
+        // Check whether the "objective" parameter was provided; if not, use the default value of "objective=binary"
+        boolean isObjectiveProvided = mapParams.keySet().stream().anyMatch(applicationAliases::contains);
+        if (! isObjectiveProvided) {
+            allMapParamsBuilder.put("application", "binary");
+        }
 
         final StringBuilder paramsBuilder = new StringBuilder();
-        allMapParams.forEach((key, value) -> {
+        allMapParamsBuilder.build().forEach((key, value) -> {
             paramsBuilder.append(String.format("%s=%s ", key, value));
         });
 

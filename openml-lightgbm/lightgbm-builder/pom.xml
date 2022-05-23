@@ -15,7 +15,7 @@
 
     <groupId>com.feedzai.openml.lightgbm</groupId>
     <artifactId>lightgbm-lib</artifactId>
-    <version>v3.2.1-fairgbm-beta</version>
+    <version>v3.2.1-fairgbm-alpha</version>
 
     <packaging>jar</packaging>
     <name>Openml LightGBM lib</name>
@@ -33,8 +33,9 @@
         <!-- Feedzai's FairGBM! -->
         <lightgbm.repo.url>https://github.com/feedzai/fairgbm.git</lightgbm.repo.url>
 
-        <lightgbmlib.version>v3.2.1-fairgbm-beta</lightgbmlib.version>
-        <lightgbm.version>${lightgbmlib.version}</lightgbm.version>
+        <lightgbm.version>v3.2.1-fairgbm-beta</lightgbm.version>
+<!--        <lightgbm.version>dummy-fairgbm-branch</lightgbm.version>-->
+        <lightgbmlib.version>v3.2.1-fairgbm-alpha</lightgbmlib.version>
     </properties>
 
     <build>

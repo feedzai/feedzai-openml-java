@@ -55,7 +55,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Parameters for model train.
      */
-    private final static Map<String, String> MODEL_PARAMS = TestParameters.getDefaultParameters();
+    private final static Map<String, String> MODEL_PARAMS = TestParameters.getDefaultLightGBMParameters();
 
     /**
      * Maximum number of instances to train (to speed up tests).
@@ -108,6 +108,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      */
     @Test
     public void fitWithNumericalsOnly() throws URISyntaxException, IOException, ModelLoadingException {
+
+        System.out.println("hey");
 
         final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 TestResources.SCORED_INSTANCES_NAME,
@@ -408,12 +410,29 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException           For errors when reading the dataset.
      * @throws ModelLoadingException For errors training the model.
      */
-    private static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
+    static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
             final String datasetResourceName,
             final DatasetSchema schema,
             final int maxInstancesToTrain,
             final int maxInstancesToScore,
             final int chunkSizeInstances) throws URISyntaxException, IOException, ModelLoadingException {
+        return fitModelAndGetFirstScoresPerClass(
+                datasetResourceName,
+                schema,
+                maxInstancesToTrain,
+                maxInstancesToScore,
+                chunkSizeInstances,
+                MODEL_PARAMS
+        );
+    }
+
+    static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
+            final String datasetResourceName,
+            final DatasetSchema schema,
+            final int maxInstancesToTrain,
+            final int maxInstancesToScore,
+            final int chunkSizeInstances,
+            final Map<String, String> modelParams) throws URISyntaxException, IOException, ModelLoadingException {
 
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(datasetResourceName),
@@ -423,7 +442,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
 
         final LightGBMBinaryClassificationModel model = fit(
                 dataset,
-                MODEL_PARAMS,
+                modelParams,
                 chunkSizeInstances
         );
 
@@ -439,7 +458,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param maxInstances Maximum number of instances to score (to reduce testing time).
      * @return Array with arrays of class scores.
      */
-    private static ArrayList<List<Double>> getClassScores(final Dataset dataset,
+    static ArrayList<List<Double>> getClassScores(final Dataset dataset,
                                                           final LightGBMBinaryClassificationModel model,
                                                           final int maxInstances) {
 
@@ -465,7 +484,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param inputArray Input array from which to compute the average.
      * @return Average
      */
-    private double average(final List<Double> inputArray) {
+    double average(final List<Double> inputArray) {
 
         double sum = 0.0;
         for (final Double x : inputArray) {
@@ -484,7 +503,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException           Can be thrown when creating a temporary model file.
      * @throws ModelLoadingException If there was any issue training the model.
      */
-    private static LightGBMBinaryClassificationModel fit(
+    static LightGBMBinaryClassificationModel fit(
             final Dataset dataset,
             final Map<String, String> params,
             final long instancesPerChunk) throws IOException, ModelLoadingException {
@@ -506,7 +525,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @return A {@link ArrayList} of two {@link LinkedList}.
      * @since 1.3.0
      */
-    private static ArrayList<List<Double>> getListOfTwoLists() {
+    static ArrayList<List<Double>> getListOfTwoLists() {
         final ArrayList<List<Double>> list = new ArrayList<>(2);
         list.add(new LinkedList<>());
         list.add(new LinkedList<>());
