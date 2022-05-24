@@ -41,6 +41,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - name: Debugging with tmate
+        uses: mxschmitt/action-tmate@v3.11
+
       - name: Build and test
         run: mvn test -B
 
