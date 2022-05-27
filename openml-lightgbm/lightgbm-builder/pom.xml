@@ -24,7 +24,7 @@
     </description>
     <url>https://github.com/feedzai/make-lightgbm</url>
     <properties>
-        <!-- Microsoft hasn't merged our model-locale-fix patch yet. -->
+        <!-- Microsoft LightGBM -->
         <!-- <lightgbm.repo.url>https://github.com/microsoft/LightGBM</lightgbm.repo.url> -->
 
         <!-- Feedzai's custom LightGBM -->
@@ -33,8 +33,7 @@
         <!-- Feedzai's FairGBM! -->
         <lightgbm.repo.url>https://github.com/feedzai/fairgbm.git</lightgbm.repo.url>
 
-        <lightgbm.version>v3.2.1-fairgbm-beta</lightgbm.version>
-<!--        <lightgbm.version>dummy-fairgbm-branch</lightgbm.version>-->
+        <lightgbm.version>bulk-fairgbm-modifications</lightgbm.version>
         <lightgbmlib.version>v3.2.1-fairgbm-alpha</lightgbmlib.version>
     </properties>
 

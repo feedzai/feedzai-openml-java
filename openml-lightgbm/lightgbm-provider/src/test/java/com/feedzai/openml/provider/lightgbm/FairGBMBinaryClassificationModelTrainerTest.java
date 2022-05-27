@@ -70,7 +70,7 @@ public class FairGBMBinaryClassificationModelTrainerTest {
 //        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }
 
-    @Test
+//    @Test
     public void fitResultsAreIndependentOfTrainChunkSizes()
             throws URISyntaxException, IOException, ModelLoadingException {
 
