@@ -11,6 +11,7 @@ import org.junit.Test;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 
+import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -64,13 +65,13 @@ public class FairGBMBinaryClassificationModelTrainerTest {
         LightGBMUtils.loadLibs();
 
         // The constraint group column must be specified for the dataset used in tests
-        MODEL_PARAMS.replace("constraint_group_column", "name:sensitive_group");
+        MODEL_PARAMS.replace(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, "name:sensitive_group");
 
         // Override number of iterations in fit tests for faster tests:
 //        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }
 
-//    @Test
+    @Test
     public void fitResultsAreIndependentOfTrainChunkSizes()
             throws URISyntaxException, IOException, ModelLoadingException {
 

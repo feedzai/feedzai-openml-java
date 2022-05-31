@@ -34,6 +34,8 @@ import java.util.Set;
  */
 public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
 
+    public static final String CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME = "constraint_group_column";
+
     /**
      * Defines the set of model parameters accepted by the FairGBM algorithm.
      *
@@ -43,7 +45,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
     static final Set<ModelParameter> PARAMS = Sets.union(ImmutableSet.of(
             // The single parameter that will change for every different dataset
             new ModelParameter(
-                    "constraint_group_column",
+                    CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
                     "(Fairness) Sensitive group column",
                     "Fairness constraints will be enforced over this column.\n"
                             + "This column must be in categorical format.\n"

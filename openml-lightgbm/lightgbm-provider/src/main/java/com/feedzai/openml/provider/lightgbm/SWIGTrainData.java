@@ -67,6 +67,11 @@ public class SWIGTrainData implements AutoCloseable {
     public SWIGTYPE_p_float swigTrainLabelDataArray;
 
     /**
+     * SWIG pointer to the constraint group array (array of float32 elements).
+     */
+    public SWIGTYPE_p_float swigConstraintGroupDataArray;
+
+    /**
      * SWIG LightGBM dataset handle.
      */
     public SWIGTYPE_p_void swigDatasetHandle;
@@ -82,6 +87,16 @@ public class SWIGTrainData implements AutoCloseable {
     public floatChunkedArray swigLabelsChunkedArray;
 
     /**
+     * SWIG object to hold the constraint groups in chunks.
+     */
+    public floatChunkedArray swigConstraintGroupChunkedArray;
+
+    /**
+     * Whether the LightGBM model is fairness constrained (aka FairGBM).
+     */
+    private boolean fairnessConstrained;
+
+    /**
      * Constructor.
      *
      * Allocates all the initial handles necessary to bootstrap (but not use) the
@@ -90,17 +105,30 @@ public class SWIGTrainData implements AutoCloseable {
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
      * @see SWIGTrainData#initSwigDatasetHandle()
      *
+     * TODO: overload this constructor with a default argument fairnessConstrained=false
+     *
      * @param numFeatures   The number of features.
      */
     public SWIGTrainData(final int numFeatures, final long numInstancesChunk) {
+        this(numFeatures, numInstancesChunk, false);
+    }
+
+    public SWIGTrainData(final int numFeatures, final long numInstancesChunk, final boolean fairnessConstrained) {
         this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
+        this.fairnessConstrained = fairnessConstrained;
 
         logger.debug("Intermediate SWIG train buffers will be allocated in chunks of {} instances.", numInstancesChunk);
         // 1-D Array in row-major-order that stores only the features (excludes label) in double format by chunks:
         this.swigFeaturesChunkedArray = new doubleChunkedArray(numFeatures * numInstancesChunk);
+
         // 1-D Array with the labels (float32):
         this.swigLabelsChunkedArray = new floatChunkedArray(numInstancesChunk);
+
+        // 1-D Array with the constraint group (float32):
+        if (this.fairnessConstrained) {
+            this.swigConstraintGroupChunkedArray = new floatChunkedArray(numInstancesChunk);
+        }
     }
 
     /**
@@ -119,6 +147,14 @@ public class SWIGTrainData implements AutoCloseable {
     }
 
     /**
+     * Adds a value to the constraint group ChunkedArray.
+     * @param value the value to add.
+     */
+    public void addConstraintGroupValue(float value) {
+        this.swigConstraintGroupChunkedArray.add(value);
+    }
+
+    /**
      * @return Return the chunk sizes (in instances).
      */
     public long getNumInstancesChunk() {
@@ -132,6 +168,15 @@ public class SWIGTrainData implements AutoCloseable {
     public void initSwigTrainLabelDataArray() {
         this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_add_count());
         this.swigLabelsChunkedArray.coalesce_to(this.swigTrainLabelDataArray);
+    }
+
+    /**
+     * Initializes the swigTrainLabelDataArray and copies
+     * the chunked labels array data to it.
+     */
+    public void initSwigConstraintGroupDataArray() {
+        this.swigConstraintGroupDataArray = lightgbmlib.new_floatArray(this.swigConstraintGroupChunkedArray.get_add_count());
+        this.swigConstraintGroupChunkedArray.coalesce_to(this.swigConstraintGroupDataArray);
     }
 
     /**
@@ -154,6 +199,19 @@ public class SWIGTrainData implements AutoCloseable {
     }
 
     /**
+     * Release the memory of the constraint group array.
+     * This can be called after instantiating the dataset and setting the constraint group in it.
+     */
+    public void destroySwigConstraintGroupDataArray() {
+
+        if (this.swigConstraintGroupDataArray != null) {
+            lightgbmlib.delete_floatArray(this.swigConstraintGroupDataArray);
+            this.swigConstraintGroupDataArray = null;
+        }
+    }
+
+
+    /**
      * Release the memory of the chunked features array.
      * This can be called after instantiating the dataset.
      *
@@ -172,6 +230,7 @@ public class SWIGTrainData implements AutoCloseable {
     public void releaseChunkedResources() {
         this.swigFeaturesChunkedArray.release();
         this.swigLabelsChunkedArray.release();
+        this.swigConstraintGroupChunkedArray.release();
     }
 
     /**
@@ -190,6 +249,7 @@ public class SWIGTrainData implements AutoCloseable {
 
         destroySwigTrainFeaturesChunkedDataArray();
         destroySwigTrainLabelDataArray();
+        destroySwigConstraintGroupDataArray();
 
         if (this.swigDatasetHandle != null) {
             lightgbmlib.LGBM_DatasetFree(this.swigDatasetHandle);

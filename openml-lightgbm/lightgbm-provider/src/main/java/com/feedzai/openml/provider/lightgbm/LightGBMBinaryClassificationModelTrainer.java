@@ -22,13 +22,13 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import com.microsoft.ml.lightgbm.lightgbmlibConstants;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
@@ -69,6 +70,18 @@ final class LightGBMBinaryClassificationModelTrainer {
      *              E.g.: 100k instances of 400 features =>  320MB / chunk
      */
     static final long DEFAULT_TRAIN_DATA_CHUNK_INSTANCES_SIZE = 200000;
+
+    /**
+     * Placeholder for use when some integer argument is not provided.
+     * E.g., when running standard unconstrained LightGBM the constrained_group_column parameter will take this value.
+     */
+    static final int NO_SPECIFIC = -1;
+
+    /**
+     * String prefix used to refer to columns by name in LightGBM configs/parameters.
+     */
+    static final String COL_NAME_PREFIX = "name:";
+
 
     /**
      * This class is not meant to be instantiated.
@@ -128,18 +141,22 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final DatasetSchema schema = dataset.getSchema();
         final int numFeatures = schema.getPredictiveFields().size();
-        final String trainParams = getLightGBMTrainParamsString(params,
-                getCategoricalFeaturesIndicesWithoutLabel(schema));
+
+        // Parse train parameters to LightGBM format
+        final String trainParams = getLightGBMTrainParamsString(params, schema);
+
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
-                instancesPerChunk);
+                instancesPerChunk,
+                isFairnessConstrained(params));
         final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
 
         /// Create LightGBM dataset
-        createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
+        final int constraintGroupColIndex = getConstraintGroupColumnIndex(schema, params).orElse(NO_SPECIFIC);
+        createTrainDataset(dataset, numFeatures, trainParams, constraintGroupColIndex, swigTrainData);
 
         /// Create Booster from dataset
         createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
@@ -170,6 +187,71 @@ final class LightGBMBinaryClassificationModelTrainer {
     }
 
     /**
+     * Gets the index of the constraint group column.
+     * NOTE: the constraint group column must be part of the features in the Dataset, but it may be ignored for training
+     *       (unawareness).
+     * @param schema Schema of the dataset.
+     * @param mapParams LightGBM train parameters.
+     * @return the index of the constraint group column if one was provided, else returns an empty Optional.
+     */
+    private static Optional<Integer> getConstraintGroupColumnIndex(final DatasetSchema schema,
+                                                                   final Map<String, String> mapParams) {
+        // Parse the constraint_group_column, if one was provided
+        String constraintGroupCol = mapParams.get(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
+        if (constraintGroupCol == null || constraintGroupCol.trim().isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Trim white-space
+        constraintGroupCol = constraintGroupCol.trim();
+
+        // Initialize column index to placeholder
+        int constraintGroupColIndex = NO_SPECIFIC;
+
+        // Check if it's already in numeric format
+        try {
+            constraintGroupColIndex = Integer.parseInt(constraintGroupCol);
+        }
+
+        // If not, find the index for this column
+        catch (NumberFormatException e) {
+
+            // Remove the "name:" prefix
+            final String actualConstraintGroupCol = constraintGroupCol.substring(
+                    constraintGroupCol.startsWith(COL_NAME_PREFIX) ? COL_NAME_PREFIX.length() : 0);
+
+            // Find index for this column; consider label offset (LightGBM indices disregard the target column)
+            final List<FieldSchema> featureFields = schema.getPredictiveFields();
+            Optional<FieldSchema> constraintGroupField = featureFields
+                    .stream()
+                    .filter(field -> field.getFieldName().equalsIgnoreCase(actualConstraintGroupCol))
+                    .findFirst();
+
+            // Check if column exists
+            if (! constraintGroupField.isPresent()) {
+                logger.error(String.format("The parameter %s=%s is invalid; no such column was found.",
+                                           CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                                           actualConstraintGroupCol));
+
+                // Pop this from the parameters Map so we know not to keep looking for this invalid input
+                mapParams.remove(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
+                return Optional.empty();
+            }
+
+            // NOTE!
+            //  - this index corresponds to the index in our dataset schema;
+            //  - this value may be off by one when compared to LightGBM's expected index values;
+            //  - this is due to the fact that LightGBM disregards the target column when counting column indices;
+            //
+            constraintGroupColIndex = constraintGroupField.get().getFieldIndex();
+        }
+
+        // Replace the value in mapParams so we don't have to do this again
+        mapParams.replace(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, Integer.toString(constraintGroupColIndex));
+        return Optional.of(constraintGroupColIndex);
+    }
+
+    /**
      * @param fields List of FieldSchema fields.
      * @return Names of the fields in the input list.
      */
@@ -189,11 +271,13 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param dataset            Dataset
      * @param numFeatures        Number of features
      * @param trainParams        LightGBM-formatted params string ("key1=value1 key2=value2 ...")
+     * @param constraintGroupColIndex   The index of the constraint group column.
      * @param swigTrainData      SWIGTrainData object
      */
     private static void createTrainDataset(final Dataset dataset,
                                            final int numFeatures,
                                            final String trainParams,
+                                           final int constraintGroupColIndex,
                                            final SWIGTrainData swigTrainData) {
 
         logger.info("Creating LightGBM dataset");
@@ -201,7 +285,8 @@ final class LightGBMBinaryClassificationModelTrainer {
         logger.debug("Copying train data through SWIG.");
         copyTrainDataToSWIGArrays(
                 dataset,
-                swigTrainData
+                swigTrainData,
+                constraintGroupColIndex
         );
 
         initializeLightGBMTrainDatasetFeatures(
@@ -213,6 +298,12 @@ final class LightGBMBinaryClassificationModelTrainer {
         setLightGBMDatasetLabelData(
                 swigTrainData
         );
+
+        if (constraintGroupColIndex != NO_SPECIFIC) {
+            setLightGBMDatasetConstraintGroupData(
+                    swigTrainData
+            );
+        }
 
         setLightGBMDatasetFeatureNames(swigTrainData.swigDatasetHandle, dataset.getSchema());
 
@@ -245,7 +336,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 numFeatures,
                 1, // rowMajor.
                 trainParams, // parameters.
-                null, // No alighment with other datasets.
+                null, // No alignment with other datasets.
                 swigTrainData.swigOutDatasetHandlePtr // Output LGBM Dataset
         );
         if (returnCodeLGBM == -1) {
@@ -317,6 +408,33 @@ final class LightGBMBinaryClassificationModelTrainer {
         }
 
         swigTrainData.destroySwigTrainLabelDataArray();
+    }
+
+    /**
+     * Sets the LightGBM dataset fairness constraint group data.
+     *
+     * @param swigTrainData SWIGTrainData object.
+     */
+    private static void setLightGBMDatasetConstraintGroupData(final SWIGTrainData swigTrainData) {
+
+        final long numInstances = swigTrainData.swigConstraintGroupChunkedArray.get_add_count();
+        swigTrainData.initSwigConstraintGroupDataArray(); // Init and copy from chunked data.
+        logger.debug("FTL: #labels={}", numInstances);
+
+        logger.debug("Setting constraint group data.");
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
+                swigTrainData.swigDatasetHandle,
+                "constraint_group", // LightGBM label column type.
+                lightgbmlib.float_to_voidp_ptr(swigTrainData.swigConstraintGroupDataArray),
+                (int) numInstances,
+                lightgbmlibConstants.C_API_DTYPE_FLOAT32
+        );
+        if (returnCodeLGBM == -1) {
+            logger.error("Could not set constraint group data.");
+            throw new LightGBMException();
+        }
+
+        swigTrainData.destroySwigConstraintGroupDataArray();
     }
 
     /**
@@ -437,6 +555,12 @@ final class LightGBMBinaryClassificationModelTrainer {
      */
     private static void copyTrainDataToSWIGArrays(final Dataset dataset,
                                                   final SWIGTrainData swigTrainData) {
+        copyTrainDataToSWIGArrays(dataset, swigTrainData, NO_SPECIFIC);
+    }
+
+    private static void copyTrainDataToSWIGArrays(final Dataset dataset,
+                                                  final SWIGTrainData swigTrainData,
+                                                  final int constraintGroupIndex) {
 
         final DatasetSchema datasetSchema = dataset.getSchema();
         final int numFields = datasetSchema.getFieldSchemas().size();
@@ -451,6 +575,10 @@ final class LightGBMBinaryClassificationModelTrainer {
             final Instance instance = iterator.next();
 
             swigTrainData.addLabelValue((float) instance.getValue(targetIndex));
+
+            if (constraintGroupIndex != NO_SPECIFIC) {
+                swigTrainData.addConstraintGroupValue((float) instance.getValue(constraintGroupIndex));
+            }
 
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
                 if (colIdx != targetIndex) {
@@ -474,27 +602,70 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @return LightGBM params string in the format LightGBM expects ("key1=value1 key2=value2 ... keyN=valueN").
      */
     private static String getLightGBMTrainParamsString(final Map<String, String> mapParams,
-                                                       final List<Integer> categoricalFeatureIndices) {
+                                                       final DatasetSchema schema) {
+        final Map<String, String> preprocessedMapParams = new HashMap<>();
 
-        final ImmutableMap.Builder<String, String> allMapParamsBuilder = ImmutableMap.<String, String>builder()
-                .putAll(mapParams)
+        // Add categorical_feature parameter
+        List<Integer> categoricalFeatureIndices = getCategoricalFeaturesIndicesWithoutLabel(schema);
+        preprocessedMapParams
                 .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","));
 
-        // All aliases of the "objective" parameter https://lightgbm.readthedocs.io/en/latest/Parameters.html#objective
-        Set<String> applicationAliases = ImmutableSet.of("objective", "objective_type", "app", "application", "loss");
+        // Add constraint_group_column parameter
+        final Optional<Integer> constraintGroupColumnIndex = getConstraintGroupColumnIndex(schema, mapParams);
+        if (mapParams.containsKey(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME) && constraintGroupColumnIndex.isPresent()) {
 
-        // Check whether the "objective" parameter was provided; if not, use the default value of "objective=binary"
-        boolean isObjectiveProvided = mapParams.keySet().stream().anyMatch(applicationAliases::contains);
-        if (! isObjectiveProvided) {
-            allMapParamsBuilder.put("application", "binary");
+            // NOTE! LightGBM counts column indices disregarding the target column
+            final int fieldAfterLabelOffset = constraintGroupColumnIndex.get() > schema.getTargetIndex().get() ? -1 : 0;
+            preprocessedMapParams.put(
+                    CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                    Integer.toString(constraintGroupColumnIndex.get() + fieldAfterLabelOffset));
         }
 
+        // Set default objective parameter
+        Optional<String> objective = getLightGBMObjective(mapParams);
+        if (! objective.isPresent()) {
+            // Default to objective=binary
+            preprocessedMapParams.put("objective", "binary");
+        }
+
+        // Add all **other** parameters
+        mapParams.forEach(preprocessedMapParams::putIfAbsent);
+
+        // Build string containing params in LightGBM format
         final StringBuilder paramsBuilder = new StringBuilder();
-        allMapParamsBuilder.build().forEach((key, value) -> {
+        preprocessedMapParams.forEach((key, value) -> {
             paramsBuilder.append(String.format("%s=%s ", key, value));
         });
 
         return paramsBuilder.toString();
     }
 
+    /**
+     * Gets the objective function within the given LightGBM train parameters.
+     *
+     * @param mapParams the LightGBM train parameters.
+     * @return the objective function if one exists, else returns null.
+     */
+    public static Optional<String> getLightGBMObjective(final Map<String, String> mapParams) {
+        // All aliases for the "objective" parameter https://lightgbm.readthedocs.io/en/latest/Parameters.html#objective
+        Set<String> objectiveAliases = ImmutableSet.of("objective", "objective_type", "app", "application", "loss");
+
+        // Check whether the "objective" parameter was provided; if not, use the default value of "objective=binary"
+        Map.Entry<String, String> candidate = mapParams
+                .entrySet().stream()
+                .filter(entry -> objectiveAliases.contains(entry.getKey()))
+                .findFirst().orElse(null);
+
+        return candidate != null ? Optional.of(candidate.getValue()) : Optional.empty();
+    }
+
+    /**
+     * Whether the given mapParams correspond to a constrained LightGBM objective (aka FairGBM).
+     * @param mapParams set of train parameters for LightGBM.
+     * @return whether it is a fairness constrained objective.
+     */
+    public static boolean isFairnessConstrained(final Map<String, String> mapParams) {
+        Optional<String> objective = getLightGBMObjective(mapParams);
+        return (objective.isPresent() && objective.get().startsWith("constrained_"));
+    }
 }
