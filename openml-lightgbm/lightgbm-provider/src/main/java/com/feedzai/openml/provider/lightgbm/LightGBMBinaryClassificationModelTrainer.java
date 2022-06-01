@@ -238,11 +238,23 @@ final class LightGBMBinaryClassificationModelTrainer {
                 return Optional.empty();
             }
 
+            // Check if the constraint_group_column is in categorical format
+            if (! (constraintGroupField.get().getValueSchema() instanceof CategoricalValueSchema)) {
+                logger.error(String.format(
+                        "The parameter %s=%s is invalid; expected a column in categorical format, got %s format.",
+                        CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                        actualConstraintGroupCol,
+                        constraintGroupField.get().getValueSchema().getClass().toString()));
+
+                // Pop this from the parameters Map so we know not to keep looking for this invalid input
+                mapParams.remove(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
+                return Optional.empty();
+            }
+
             // NOTE!
             //  - this index corresponds to the index in our dataset schema;
             //  - this value may be off by one when compared to LightGBM's expected index values;
             //  - this is due to the fact that LightGBM disregards the target column when counting column indices;
-            //
             constraintGroupColIndex = constraintGroupField.get().getFieldIndex();
         }
 
