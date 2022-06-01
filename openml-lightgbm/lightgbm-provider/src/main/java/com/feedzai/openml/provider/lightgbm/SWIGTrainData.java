@@ -230,8 +230,10 @@ public class SWIGTrainData implements AutoCloseable {
     public void releaseChunkedResources() {
         this.swigFeaturesChunkedArray.release();
         this.swigLabelsChunkedArray.release();
-        this.swigConstraintGroupChunkedArray.release();
-    }
+
+        if (this.swigConstraintGroupChunkedArray != null) {
+            this.swigConstraintGroupChunkedArray.release();
+        }    }
 
     /**
      * Release any allocated resources.

@@ -317,7 +317,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -334,7 +334,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -351,7 +351,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -360,12 +360,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param dataset The {@link Dataset}.
      * @since 1.3.0
      */
-    private void ensureFeatureContributions(final Dataset dataset) {
+    static void ensureFeatureContributions(final Dataset dataset, final Map<String, String> modelParams) {
         final int targetIndex = dataset.getSchema().getTargetIndex().get();
         final int num1Index = 1;
         final int cat1Index = 4;
 
-        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -484,7 +484,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param inputArray Input array from which to compute the average.
      * @return Average
      */
-    double average(final List<Double> inputArray) {
+    static double average(final List<Double> inputArray) {
 
         double sum = 0.0;
         for (final Double x : inputArray) {
