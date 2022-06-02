@@ -49,7 +49,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Handle for the output parameter necessary for the LightGBM dataset instantiation.
      */
-    public SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
+    public SWIGTYPE_p_p_void swigOutDatasetHandlePtr = null;
 
     /**
      * SWIG Features chunked data array.
@@ -59,17 +59,17 @@ public class SWIGTrainData implements AutoCloseable {
      * In the current implementation, features are stored in row-major order, i.e.,
      * each instance is stored contiguously.
      */
-    public doubleChunkedArray swigFeaturesChunkedArray;
+    public doubleChunkedArray swigFeaturesChunkedArray = null;
 
     /**
      * SWIG pointer to the labels array (array of float32 elements).
      */
-    public SWIGTYPE_p_float swigTrainLabelDataArray;
+    public SWIGTYPE_p_float swigTrainLabelDataArray = null;
 
     /**
      * SWIG LightGBM dataset handle.
      */
-    public SWIGTYPE_p_void swigDatasetHandle;
+    public SWIGTYPE_p_void swigDatasetHandle = null;
 
     /**
      * Number of instances to store in each chunk.
@@ -79,7 +79,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * SWIG object to hold the labels in chunks.
      */
-    public floatChunkedArray swigLabelsChunkedArray;
+    public floatChunkedArray swigLabelsChunkedArray = null;
 
     /**
      * Constructor.

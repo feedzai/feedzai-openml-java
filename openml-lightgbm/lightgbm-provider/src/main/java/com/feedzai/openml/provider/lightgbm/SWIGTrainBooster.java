@@ -42,12 +42,12 @@ class SWIGTrainBooster implements AutoCloseable {
     /**
      * SWIG pointer to the output LightGBM Booster Handle during Booster structure instantiation.
      */
-    public SWIGTYPE_p_p_void swigOutBoosterHandlePtr;
+    public SWIGTYPE_p_p_void swigOutBoosterHandlePtr = null;
 
     /**
      * Handle of the LightGBM boosting model post-instantiation.
      */
-    public SWIGTYPE_p_void swigBoosterHandle;
+    public SWIGTYPE_p_void swigBoosterHandle = null;
 
     /**
      * Constructor.
