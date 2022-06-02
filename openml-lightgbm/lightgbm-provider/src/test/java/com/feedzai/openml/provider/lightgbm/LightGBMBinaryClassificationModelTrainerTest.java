@@ -109,8 +109,6 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     @Test
     public void fitWithNumericalsOnly() throws URISyntaxException, IOException, ModelLoadingException {
 
-        System.out.println("hey");
-
         final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 TestResources.SCORED_INSTANCES_NAME,
                 TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
