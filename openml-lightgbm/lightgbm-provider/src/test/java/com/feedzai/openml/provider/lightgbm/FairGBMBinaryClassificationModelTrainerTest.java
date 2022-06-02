@@ -74,6 +74,9 @@ public class FairGBMBinaryClassificationModelTrainerTest {
         // The constraint group column must be specified for the dataset used in tests
         MODEL_PARAMS.replace(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, "name:sensitive_group");
 
+        // Override the multiplier_learning_rate
+        MODEL_PARAMS.replace("multiplier_learning_rate", "1000");
+
         // Override number of iterations in fit tests for faster tests:
 //        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }

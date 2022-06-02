@@ -229,12 +229,10 @@ final class LightGBMBinaryClassificationModelTrainer {
 
             // Check if column exists
             if (! constraintGroupField.isPresent()) {
-                logger.error(String.format("The parameter %s=%s is invalid; no such column was found.",
-                                           CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
-                                           actualConstraintGroupCol));
-
-                // Pop this from the parameters Map so we know not to keep looking for this invalid input
-                mapParams.remove(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
+                logger.error(String.format(
+                        "The parameter %s=%s is invalid; no such column was found.",
+                           CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                           actualConstraintGroupCol));
                 return Optional.empty();
             }
 
@@ -245,9 +243,6 @@ final class LightGBMBinaryClassificationModelTrainer {
                         CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
                         actualConstraintGroupCol,
                         constraintGroupField.get().getValueSchema().getClass().toString()));
-
-                // Pop this from the parameters Map so we know not to keep looking for this invalid input
-                mapParams.remove(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
                 return Optional.empty();
             }
 
@@ -258,8 +253,6 @@ final class LightGBMBinaryClassificationModelTrainer {
             constraintGroupColIndex = constraintGroupField.get().getFieldIndex();
         }
 
-        // Replace the value in mapParams so we don't have to do this again
-        mapParams.replace(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, Integer.toString(constraintGroupColIndex));
         return Optional.of(constraintGroupColIndex);
     }
 
