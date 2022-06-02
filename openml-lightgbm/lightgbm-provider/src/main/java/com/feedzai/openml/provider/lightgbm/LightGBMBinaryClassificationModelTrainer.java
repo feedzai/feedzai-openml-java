@@ -638,9 +638,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         // Build string containing params in LightGBM format
         final StringBuilder paramsBuilder = new StringBuilder();
-        preprocessedMapParams.forEach((key, value) -> {
-            paramsBuilder.append(String.format("%s=%s ", key, value));
-        });
+        preprocessedMapParams.forEach((key, value) -> paramsBuilder.append(String.format("%s=%s ", key, value)));
 
         return paramsBuilder.toString();
     }
