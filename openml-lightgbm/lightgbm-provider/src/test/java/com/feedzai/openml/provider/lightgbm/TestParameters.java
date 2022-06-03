@@ -37,45 +37,35 @@ import java.util.Set;
 public class TestParameters {
 
     /**
-     * Gets default parameters.
+     * Gets default parameters for LightGBM.
      *
      * @return Returns all LightGBM ModelParameters with the default values.
      */
     public static Map<String, String> getDefaultLightGBMParameters() {
-
-        final Map<String, String> mapParams = new HashMap<>(LightGBMDescriptorUtil.PARAMS.size(), 1);
-        for (final ModelParameter modelParameter : LightGBMDescriptorUtil.PARAMS) {
-            final String defaultValue;
-            final ModelParameterType type = modelParameter.getFieldType();
-
-            if (type instanceof NumericFieldType) {
-                final NumericFieldType numericType = (NumericFieldType) type;
-                final double value = numericType.getDefaultValue();
-                if (numericType.getParameterType() == NumericFieldType.ParameterConfigType.INT) {
-                    defaultValue = String.valueOf((int) value);
-                } else {
-                    defaultValue = String.valueOf(value);
-                }
-            } else if (type instanceof ChoiceFieldType) {
-                defaultValue = String.valueOf(((ChoiceFieldType) type).getDefaultValue());
-            } else if (type instanceof BooleanFieldType) {
-                defaultValue = String.valueOf(((BooleanFieldType) type).isDefaultTrue());
-            } else {
-                throw new RuntimeException("Invalid parameter type received.");
-            }
-
-            mapParams.put(modelParameter.getName(), defaultValue);
-        }
-        return mapParams;
+        return getDefaultParameters(LightGBMDescriptorUtil.PARAMS);
     }
 
+    /**
+     * Gets default parameters for FairGBM.
+     *
+     * @return Returns all FairGBM ModelParameters with the default values.
+     */
     public static Map<String, String> getDefaultFairGBMParameters() {
+        return getDefaultParameters(FairGBMDescriptorUtil.PARAMS);
+    }
 
-        final Map<String, String> mapParams = new HashMap<>(FairGBMDescriptorUtil.PARAMS.size());
-        for (final ModelParameter modelParameter : FairGBMDescriptorUtil.PARAMS) {
+    /**
+     * Extracts the default parameters from the provided set of Model Parameters.
+     *
+     * @param params A set of model parameters.
+     * @return the default set of parameters.
+     */
+    private static Map<String, String> getDefaultParameters(Set<ModelParameter> params) {
+
+        final Map<String, String> mapParams = new HashMap<>(params.size());
+        for (final ModelParameter modelParameter : params) {
             final String defaultValue;
             final ModelParameterType type = modelParameter.getFieldType();
-
             if (type instanceof NumericFieldType) {
                 final NumericFieldType numericType = (NumericFieldType) type;
                 final double value = numericType.getDefaultValue();

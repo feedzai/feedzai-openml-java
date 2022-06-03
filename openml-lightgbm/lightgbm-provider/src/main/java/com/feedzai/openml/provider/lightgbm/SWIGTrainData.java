@@ -105,14 +105,26 @@ public class SWIGTrainData implements AutoCloseable {
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
      * @see SWIGTrainData#initSwigDatasetHandle()
      *
-     * TODO: overload this constructor with a default argument fairnessConstrained=false
-     *
-     * @param numFeatures   The number of features.
+     * @param numFeatures       The number of features.
+     * @param numInstancesChunk The number of instances per chunk of data.
      */
     public SWIGTrainData(final int numFeatures, final long numInstancesChunk) {
         this(numFeatures, numInstancesChunk, false);
     }
 
+    /**
+     * Constructor.
+     *
+     * Allocates al the initial ahndles necessary to bootstrap (but not use) the
+     * in-memory LightGBM dataset, plus booster structures.
+     *
+     * If fairnessConstrained=true, this will also include data on which sensitive
+     * group each instance belongs to.
+     *
+     * @param numFeatures           The number of features.
+     * @param numInstancesChunk     The number of instances per chunk of data.
+     * @param fairnessConstrained   Whether this data will be used for a model with fairness (group) constraints.
+     */
     public SWIGTrainData(final int numFeatures, final long numInstancesChunk, final boolean fairnessConstrained) {
         this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
@@ -233,7 +245,8 @@ public class SWIGTrainData implements AutoCloseable {
 
         if (this.swigConstraintGroupChunkedArray != null) {
             this.swigConstraintGroupChunkedArray.release();
-        }    }
+        }
+    }
 
     /**
      * Release any allocated resources.
