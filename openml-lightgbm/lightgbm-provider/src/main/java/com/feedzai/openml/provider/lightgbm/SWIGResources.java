@@ -106,6 +106,11 @@ class SWIGResources implements AutoCloseable {
     private Integer boosterNumFeatures;
 
     /**
+     * Number of classes in the trained LGBM.
+     */
+    private Integer boosterNumClasses = null;
+
+    /**
      * Names of features in the trained LightGBM boosting model.
      * Whilst not a swig resource, it is automatically retrieved during model loading,
      * thus we store it to avoid calls that can fail.
@@ -252,19 +257,21 @@ class SWIGResources implements AutoCloseable {
      * Assumes the model was already loaded from file.
      * Initializes the remaining SWIG resources needed to use the model.
      *
+     * The size of {@link #swigOutContributionsPtr} is computed accoring to
+     * https://lightgbm.readthedocs.io/en/latest/C-API.html#c.LGBM_BoosterPredictForMatSingleRow
+     *
      * @throws LightGBMException in case there's an error in the C++ core library.
      */
     private void initAuxiliaryModelResources() throws LightGBMException {
-
-        this.boosterNumFeatures = computeBoosterNumFeaturesFromModel();
+        computeBoosterNumFeaturesFromModel();
         logger.debug("Loaded LightGBM Model has {} features.", this.boosterNumFeatures);
 
         this.boosterFeatureNames = computeBoosterFeatureNamesFromModel();
 
         this.swigOutLengthInt64Ptr = lightgbmlibJNI.new_int64_tp();
         this.swigInstancePtr = lightgbmlibJNI.new_doubleArray(getBoosterNumFeatures());
-        this.swigOutScoresPtr = lightgbmlibJNI.new_doubleArray(BINARY_LGBM_NUM_CLASSES);
-        this.swigOutContributionsPtr = lightgbmlibJNI.new_doubleArray(this.boosterNumFeatures + 1);
+        this.swigOutScoresPtr = lightgbmlibJNI.new_doubleArray(this.boosterNumClasses);
+        this.swigOutContributionsPtr = lightgbmlibJNI.new_doubleArray((long) this.boosterNumClasses * (this.boosterNumFeatures + 1));
     }
 
     /**
@@ -301,6 +308,14 @@ class SWIGResources implements AutoCloseable {
         if (this.swigOutIntPtr != null) {
             lightgbmlibJNI.delete_intp(this.swigOutIntPtr);
             this.swigOutIntPtr = null;
+        }
+        if (this.boosterNumFeatures != null) {
+            lightgbmlibJNI.delete_intp(this.boosterNumFeatures);
+            this.boosterNumFeatures = null;
+        }
+        if (this.boosterNumClasses != null) {
+            lightgbmlibJNI.delete_intp(this.boosterNumClasses);
+            this.boosterNumClasses = null;
         }
         if (this.swigOutContributionsPtr != null) {
             lightgbmlibJNI.delete_doubleArray(this.swigOutContributionsPtr);
@@ -373,17 +388,31 @@ class SWIGResources implements AutoCloseable {
      * Computes the number of features in the model and returns it.
      *
      * @throws LightGBMException when there is a LightGBM C++ error.
-     * @returns int with the number of Booster features.
      */
-    private Integer computeBoosterNumFeaturesFromModel() throws LightGBMException {
-
-        final int returnCodeLGBM = lightgbmlibJNI.LGBM_BoosterGetNumFeature(
+    private void computeBoosterNumFeaturesFromModel() throws LightGBMException {
+        final int returnCodeNumFeatsLGBM = lightgbmlibJNI.LGBM_BoosterGetNumFeature(
                 this.swigBoosterHandle,
                 this.swigOutIntPtr);
-        if (returnCodeLGBM == -1)
+        if (returnCodeNumFeatsLGBM == -1)
             throw new LightGBMException();
 
-        return lightgbmlibJNI.intp_value(this.swigOutIntPtr);
+
+        if (this.boosterNumFeatures != null) {
+            lightgbmlibJNI.delete_intp(this.boosterNumFeatures);
+            this.boosterNumFeatures = null;
+        }
+        this.boosterNumFeatures = lightgbmlibJNI.intp_value(this.swigOutIntPtr);
+
+        final int returnCodeNumClassesLGBM = lightgbmlibJNI.LGBM_BoosterGetNumClasses(
+                this.swigBoosterHandle,
+                this.swigOutIntPtr);
+        if (returnCodeNumClassesLGBM == -1)
+            throw new LightGBMException();
+        if (this.boosterNumClasses != null) {
+            lightgbmlibJNI.delete_intp(this.boosterNumClasses);
+            this.boosterNumClasses = null;
+        }
+        this.boosterNumClasses = lightgbmlibJNI.intp_value(this.swigOutIntPtr);
     }
 
     /**
