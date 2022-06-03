@@ -46,42 +46,42 @@ class SWIGResources implements AutoCloseable {
     /**
      * SWIG pointer to BoosterHandle.
      */
-    public Long swigBoosterHandle = null;
+    public Long swigBoosterHandle;
 
     /**
      * SWIG pointer to FastConfigHandle.
      */
-    public Long swigFastConfigHandle = null;
+    public Long swigFastConfigHandle;
 
     /**
      * SWIG pointer to FastConfigContributionsHandle.
      *
      * @since 1.3.0
      */
-    public Long swigFastConfigContributionsHandle = null;
+    public Long swigFastConfigContributionsHandle;
 
     /**
      * Useless variable in the C API, for we already have to preallocate swigOutScoresPtr,
      * so we get no information from this API output.
      */
-    public Long swigOutLengthInt64Ptr = null;
+    public Long swigOutLengthInt64Ptr;
 
     /**
      * Pointer to the instance array.
      */
-    public Long swigInstancePtr = null;
+    public Long swigInstancePtr;
 
     /**
      * SWIG Pointer to the scored array output (pre-allocated by us).
      */
-    public Long swigOutScoresPtr = null;
+    public Long swigOutScoresPtr;
 
     /**
      * SWIG Pointer to the features contributions array output (pre-allocated by us).
      *
      * @since 1.3.0
      */
-    public Long swigOutContributionsPtr = null;
+    public Long swigOutContributionsPtr;
 
     /**
      * A handler to collect a pointer to int output.
@@ -89,21 +89,21 @@ class SWIGResources implements AutoCloseable {
      * As many calls output an IntPtr, this field is useful
      * to avoid repeating pointer allocation/destruction ops.
      */
-    public Long swigOutIntPtr = null;
+    public Long swigOutIntPtr;
 
     /**
      * Number of iterations in the trained LightGBM boosting model.
      * Whilst not a swig resource, it is automatically retrieved during model loading,
      * thus we store it to avoid calling it again.
      */
-    private Integer boosterNumIterations = null;
+    private Integer boosterNumIterations;
 
     /**
      * Number of features in the trained LightGBM boosting model.
      * Whilst not a swig resource, it is automatically retrieved during model loading,
      * thus we store it to avoid calls that can fail.
      */
-    private Integer boosterNumFeatures = null;
+    private Integer boosterNumFeatures;
 
     /**
      * Names of features in the trained LightGBM boosting model.
@@ -112,7 +112,7 @@ class SWIGResources implements AutoCloseable {
      *
      * @since 1.0.18
      */
-    private String[] boosterFeatureNames = null;
+    private String[] boosterFeatureNames;
 
     /**
      * Constructor. Initializes a model handle and all resource handlers
