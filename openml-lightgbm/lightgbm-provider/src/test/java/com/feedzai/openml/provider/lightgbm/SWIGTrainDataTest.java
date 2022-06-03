@@ -1,5 +1,6 @@
 package com.feedzai.openml.provider.lightgbm;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -40,6 +41,14 @@ public class SWIGTrainDataTest {
     public void setupTest() {
 
         swigTrainData = new SWIGTrainData((int) NUM_FEATURES, NUM_INSTANCES_PER_CHUNK);
+    }
+
+    /**
+     * Release/close resources.
+     */
+    @After
+    public void tearDown() {
+        swigTrainData.close();
     }
 
     /**

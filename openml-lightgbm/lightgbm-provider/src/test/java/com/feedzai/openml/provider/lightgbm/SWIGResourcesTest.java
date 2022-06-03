@@ -18,6 +18,7 @@
 package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -61,6 +62,15 @@ public class SWIGResourcesTest {
     }
 
     /**
+     * Release/close resources
+     */
+    @AfterClass
+    public static void afterClass() {
+        defaultSwig.close();
+    }
+
+
+    /**
      * Test SWIGResources() - all public members should be initialized.
      */
     @Test
@@ -91,7 +101,7 @@ public class SWIGResourcesTest {
     public void closeResetsAllPublicMembers() throws ModelLoadingException {
 
         // Generate a new SWIGResources instance as it will be modified:
-        SWIGResources swig = new SWIGResources(modelPath.toString(), "");
+        final SWIGResources swig = new SWIGResources(modelPath.toString(), "");
         swig.close();
 
         assertThat(swig.swigBoosterHandle).as("swigBoosterHandle").isNull();

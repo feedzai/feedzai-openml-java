@@ -130,21 +130,19 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
-        final SWIGTrainData swigTrainData = new SWIGTrainData(
-                numFeatures,
-                instancesPerChunk);
-        final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
 
-        /// Create LightGBM dataset
-        createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
+        try (final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
+             final SWIGTrainData swigTrainData = new SWIGTrainData(numFeatures, instancesPerChunk)){
+            /// Create LightGBM dataset
+            createTrainDataset(dataset, numFeatures, trainParams, swigTrainData);
 
-        /// Create Booster from dataset
-        createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
-        trainBooster(swigTrainBooster.swigBoosterHandle, numIterations);
+            /// Create Booster from dataset
+            createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
+            trainBooster(swigTrainBooster.swigBoosterHandle, numIterations);
 
-        /// Save model
-        saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
-        swigTrainBooster.close(); // Explicitly release C++ resources right away. They're no longer needed.
+            /// Save model
+            saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
+        }
     }
 
     /**
@@ -231,28 +229,30 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         /// First generate the array that has the chunk sizes for `LGBM_DatasetCreateFromMats`.
         final SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numFeatures);
-
-        /// Now create the LightGBM Dataset itself from the chunks:
-        logger.debug("Creating LGBM_Dataset from chunked data...");
-        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
-                (int) swigTrainData.swigFeaturesChunkedArray.get_chunks_count(), // numChunks
-                swigTrainData.swigFeaturesChunkedArray.data_as_void(), // input data (void**)
-                lightgbmlibConstants.C_API_DTYPE_FLOAT64,
-                swigChunkSizesArray,
-                numFeatures,
-                1, // rowMajor.
-                trainParams, // parameters.
-                null, // No alighment with other datasets.
-                swigTrainData.swigOutDatasetHandlePtr // Output LGBM Dataset
-        );
-        if (returnCodeLGBM == -1) {
-            logger.error("Could not create LightGBM dataset.");
-            throw new LightGBMException();
+        try {
+            /// Now create the LightGBM Dataset itself from the chunks:
+            logger.debug("Creating LGBM_Dataset from chunked data...");
+            final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
+                    (int) swigTrainData.swigFeaturesChunkedArray.get_chunks_count(), // numChunks
+                    swigTrainData.swigFeaturesChunkedArray.data_as_void(), // input data (void**)
+                    lightgbmlibConstants.C_API_DTYPE_FLOAT64,
+                    swigChunkSizesArray,
+                    numFeatures,
+                    1, // rowMajor.
+                    trainParams, // parameters.
+                    null, // No alighment with other datasets.
+                    swigTrainData.swigOutDatasetHandlePtr // Output LGBM Dataset
+            );
+            if (returnCodeLGBM == -1) {
+                logger.error("Could not create LightGBM dataset.");
+                throw new LightGBMException();
+            }
+            // FIXME is this init necessary?
+            swigTrainData.initSwigDatasetHandle();
+        } finally {
+            lightgbmlib.delete_intArray(swigChunkSizesArray);
         }
 
-        swigTrainData.initSwigDatasetHandle();
-        swigTrainData.destroySwigTrainFeaturesChunkedDataArray();
-        lightgbmlib.delete_intArray(swigChunkSizesArray);
     }
 
     /**
@@ -313,7 +313,6 @@ final class LightGBMBinaryClassificationModelTrainer {
             throw new LightGBMException();
         }
 
-        swigTrainData.destroySwigTrainLabelDataArray();
     }
 
     /**
