@@ -264,7 +264,7 @@ class SWIGResources implements AutoCloseable {
         this.swigOutLengthInt64Ptr = lightgbmlibJNI.new_int64_tp();
         this.swigInstancePtr = lightgbmlibJNI.new_doubleArray(getBoosterNumFeatures());
         this.swigOutScoresPtr = lightgbmlibJNI.new_doubleArray(BINARY_LGBM_NUM_CLASSES);
-        this.swigOutContributionsPtr = lightgbmlibJNI.new_doubleArray(this.boosterNumFeatures);
+        this.swigOutContributionsPtr = lightgbmlibJNI.new_doubleArray(this.boosterNumFeatures + 1);
     }
 
     /**
