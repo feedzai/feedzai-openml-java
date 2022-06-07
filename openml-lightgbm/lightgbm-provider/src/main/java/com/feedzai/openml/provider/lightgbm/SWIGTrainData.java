@@ -17,12 +17,13 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_double;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.doubleChunkedArray;
 import com.microsoft.ml.lightgbm.floatChunkedArray;
+import com.microsoft.ml.lightgbm.int32ChunkedArray;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +70,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * SWIG pointer to the constraint group array (array of float32 elements).
      */
-    public SWIGTYPE_p_float swigConstraintGroupDataArray;
+    public SWIGTYPE_p_int swigConstraintGroupDataArray;
 
     /**
      * SWIG LightGBM dataset handle.
@@ -89,7 +90,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * SWIG object to hold the constraint groups in chunks.
      */
-    public floatChunkedArray swigConstraintGroupChunkedArray;
+    public int32ChunkedArray swigConstraintGroupChunkedArray;
 
     /**
      * Whether the LightGBM model is fairness constrained (aka FairGBM).
@@ -139,7 +140,7 @@ public class SWIGTrainData implements AutoCloseable {
 
         // 1-D Array with the constraint group (float32):
         if (this.fairnessConstrained) {
-            this.swigConstraintGroupChunkedArray = new floatChunkedArray(numInstancesChunk);
+            this.swigConstraintGroupChunkedArray = new int32ChunkedArray(numInstancesChunk);
         }
     }
 
@@ -162,7 +163,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Adds a value to the constraint group ChunkedArray.
      * @param value the value to add.
      */
-    public void addConstraintGroupValue(float value) {
+    public void addConstraintGroupValue(int value) {
         this.swigConstraintGroupChunkedArray.add(value);
     }
 
@@ -187,7 +188,7 @@ public class SWIGTrainData implements AutoCloseable {
      * the chunked labels array data to it.
      */
     public void initSwigConstraintGroupDataArray() {
-        this.swigConstraintGroupDataArray = lightgbmlib.new_floatArray(this.swigConstraintGroupChunkedArray.get_add_count());
+        this.swigConstraintGroupDataArray = lightgbmlib.new_intArray(this.swigConstraintGroupChunkedArray.get_add_count());
         this.swigConstraintGroupChunkedArray.coalesce_to(this.swigConstraintGroupDataArray);
     }
 
@@ -217,7 +218,7 @@ public class SWIGTrainData implements AutoCloseable {
     public void destroySwigConstraintGroupDataArray() {
 
         if (this.swigConstraintGroupDataArray != null) {
-            lightgbmlib.delete_floatArray(this.swigConstraintGroupDataArray);
+            lightgbmlib.delete_intArray(this.swigConstraintGroupDataArray);
             this.swigConstraintGroupDataArray = null;
         }
     }

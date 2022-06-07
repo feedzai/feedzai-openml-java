@@ -33,7 +33,8 @@
         <!-- Feedzai's FairGBM! -->
         <lightgbm.repo.url>https://github.com/feedzai/fairgbm.git</lightgbm.repo.url>
 
-        <lightgbm.version>bulk-fairgbm-modifications</lightgbm.version>
+<!--        <lightgbm.version>bulk-fairgbm-modifications</lightgbm.version>-->
+        <lightgbm.version>python-api-fairgbm-update</lightgbm.version>
         <lightgbmlib.version>v3.2.1-fairgbm-alpha</lightgbmlib.version>
     </properties>
 

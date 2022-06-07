@@ -430,9 +430,9 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
                 swigTrainData.swigDatasetHandle,
                 "constraint_group", // LightGBM label column type.
-                lightgbmlib.float_to_voidp_ptr(swigTrainData.swigConstraintGroupDataArray),
+                lightgbmlib.int_to_voidp_ptr(swigTrainData.swigConstraintGroupDataArray),
                 (int) numInstances,
-                lightgbmlibConstants.C_API_DTYPE_FLOAT32
+                lightgbmlibConstants.C_API_DTYPE_INT32
         );
         if (returnCodeLGBM == -1) {
             logger.error("Could not set constraint group data.");
@@ -582,7 +582,7 @@ final class LightGBMBinaryClassificationModelTrainer {
             swigTrainData.addLabelValue((float) instance.getValue(targetIndex));
 
             if (constraintGroupIndex != NO_SPECIFIC) {
-                swigTrainData.addConstraintGroupValue((float) instance.getValue(constraintGroupIndex));
+                swigTrainData.addConstraintGroupValue((int) instance.getValue(constraintGroupIndex));
             }
 
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
