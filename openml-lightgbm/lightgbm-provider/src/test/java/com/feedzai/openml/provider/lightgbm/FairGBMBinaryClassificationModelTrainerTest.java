@@ -32,17 +32,17 @@ public class FairGBMBinaryClassificationModelTrainerTest {
     /**
      * Parameters for model train.
      */
-    private final static Map<String, String> MODEL_PARAMS = TestParameters.getDefaultFairGBMParameters();
+    private static final Map<String, String> MODEL_PARAMS = TestParameters.getDefaultFairGBMParameters();
 
     /**
      * Maximum number of instances to train (to speed up tests).
      */
-    private final static int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = (int) 5e3;
+    private static final int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = (int) 5e3;
 
     /**
      * Maximum number of instances to score (to speed up tests).
      */
-    private final static int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 300;
+    private static final int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 300;
 
     /**
      * Dataset resource name to use for both fit and validation stages during tests.

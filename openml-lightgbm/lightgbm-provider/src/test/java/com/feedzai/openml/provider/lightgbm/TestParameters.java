@@ -60,7 +60,7 @@ public class TestParameters {
      * @param params A set of model parameters.
      * @return the default set of parameters.
      */
-    private static Map<String, String> getDefaultParameters(Set<ModelParameter> params) {
+    private static Map<String, String> getDefaultParameters(final Set<ModelParameter> params) {
 
         final Map<String, String> mapParams = new HashMap<>(params.size());
         for (final ModelParameter modelParameter : params) {

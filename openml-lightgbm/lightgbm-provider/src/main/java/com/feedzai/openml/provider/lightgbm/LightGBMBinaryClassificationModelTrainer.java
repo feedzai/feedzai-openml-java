@@ -350,7 +350,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         }
 
         swigTrainData.initSwigDatasetHandle();
-        swigTrainData.destroySwigTrainFeaturesChunkedDataArray();
+        swigTrainData.destroySwigTrainFeaturesChunkedArray();
         lightgbmlib.delete_intArray(swigChunkSizesArray);
     }
 

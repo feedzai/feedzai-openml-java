@@ -164,7 +164,11 @@ public class SWIGTrainData implements AutoCloseable {
      * @param value the value to add.
      */
     public void addConstraintGroupValue(int value) {
-        this.swigConstraintGroupChunkedArray.add(value);
+        if (this.fairnessConstrained) {
+            this.swigConstraintGroupChunkedArray.add(value);
+        } else {
+            logger.warn("Trying to set a constraint group value on an uninitialized constraintGroup array");
+        }
     }
 
     /**
@@ -178,7 +182,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Initializes the swigTrainLabelDataArray and copies
      * the chunked labels array data to it.
      */
-    public void initSwigTrainLabelDataArray() {
+    void initSwigTrainLabelDataArray() {
         this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_add_count());
         this.swigLabelsChunkedArray.coalesce_to(this.swigTrainLabelDataArray);
     }
@@ -187,7 +191,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Initializes the swigTrainLabelDataArray and copies
      * the chunked labels array data to it.
      */
-    public void initSwigConstraintGroupDataArray() {
+    void initSwigConstraintGroupDataArray() {
         this.swigConstraintGroupDataArray = lightgbmlib.new_intArray(this.swigConstraintGroupChunkedArray.get_add_count());
         this.swigConstraintGroupChunkedArray.coalesce_to(this.swigConstraintGroupDataArray);
     }
@@ -195,7 +199,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Setup swigDatasetHandle after its setup.
      */
-    public void initSwigDatasetHandle() {
+    void initSwigDatasetHandle() {
         this.swigDatasetHandle = lightgbmlib.voidpp_value(this.swigOutDatasetHandlePtr);
     }
 
@@ -203,7 +207,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Release the memory of the label array.
      * This can be called after instantiating the dataset and setting the label in it.
      */
-    public void destroySwigTrainLabelDataArray() {
+    void destroySwigTrainLabelDataArray() {
 
         if (this.swigTrainLabelDataArray != null) {
             lightgbmlib.delete_floatArray(this.swigTrainLabelDataArray);
@@ -215,7 +219,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Release the memory of the constraint group array.
      * This can be called after instantiating the dataset and setting the constraint group in it.
      */
-    public void destroySwigConstraintGroupDataArray() {
+    void destroySwigConstraintGroupDataArray() {
 
         if (this.swigConstraintGroupDataArray != null) {
             lightgbmlib.delete_intArray(this.swigConstraintGroupDataArray);
@@ -232,7 +236,7 @@ public class SWIGTrainData implements AutoCloseable {
      * After this that object becomes unusable.
      * To cleanup and reuse call `clear()` instead.
      */
-    public void destroySwigTrainFeaturesChunkedDataArray() {
+    void destroySwigTrainFeaturesChunkedArray() {
         this.swigFeaturesChunkedArray.release();
     }
 
@@ -240,7 +244,7 @@ public class SWIGTrainData implements AutoCloseable {
      * Releases the ChunkedArrays of both features and label.
      * Idempotent. After calling this ChunkedArrays cannot be re-used.
      */
-    public void releaseChunkedResources() {
+    void releaseChunkedResources() {
         this.swigFeaturesChunkedArray.release();
         this.swigLabelsChunkedArray.release();
 
@@ -257,15 +261,13 @@ public class SWIGTrainData implements AutoCloseable {
     public void close() {
 
         releaseChunkedResources();
+        destroySwigTrainLabelDataArray();
+        destroySwigConstraintGroupDataArray();
 
         if (this.swigOutDatasetHandlePtr != null) {
             lightgbmlib.delete_voidpp(this.swigOutDatasetHandlePtr);
             this.swigOutDatasetHandlePtr = null;
         }
-
-        destroySwigTrainFeaturesChunkedDataArray();
-        destroySwigTrainLabelDataArray();
-        destroySwigConstraintGroupDataArray();
 
         if (this.swigDatasetHandle != null) {
             lightgbmlib.LGBM_DatasetFree(this.swigDatasetHandle);
