@@ -50,7 +50,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Handle for the output parameter necessary for the LightGBM dataset instantiation.
      */
-    public SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
+    SWIGTYPE_p_p_void swigOutDatasetHandlePtr;
 
     /**
      * SWIG Features chunked data array.
@@ -60,22 +60,22 @@ public class SWIGTrainData implements AutoCloseable {
      * In the current implementation, features are stored in row-major order, i.e.,
      * each instance is stored contiguously.
      */
-    public doubleChunkedArray swigFeaturesChunkedArray;
+    doubleChunkedArray swigFeaturesChunkedArray;
 
     /**
      * SWIG pointer to the labels array (array of float32 elements).
      */
-    public SWIGTYPE_p_float swigTrainLabelDataArray;
+    SWIGTYPE_p_float swigTrainLabelDataArray;
 
     /**
      * SWIG pointer to the constraint group array (array of float32 elements).
      */
-    public SWIGTYPE_p_int swigConstraintGroupDataArray;
+    SWIGTYPE_p_int swigConstraintGroupDataArray;
 
     /**
      * SWIG LightGBM dataset handle.
      */
-    public SWIGTYPE_p_void swigDatasetHandle;
+    SWIGTYPE_p_void swigDatasetHandle;
 
     /**
      * Number of instances to store in each chunk.
@@ -85,17 +85,17 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * SWIG object to hold the labels in chunks.
      */
-    public floatChunkedArray swigLabelsChunkedArray;
+    floatChunkedArray swigLabelsChunkedArray;
 
     /**
      * SWIG object to hold the constraint groups in chunks.
      */
-    public int32ChunkedArray swigConstraintGroupChunkedArray;
+    int32ChunkedArray swigConstraintGroupChunkedArray;
 
     /**
      * Whether the LightGBM model is fairness constrained (aka FairGBM).
      */
-    private boolean fairnessConstrained;
+    private final boolean fairnessConstrained;
 
     /**
      * Constructor.
@@ -179,21 +179,25 @@ public class SWIGTrainData implements AutoCloseable {
     }
 
     /**
-     * Initializes the swigTrainLabelDataArray and copies
-     * the chunked labels array data to it.
+     * Initializes the swigTrainLabelDataArray, copies the chunked label array data to it,
+     * and releases the chunked data from memory.
      */
-    void initSwigTrainLabelDataArray() {
+    SWIGTYPE_p_float coalesceChunkedSwigTrainLabelDataArray() {
         this.swigTrainLabelDataArray = lightgbmlib.new_floatArray(this.swigLabelsChunkedArray.get_add_count());
         this.swigLabelsChunkedArray.coalesce_to(this.swigTrainLabelDataArray);
+        this.swigLabelsChunkedArray.release();
+        return this.swigTrainLabelDataArray;
     }
 
     /**
-     * Initializes the swigTrainLabelDataArray and copies
-     * the chunked labels array data to it.
+     * Initializes the swigConstraintGroupDataArray, copies the chunked constraint group array data to it,
+     * and releases the chunked data from memory.
      */
-    void initSwigConstraintGroupDataArray() {
+    SWIGTYPE_p_int coalesceChunkedSwigConstraintGroupDataArray() {
         this.swigConstraintGroupDataArray = lightgbmlib.new_intArray(this.swigConstraintGroupChunkedArray.get_add_count());
         this.swigConstraintGroupChunkedArray.coalesce_to(this.swigConstraintGroupDataArray);
+        this.swigConstraintGroupChunkedArray.release();
+        return this.swigConstraintGroupDataArray;
     }
 
     /**
@@ -236,7 +240,7 @@ public class SWIGTrainData implements AutoCloseable {
      * After this that object becomes unusable.
      * To cleanup and reuse call `clear()` instead.
      */
-    void destroySwigTrainFeaturesChunkedArray() {
+    void releaseSwigTrainFeaturesChunkedArray() {
         this.swigFeaturesChunkedArray.release();
     }
 

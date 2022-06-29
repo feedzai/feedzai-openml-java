@@ -23,6 +23,7 @@ import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.google.common.collect.ImmutableSet;
+import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
@@ -350,7 +351,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         }
 
         swigTrainData.initSwigDatasetHandle();
-        swigTrainData.destroySwigTrainFeaturesChunkedArray();
+        swigTrainData.releaseSwigTrainFeaturesChunkedArray();
         lightgbmlib.delete_intArray(swigChunkSizesArray);
     }
 
@@ -396,14 +397,15 @@ final class LightGBMBinaryClassificationModelTrainer {
     private static void setLightGBMDatasetLabelData(final SWIGTrainData swigTrainData) {
 
         final long numInstances = swigTrainData.swigLabelsChunkedArray.get_add_count();
-        swigTrainData.initSwigTrainLabelDataArray(); // Init and copy from chunked data.
+        // Init SWIG array and copy from chunked data.
+        SWIGTYPE_p_float swigLabelData = swigTrainData.coalesceChunkedSwigTrainLabelDataArray();
         logger.debug("FTL: #labels={}", numInstances);
 
         logger.debug("Setting label data.");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
                 swigTrainData.swigDatasetHandle,
                 "label", // LightGBM label column type.
-                lightgbmlib.float_to_voidp_ptr(swigTrainData.swigTrainLabelDataArray),
+                lightgbmlib.float_to_voidp_ptr(swigLabelData),
                 (int) numInstances,
                 lightgbmlibConstants.C_API_DTYPE_FLOAT32
         );
@@ -423,14 +425,15 @@ final class LightGBMBinaryClassificationModelTrainer {
     private static void setLightGBMDatasetConstraintGroupData(final SWIGTrainData swigTrainData) {
 
         final long numInstances = swigTrainData.swigConstraintGroupChunkedArray.get_add_count();
-        swigTrainData.initSwigConstraintGroupDataArray(); // Init and copy from chunked data.
+        // Init SWIG array and copy from chunked data.
+        SWIGTYPE_p_int swigConstraintGroupData = swigTrainData.coalesceChunkedSwigConstraintGroupDataArray();
         logger.debug("FTL: #labels={}", numInstances);
 
         logger.debug("Setting constraint group data.");
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
                 swigTrainData.swigDatasetHandle,
                 "constraint_group", // LightGBM label column type.
-                lightgbmlib.int_to_voidp_ptr(swigTrainData.swigConstraintGroupDataArray),
+                lightgbmlib.int_to_voidp_ptr(swigConstraintGroupData),
                 (int) numInstances,
                 lightgbmlibConstants.C_API_DTYPE_INT32
         );
