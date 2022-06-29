@@ -251,16 +251,6 @@ public class FairGBMBinaryClassificationModelTrainerTest {
         ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
-//    @Test
-    public void testFairnessFairGBMvsLightGBM() throws URISyntaxException, IOException {
-        // TODO
-        //  1. Train a FairGBM and a LightGBM model on the same data;
-        //  2. Compute evaluations with breakdowns per sensitive group;
-        //  3. compute fairness for each model;
-        //  4. Assert FairGBM achieves x% higher fairness than LightGBM;
-    }
-
-
     static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
             final String datasetResourceName,
             final DatasetSchema schema,
