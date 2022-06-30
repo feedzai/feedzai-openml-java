@@ -149,7 +149,7 @@ public class SWIGChunkedArrayAPITest {
         }
         lightgbmlib.intArray_setitem(chunkSizes, numChunks-1, (int)chunkedArray.get_last_chunk_add_count());
 
-        final SWIGTYPE_p_p_void swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();;
+        final SWIGTYPE_p_p_void swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
 
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetCreateFromMats(
                 (int)chunkedArray.get_chunks_count(),

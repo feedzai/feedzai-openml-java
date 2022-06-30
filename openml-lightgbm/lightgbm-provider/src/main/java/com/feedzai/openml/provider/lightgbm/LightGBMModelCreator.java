@@ -225,7 +225,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         final Path modelFilePath = getPath(modelPath);
 
-        logger.info("Loading LightGBM model from " + modelFilePath.toAbsolutePath().toString());
+        logger.info("Loading LightGBM model from " + modelFilePath.toAbsolutePath());
         final LightGBMBinaryClassificationModel model = new LightGBMBinaryClassificationModel(
                 modelFilePath, schema
         );

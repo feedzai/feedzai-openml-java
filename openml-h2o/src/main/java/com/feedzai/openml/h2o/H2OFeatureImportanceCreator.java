@@ -97,7 +97,7 @@ public class H2OFeatureImportanceCreator {
             final Path datasetPath = H2OUtils.writeDatasetToDisk(dataset);
             final Model model = this.h2OApp.train(gbm.getAlgorithmDescriptor(), datasetPath, dataset.getSchema(), params, random.nextLong());
             // safe cast as long as using H2OAlgorithm.GRADIENT_BOOSTING_MACHINE
-            return ((GBMModel) model)._output._varimp;
+            return model._output._varimp;
         } catch (final IOException e) {
             final String errorMessage = "An error occurred while calculating feature importance.";
             logger.error(errorMessage, e);

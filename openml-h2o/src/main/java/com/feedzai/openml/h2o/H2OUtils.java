@@ -70,7 +70,7 @@ public final class H2OUtils {
      */
     public static Path writeDatasetToDisk(final Dataset dataset) throws IOException {
 
-        final Path datasetPath = Files.createTempFile(FEEDZAI_H2O_PREFIX + UUID.randomUUID().toString(), ".dataset");
+        final Path datasetPath = Files.createTempFile(FEEDZAI_H2O_PREFIX + UUID.randomUUID(), ".dataset");
         logger.info("Writing dataset to disk: {}", datasetPath);
 
         final DatasetSchema schema = dataset.getSchema();
