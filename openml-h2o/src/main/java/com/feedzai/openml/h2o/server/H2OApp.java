@@ -78,7 +78,7 @@ public class H2OApp<M extends Model> {
      * The lock used to initialize the instance.
      * @since 0.1.0
      */
-    private static final Object instanceLock = new Object();
+    private final static Object instanceLock = new Object();
 
     /**
      * Gets the {@link H2OApp} singleton instance.
