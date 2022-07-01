@@ -58,6 +58,7 @@ public class TestParameters {
      * Extracts the default parameters from the provided set of Model Parameters.
      *
      * @param params A set of model parameters.
+     * @throws IllegalArgumentException if invalid parameters are received.
      * @return the default set of parameters.
      */
     private static Map<String, String> getDefaultParameters(final Set<ModelParameter> params) {
@@ -81,7 +82,7 @@ public class TestParameters {
             } else if (type instanceof FreeTextFieldType) {
                 defaultValue = String.valueOf(((FreeTextFieldType) type).getDefaultValue());
             } else {
-                throw new RuntimeException("Invalid parameter type received.");
+                throw new IllegalArgumentException("Invalid parameter type received.");
             }
 
             mapParams.put(modelParameter.getName(), defaultValue);

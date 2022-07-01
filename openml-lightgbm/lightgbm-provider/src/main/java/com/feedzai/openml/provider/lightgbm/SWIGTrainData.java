@@ -138,7 +138,7 @@ public class SWIGTrainData implements AutoCloseable {
         // 1-D Array with the labels (float32):
         this.swigLabelsChunkedArray = new floatChunkedArray(numInstancesChunk);
 
-        // 1-D Array with the constraint group (float32):
+        // 1-D Array with the constraint group:
         if (this.fairnessConstrained) {
             this.swigConstraintGroupChunkedArray = new int32ChunkedArray(numInstancesChunk);
         }

@@ -38,9 +38,6 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
 
     /**
      * Defines the set of model parameters accepted by the FairGBM algorithm.
-     *
-     * Parameters are sorted such that commonly changed parameters come first, and parameters that should seldom be
-     * changed come last.
      */
     static final Set<ModelParameter> PARAMS = Sets.union(ImmutableSet.of(
             // The single parameter that will change for every different dataset

@@ -614,7 +614,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final Map<String, String> preprocessedMapParams = new HashMap<>();
 
         // Add categorical_feature parameter
-        List<Integer> categoricalFeatureIndices = getCategoricalFeaturesIndicesWithoutLabel(schema);
+        final List<Integer> categoricalFeatureIndices = getCategoricalFeaturesIndicesWithoutLabel(schema);
         preprocessedMapParams
                 .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","));
 

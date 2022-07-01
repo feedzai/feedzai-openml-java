@@ -37,7 +37,7 @@ public class FairGBMBinaryClassificationModelTrainerTest {
     /**
      * Maximum number of instances to train (to speed up tests).
      */
-    private static final int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = (int) 5e3;
+    private static final int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = 5000;
 
     /**
      * Maximum number of instances to score (to speed up tests).
