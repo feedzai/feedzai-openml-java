@@ -164,11 +164,8 @@ public class SWIGTrainData implements AutoCloseable {
      * @param value the value to add.
      */
     public void addConstraintGroupValue(int value) {
-        if (this.fairnessConstrained) {
-            this.swigConstraintGroupChunkedArray.add(value);
-        } else {
-            logger.warn("Trying to set a constraint group value on an uninitialized constraintGroup array");
-        }
+        assert this.fairnessConstrained : "Trying to set constraint group data with fairnessConstrained=false";
+        this.swigConstraintGroupChunkedArray.add(value);
     }
 
     /**

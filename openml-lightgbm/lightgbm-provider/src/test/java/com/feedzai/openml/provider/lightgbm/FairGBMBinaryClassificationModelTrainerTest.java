@@ -76,9 +76,6 @@ public class FairGBMBinaryClassificationModelTrainerTest {
 
         // Override the multiplier_learning_rate
         MODEL_PARAMS.replace("multiplier_learning_rate", "1000");
-
-        // Override number of iterations in fit tests for faster tests:
-//        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }
 
     /**
