@@ -53,8 +53,8 @@ public class FairGBMParamParserUtil {
      * @param schema Schema of the dataset.
      * @return the index of the constraint group column if one was provided, else returns an empty Optional.
      */
-    static Optional<Integer> getConstraintGroupColumnIndex(final Map<String, String> mapParams,
-                                                           final DatasetSchema schema) {
+    public static Optional<Integer> getConstraintGroupColumnIndex(final Map<String, String> mapParams,
+                                                                  final DatasetSchema schema) {
         // Parse the constraint_group_column, if one was provided
         String constraintGroupCol = mapParams.get(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
         if (constraintGroupCol == null || constraintGroupCol.trim().isEmpty()) {
@@ -122,8 +122,8 @@ public class FairGBMParamParserUtil {
      * @return the index of the constraint group column without the label if the constraint_group_column parameter
      * was provided, else returns an empty Optional.
      */
-    static Optional<Integer> getConstraintGroupColumnIndexWithoutLabel(final Map<String, String> mapParams,
-                                                                       final DatasetSchema schema) {
+    public static Optional<Integer> getConstraintGroupColumnIndexWithoutLabel(final Map<String, String> mapParams,
+                                                                              final DatasetSchema schema) {
 
         // Get canonical column index (including target column)
         final Optional<Integer> constraintGroupColumnIndex = getConstraintGroupColumnIndex(mapParams, schema);
