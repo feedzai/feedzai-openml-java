@@ -140,7 +140,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk,
-                isFairnessConstrained(params));
+                FairGBMParamParserUtil.isFairnessConstrained(params));
         final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
 
         /// Create LightGBM dataset
@@ -578,13 +578,4 @@ final class LightGBMBinaryClassificationModelTrainer {
         return candidate != null ? Optional.of(candidate.getValue()) : Optional.empty();
     }
 
-    /**
-     * Whether the given mapParams correspond to a constrained LightGBM objective (aka FairGBM).
-     * @param mapParams set of train parameters for LightGBM.
-     * @return whether it is a fairness constrained objective.
-     */
-    public static boolean isFairnessConstrained(final Map<String, String> mapParams) {
-        Optional<String> objective = getLightGBMObjective(mapParams);
-        return (objective.isPresent() && objective.get().startsWith("constrained_"));
-    }
 }

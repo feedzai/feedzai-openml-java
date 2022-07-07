@@ -36,6 +36,16 @@ public class FairGBMParamParserUtil {
     private FairGBMParamParserUtil() {}
 
     /**
+     * Whether the given mapParams correspond to a constrained LightGBM objective (aka FairGBM).
+     * @param mapParams set of train parameters for LightGBM.
+     * @return whether it is a fairness constrained objective.
+     */
+    public static boolean isFairnessConstrained(final Map<String, String> mapParams) {
+        Optional<String> objective = LightGBMBinaryClassificationModelTrainer.getLightGBMObjective(mapParams);
+        return (objective.isPresent() && objective.get().startsWith("constrained_"));
+    }
+
+    /**
      * Gets the (canonical) index of the constraint group column.
      * NOTE: the constraint group column must be part of the features in the Dataset, but it may be ignored for training
      *       (unawareness).
