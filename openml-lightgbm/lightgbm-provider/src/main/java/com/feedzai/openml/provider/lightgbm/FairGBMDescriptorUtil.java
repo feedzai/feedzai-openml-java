@@ -37,16 +37,16 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
     public static final String CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME = "constraint_group_column";
 
     /**
-     * Defines the set of model parameters accepted by the FairGBM algorithm.
+     * Defines the set of model parameters supported by the FairGBM algorithm.
      */
     static final Set<ModelParameter> PARAMS = Sets.union(ImmutableSet.of(
             // The single parameter that will change for every different dataset
             new ModelParameter(
                     CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
                     "(Fairness) Sensitive group column",
-                    "Fairness constraints will be enforced over this column.\n"
+                    "Fairness constraints are enforced over this column.\n"
                             + "This column must be in categorical format.\n"
-                            + "Start this string with `name:` to use the name of a column here, \n"
+                            + "Start this string with `name:` to use the name of a column, \n"
                             + "e.g., `name:age_group` for a column named `age_group`.",
                     MANDATORY,
                     new FreeTextFieldType("")
@@ -57,8 +57,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "constraint_type",
                     "(Fairness) Constraint type",
                     "Enforces group-wise parity on the given target metric for the selected group column. "
-                            + "In general, FPR can be used for most fraud detection settings, "
-                            + "as we want to equalize the negative outcomes on legitimate individuals "
+                            + "In general, FPR can be used for most detection settings "
+                            + "equalize the negative outcomes on legitimate individuals "
                             + "(false positives).",
                     NOT_MANDATORY,
                     new ChoiceFieldType(ImmutableSet.of("FPR", "FNR", "FPR,FNR"), "FPR")
@@ -69,8 +69,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "global_constraint_type",
                     "(Fairness) Global constraint type",
                     "Type of global constraint to enforce during training of fairness constraints. "
-                            + "For instance, if you want to deploy your model on 5% FPR you should use a global "
-                            + "constraint on 5% FPR, in order for the fairness constraints to be trained with this "
+                            + "For example, if you want to deploy your model on 5% FPR, use a global "
+                            + "constraint on 5% FPR, so that the fairness constraints are trained by considering this "
                             + "FPR constraint in mind. Otherwise, fairness may not generalize well when you change "
                             + "the model's operating point.",
                     NOT_MANDATORY,
@@ -80,8 +80,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "global_target_fpr",
                     "(Fairness) Global target FPR",
                     "This is an inequality constraint: inactive when FPR is lower than the target. "
-                            + "If you have some (approximate) value of FPR in mind for deploying the model, then "
-                            + "set it here as well so that fairness constraints can better adapt to that value. "
+                            + "If you have an approximate value of FPR in mind for deploying the model, then "
+                            + "set it here as well, so that fairness constraints can better adapt to such value. "
                             + "Oftentimes, some tension is required between global FPR and FNR constraints in order to "
                             + "achieve the target values (a global constraint on FPR and FNR simultaneously).",
                     NOT_MANDATORY,
@@ -91,8 +91,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "global_target_fnr",
                     "(Fairness) Global target FNR",
                     "This is an inequality constraint: inactive when FNR is lower than the target. "
-                            + "If you have some (approximate) value of FNR in mind for deploying the model, then "
-                            + "set it here as well so that fairness constraints can better adapt to that value. "
+                            + "If you have an approximate value of FNR in mind for deploying the model, then "
+                            + "set it here as well, so that fairness constraints can better adapt to such value. "
                             + "Oftentimes, some tension is required between global FPR and FNR constraints in order to "
                             + "achieve the target values (a global constraint on FPR and FNR simultaneously).",
                     NOT_MANDATORY,
@@ -103,7 +103,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "objective",
                     "(Fairness) Objective function",
                     "For FairGBM you must use a constrained optimization function. "
-                            + "Currently, `constrained_cross_entropy` is recommended for most cases.",
+                            + "`constrained_cross_entropy` is recommended for most cases.",
                     NOT_MANDATORY,
                     new ChoiceFieldType(
                             ImmutableSet.of("constrained_cross_entropy", "constrained_recall_objective"),
@@ -116,8 +116,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "(Fairness) FPR slack for fairness",
                     "The slack when fulfilling fairness FPR constraints. "
                             + "The allowed difference between group-wise FPR. "
-                            + "When using the value 0.0 this will enforce group-wise FPR to be *exactly* equal. "
-                            + "Higher values lead to less strict fairness enforcement.",
+                            + "The value 0.0 enforces group-wise FPR to be *exactly* equal. "
+                            + "Higher values lead to a less strict fairness enforcement.",
                     NOT_MANDATORY,
                     doubleRange(0.0, 1.0, 0.0)
             ),
@@ -126,8 +126,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "(Fairness) FNR slack for fairness",
                     "The slack when fulfilling fairness FNR constraints. "
                             + "The allowed difference between group-wise FNR. "
-                            + "When using the value 0.0 this will enforce group-wise FNR to be *exactly* equal. "
-                            + "Higher values lead to less strict fairness enforcement.",
+                            + "The value 0.0 enforces group-wise FNR to be *exactly* equal. "
+                            + "Higher values lead to a less strict fairness enforcement.",
                     NOT_MANDATORY,
                     doubleRange(0.0, 1.0, 0.0)
             ),
@@ -138,14 +138,14 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             new ModelParameter(
                     "multiplier_learning_rate",
                     "(Fairness) Multipliers' learning rate",
-                    "The Lagrangian multipliers control how strong the constraint enforcement is.",
+                    "The Lagrangian multipliers control how strict the constraint enforcement is.",
                     NOT_MANDATORY,
                     NumericFieldType.min(Float.MIN_VALUE, NumericFieldType.ParameterConfigType.DOUBLE, 1e3)
             ), // NOTE: I'm using Float.MIN_VALUE here because the minimum value of a double in C++ depends on the architecture it's ran on, using float here is more conservative
             new ModelParameter(
                     "init_multipliers",
                     "(Fairness) Initial multipliers",
-                    "The Lagrangian multipliers control how strong the constraint enforcement is. "
+                    "The Lagrangian multipliers control how strict the constraint enforcement is. "
                             + "The default value is starting with zero `0` for each constraint.",
                     NOT_MANDATORY,
                     new FreeTextFieldType("")
@@ -166,7 +166,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "(Fairness) Stepwise proxy for global constraints",
                     "The proxy function to use for the objective function. "
                             + "Only used when explicitly optimizing for Recall (or any other metric of the "
-                            + "confusion matrix). Leave blank when using standard objectives such as cross-entropy.",
+                            + "confusion matrix). Leave blank when using standard objectives, such as cross-entropy.",
                     NOT_MANDATORY,
                     new ChoiceFieldType(ImmutableSet.of("cross_entropy", "quadratic", "hinge", ""), "")
             )
