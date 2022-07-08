@@ -67,6 +67,7 @@ public class TestParameters {
         for (final ModelParameter modelParameter : params) {
             final String defaultValue;
             final ModelParameterType type = modelParameter.getFieldType();
+
             if (type instanceof NumericFieldType) {
                 final NumericFieldType numericType = (NumericFieldType) type;
                 final double value = numericType.getDefaultValue();
@@ -76,14 +77,17 @@ public class TestParameters {
                     defaultValue = String.valueOf(value);
                 }
             } else if (type instanceof ChoiceFieldType) {
-                defaultValue = String.valueOf(((ChoiceFieldType) type).getDefaultValue());
+                defaultValue = ((ChoiceFieldType) type).getDefaultValue();
             } else if (type instanceof BooleanFieldType) {
                 defaultValue = String.valueOf(((BooleanFieldType) type).isDefaultTrue());
             } else if (type instanceof FreeTextFieldType) {
-                defaultValue = String.valueOf(((FreeTextFieldType) type).getDefaultValue());
+                defaultValue = ((FreeTextFieldType) type).getDefaultValue();
             } else {
                 throw new IllegalArgumentException("Invalid parameter type received.");
             }
+
+            // Assert default value is not null
+            assert defaultValue != null : "Found null default value for parameter " + modelParameter.getName();
 
             mapParams.put(modelParameter.getName(), defaultValue);
         }

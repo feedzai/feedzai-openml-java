@@ -78,6 +78,11 @@ public class SWIGTrainData implements AutoCloseable {
     SWIGTYPE_p_void swigDatasetHandle;
 
     /**
+     * Number of features per instance.
+     */
+    public final int numFeatures;
+
+    /**
      * Number of instances to store in each chunk.
      */
     private final long numInstancesChunk;
@@ -127,6 +132,7 @@ public class SWIGTrainData implements AutoCloseable {
      * @param fairnessConstrained   Whether this data will be used for a model with fairness (group) constraints.
      */
     public SWIGTrainData(final int numFeatures, final long numInstancesChunk, final boolean fairnessConstrained) {
+        this.numFeatures = numFeatures;
         this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
         this.fairnessConstrained = fairnessConstrained;

@@ -29,6 +29,7 @@ import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -513,10 +514,16 @@ final class LightGBMBinaryClassificationModelTrainer {
                 }
             }
         }
-        logger.debug("Copied train data of size {} into {} chunks.",
+        assert ImmutableSet.of(
                 swigTrainData.swigLabelsChunkedArray.get_add_count(),
-                swigTrainData.swigLabelsChunkedArray.get_chunks_count()
+                swigTrainData.swigConstraintGroupChunkedArray.get_add_count(),
+                swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures).size() == 1;
+
+        logger.debug("Copied train data of size {} into {} chunks.",
+                     swigTrainData.swigLabelsChunkedArray.get_add_count(),
+                     swigTrainData.swigLabelsChunkedArray.get_chunks_count()
         );
+
         if (swigTrainData.swigLabelsChunkedArray.get_add_count() == 0) {
             logger.error("Received empty train dataset!");
             throw new IllegalArgumentException("Received empty train dataset for LightGBM!");

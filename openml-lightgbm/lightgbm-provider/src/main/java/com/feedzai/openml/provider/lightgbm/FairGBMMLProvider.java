@@ -17,29 +17,28 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
+import com.google.auto.service.AutoService;
+import java.util.Optional;
+import java.util.Set;
+
 import com.feedzai.openml.provider.MachineLearningProvider;
 import com.feedzai.openml.provider.TrainingMachineLearningProvider;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
-import com.google.auto.service.AutoService;
-
-import java.util.Optional;
-import java.util.Set;
 
 /**
- * This class implements Feedzai's OpenML MachineLearningProvider interface for LightGBM.
+ * This class implements Feedzai's OpenML MachineLearningProvider interface for FairGBM (constrained LightGBM).
  *
- * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- * @since 1.0.10
+ * @author Andre Cruz (andre.cruz@feedzai.com)
+ * @since 1.3.5
  */
 @AutoService(MachineLearningProvider.class)
-public class LightGBMMLProvider implements TrainingMachineLearningProvider<LightGBMModelCreator> {
+public class FairGBMMLProvider implements TrainingMachineLearningProvider<LightGBMModelCreator> {
 
     /**
      * The reported name of this provider.
      */
-//    private static final String PROVIDER_NAME = "Feedzai GBM";    // TODO:
-    private static final String PROVIDER_NAME = "Microsoft LightGBM";
+    private static final String PROVIDER_NAME = "Feedzai GBM";
 
     @Override
     public String getName() {
@@ -48,13 +47,12 @@ public class LightGBMMLProvider implements TrainingMachineLearningProvider<Light
 
     @Override
     public Set<MLAlgorithmDescriptor> getAlgorithms() {
-//        return MLAlgorithmEnum.getDescriptors(LightGBMAlgorithms.values());   // TODO: revert this change when/if we merge the LightGBM / FairGBM providers
-        return MLAlgorithmEnum.getDescriptors(new MLAlgorithmEnum[]{LightGBMAlgorithms.LIGHTGBM_BINARY_CLASSIFIER});
+        return MLAlgorithmEnum.getDescriptors(new MLAlgorithmEnum[]{LightGBMAlgorithms.FAIRGBM_BINARY_CLASSIFIER});
     }
 
     @Override
     public Optional<LightGBMModelCreator> getModelCreator(final String algorithmName) {
-        return MLAlgorithmEnum.getByName(new MLAlgorithmEnum[]{LightGBMAlgorithms.LIGHTGBM_BINARY_CLASSIFIER}, algorithmName)
+        return MLAlgorithmEnum.getByName(new MLAlgorithmEnum[]{LightGBMAlgorithms.FAIRGBM_BINARY_CLASSIFIER}, algorithmName)
                 .map(algorithm -> new LightGBMModelCreator());
     }
 }
