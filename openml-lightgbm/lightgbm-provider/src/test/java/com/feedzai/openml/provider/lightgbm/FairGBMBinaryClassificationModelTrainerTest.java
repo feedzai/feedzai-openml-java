@@ -18,6 +18,7 @@ import com.feedzai.openml.provider.exception.ModelLoadingException;
 import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMBinaryClassificationModelTrainerTest.average;
 import static com.feedzai.openml.provider.lightgbm.LightGBMBinaryClassificationModelTrainerTest.ensureFeatureContributions;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -76,6 +77,9 @@ public class FairGBMBinaryClassificationModelTrainerTest {
 
         // Override the multiplier_learning_rate
         MODEL_PARAMS.replace("multiplier_learning_rate", "1000");
+
+        // Override number of iterations in fit tests for faster tests:
+        MODEL_PARAMS.replace(NUM_ITERATIONS_PARAMETER_NAME, NUM_ITERATIONS_FOR_FAST_TESTS);
     }
 
     /**
