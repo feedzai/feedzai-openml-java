@@ -38,7 +38,7 @@ public class LightGBMMLProvider implements TrainingMachineLearningProvider<Light
     /**
      * The reported name of this provider.
      */
-//    private static final String PROVIDER_NAME = "Feedzai GBM";    // TODO:
+//    private static final String PROVIDER_NAME = "Feedzai GBM";    // TODO: https://github.com/feedzai/feedzai-openml-java/issues/129
     private static final String PROVIDER_NAME = "Microsoft LightGBM";
 
     @Override
@@ -48,7 +48,7 @@ public class LightGBMMLProvider implements TrainingMachineLearningProvider<Light
 
     @Override
     public Set<MLAlgorithmDescriptor> getAlgorithms() {
-//        return MLAlgorithmEnum.getDescriptors(LightGBMAlgorithms.values());   // TODO: revert this change when/if we merge the LightGBM / FairGBM providers
+//        return MLAlgorithmEnum.getDescriptors(LightGBMAlgorithms.values());   // TODO: https://github.com/feedzai/feedzai-openml-java/issues/129
         return MLAlgorithmEnum.getDescriptors(new MLAlgorithmEnum[]{LightGBMAlgorithms.LIGHTGBM_BINARY_CLASSIFIER});
     }
 
