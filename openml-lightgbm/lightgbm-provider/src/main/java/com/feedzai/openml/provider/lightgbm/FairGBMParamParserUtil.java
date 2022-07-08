@@ -20,7 +20,7 @@ public class FairGBMParamParserUtil {
     private static final Logger logger = LoggerFactory.getLogger(FairGBMParamParserUtil.class);
 
     /**
-     * Placeholder for use when some integer argument is not provided.
+     * Placeholder to use when an integer argument is not provided.
      * E.g., when running standard unconstrained LightGBM the constrained_group_column parameter will take this value.
      */
     static final int NO_SPECIFIC = -1;
