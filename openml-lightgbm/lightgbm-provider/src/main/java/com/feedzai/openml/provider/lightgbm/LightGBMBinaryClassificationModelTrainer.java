@@ -514,10 +514,18 @@ final class LightGBMBinaryClassificationModelTrainer {
                 }
             }
         }
-        assert ImmutableSet.of(
-                swigTrainData.swigLabelsChunkedArray.get_add_count(),
-                // swigTrainData.swigConstraintGroupChunkedArray.get_add_count(),
-                swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures).size() == 1;
+        if (swigTrainData.fairnessConstrained) {
+            assert ImmutableSet.of(
+                    swigTrainData.swigLabelsChunkedArray.get_add_count(),
+                    swigTrainData.swigConstraintGroupChunkedArray.get_add_count(),
+                    swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures
+            ).size() == 1;
+        } else {
+            assert ImmutableSet.of(
+                    swigTrainData.swigLabelsChunkedArray.get_add_count(),
+                    swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures
+            ).size() == 1;
+        }
 
         logger.debug("Copied train data of size {} into {} chunks.",
                      swigTrainData.swigLabelsChunkedArray.get_add_count(),

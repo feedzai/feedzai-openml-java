@@ -100,7 +100,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Whether the LightGBM model is fairness constrained (aka FairGBM).
      */
-    private final boolean fairnessConstrained;
+    public final boolean fairnessConstrained;
 
     /**
      * Constructor.
