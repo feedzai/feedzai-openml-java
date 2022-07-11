@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Utility to organize all the necessary Machine Learning Hyper-Parameters for configuring the training of LightGBM.
@@ -169,6 +170,22 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                             + "confusion matrix). Leave blank when using standard objectives, such as cross-entropy.",
                     NOT_MANDATORY,
                     new ChoiceFieldType(ImmutableSet.of("cross_entropy", "quadratic", "hinge", ""), "")
+            ),
+
+            // Override this parameter from LightGBM so we can disallow using RF
+            new ModelParameter(
+                    BOOSTING_TYPE_PARAMETER_NAME,
+                    "Boosting type",
+                    "Type of boosting model:\n"
+                            + "'gbdt' is a good starting point,\n"
+                            + "'goss' is faster but slightly less accurate,\n"
+                            + "'dart' is much slower but might improve performance,\n"
+                            + "'rf' is the random forest mode.",
+                    MANDATORY,
+                    new ChoiceFieldType(
+                            ImmutableSet.of("gbdt", "dart", "goss"),
+                            "gbdt"
+                    )
             )
 
             // TODO: assess whether these parameters would ever be useful
@@ -195,6 +212,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
 //                    new FreeTextFieldType("")
 //            )
 
-    ), LightGBMDescriptorUtil.PARAMS);
+    ), LightGBMDescriptorUtil.PARAMS.stream()
+                                    .filter(el -> !el.getName().equals(BOOSTING_TYPE_PARAMETER_NAME))
+                                    .collect(Collectors.toSet()));
 
 }
