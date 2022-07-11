@@ -59,7 +59,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                     "(Fairness) Constraint type",
                     "Enforces group-wise parity on the given target metric for the selected group column. "
                             + "In general, FPR can be used for most detection settings "
-                            + "equalize the negative outcomes on legitimate individuals "
+                            + "to equalize the negative outcomes on legitimate individuals "
                             + "(false positives).",
                     NOT_MANDATORY,
                     new ChoiceFieldType(ImmutableSet.of("FPR", "FNR", "FPR,FNR"), "FPR")
