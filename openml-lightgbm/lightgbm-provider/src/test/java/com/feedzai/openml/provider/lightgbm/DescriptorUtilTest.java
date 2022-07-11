@@ -28,7 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for using the LightGBMBinaryClassificationModelTrainer class with FairGBM.
+ * Tests for the descriptor util classes (both FairGBM and LightGBM).
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
  * @since 1.3.6
