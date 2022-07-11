@@ -29,7 +29,6 @@ import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
 import com.microsoft.ml.lightgbm.lightgbmlib;
 import com.microsoft.ml.lightgbm.lightgbmlibConstants;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
@@ -514,15 +513,13 @@ final class LightGBMBinaryClassificationModelTrainer {
                 }
             }
         }
-        if (!swigTrainData.fairnessConstrained) {
-            assert (swigTrainData.swigLabelsChunkedArray.get_add_count()
-                    == (swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures));
-        } else {
-            assert ImmutableSet.of(
-                    swigTrainData.swigLabelsChunkedArray.get_add_count(),
-                    swigTrainData.swigConstraintGroupChunkedArray.get_add_count(),
-                    swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures
-            ).size() == 1;
+
+        assert swigTrainData.swigLabelsChunkedArray.get_add_count() ==
+                (swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures);
+
+        if (swigTrainData.fairnessConstrained) {
+            assert swigTrainData.swigConstraintGroupChunkedArray.get_add_count() ==
+                    swigTrainData.swigLabelsChunkedArray.get_add_count();
         }
 
         logger.debug("Copied train data of size {} into {} chunks.",

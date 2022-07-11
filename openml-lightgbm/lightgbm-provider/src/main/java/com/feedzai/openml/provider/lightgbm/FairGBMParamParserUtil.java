@@ -16,7 +16,7 @@ import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRA
  * Utility to parse parameters specific to the FairGBM model.
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.5
+ * @since 1.3.6
  */
 public class FairGBMParamParserUtil {
 
@@ -54,7 +54,6 @@ public class FairGBMParamParserUtil {
     /**
      * Gets the (canonical) index of the constraint group column.
      * NOTE: the constraint group column must be part of the features in the Dataset, but it may be ignored for training
-     *       (a.k.a. unawareness - training models that aren't directly aware of the sensitive group value).
      * @param mapParams LightGBM train parameters.
      * @param schema Schema of the dataset.
      * @return the index of the constraint group column if one was provided, else returns an empty Optional.

@@ -30,7 +30,7 @@ import java.util.Set;
  * Utility to organize all the necessary Machine Learning Hyper-Parameters for configuring the training of LightGBM.
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.5
+ * @since 1.3.6
  */
 public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
 
