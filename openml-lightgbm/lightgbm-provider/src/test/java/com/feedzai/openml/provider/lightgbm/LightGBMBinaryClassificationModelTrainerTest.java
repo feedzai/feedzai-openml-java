@@ -438,13 +438,17 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        final LightGBMBinaryClassificationModel model = fit(
+        try (final LightGBMBinaryClassificationModel model = fit(
                 dataset,
                 modelParams,
                 chunkSizeInstances
-        );
-
-        return getClassScores(dataset, model, maxInstancesToScore);
+        )) {
+            return getClassScores(dataset, model, maxInstancesToScore);
+        } catch (ModelLoadingException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new RuntimeException("Could not properly release Model");
+        }
     }
 
     /**
