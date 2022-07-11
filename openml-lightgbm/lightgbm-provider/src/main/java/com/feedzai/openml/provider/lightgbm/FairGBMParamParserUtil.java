@@ -69,53 +69,41 @@ public class FairGBMParamParserUtil {
         // Trim white-space
         constraintGroupCol = constraintGroupCol.trim();
 
-        // Initialize column index to placeholder
-        int constraintGroupColIndex = NO_SPECIFIC;
+        // Remove the "name:" prefix
+        final String actualConstraintGroupCol = constraintGroupCol.substring(
+                constraintGroupCol.startsWith(COL_NAME_PREFIX) ? COL_NAME_PREFIX.length() : 0);
 
-        // Check if it's already in numeric format
-        try {
-            constraintGroupColIndex = Integer.parseInt(constraintGroupCol);
+        // Find index for this column; consider label offset (LightGBM indices disregard the target column)
+        final List<FieldSchema> featureFields = schema.getPredictiveFields();
+        Optional<FieldSchema> constraintGroupField = featureFields
+                .stream()
+                .filter(field -> field.getFieldName().equalsIgnoreCase(actualConstraintGroupCol))
+                .findFirst();
+
+        // Check if column exists
+        if (! constraintGroupField.isPresent()) {
+            logger.error(String.format(
+                    "The parameter %s=%s is invalid; no such column was found.",
+                       CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                       actualConstraintGroupCol));
+            return Optional.empty();
         }
 
-        // If not, find the index for this column
-        catch (NumberFormatException e) {
-
-            // Remove the "name:" prefix
-            final String actualConstraintGroupCol = constraintGroupCol.substring(
-                    constraintGroupCol.startsWith(COL_NAME_PREFIX) ? COL_NAME_PREFIX.length() : 0);
-
-            // Find index for this column; consider label offset (LightGBM indices disregard the target column)
-            final List<FieldSchema> featureFields = schema.getPredictiveFields();
-            Optional<FieldSchema> constraintGroupField = featureFields
-                    .stream()
-                    .filter(field -> field.getFieldName().equalsIgnoreCase(actualConstraintGroupCol))
-                    .findFirst();
-
-            // Check if column exists
-            if (! constraintGroupField.isPresent()) {
-                logger.error(String.format(
-                        "The parameter %s=%s is invalid; no such column was found.",
-                           CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
-                           actualConstraintGroupCol));
-                return Optional.empty();
-            }
-
-            // Check if the constraint_group_column is in categorical format
-            if (! (constraintGroupField.get().getValueSchema() instanceof CategoricalValueSchema)) {
-                logger.error(String.format(
-                        "The parameter %s=%s is invalid; expected a column in categorical format, got %s format.",
-                        CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
-                        actualConstraintGroupCol,
-                        constraintGroupField.get().getValueSchema().getClass().toString()));
-                return Optional.empty();
-            }
-
-            // NOTE!
-            //  - this index corresponds to the index in our dataset schema;
-            //  - this value may be off by one when compared to LightGBM's expected index values;
-            //  - this is due to the fact that LightGBM disregards the target column when counting column indices;
-            constraintGroupColIndex = constraintGroupField.get().getFieldIndex();
+        // Check if the constraint_group_column is in categorical format
+        if (! (constraintGroupField.get().getValueSchema() instanceof CategoricalValueSchema)) {
+            logger.error(String.format(
+                    "The parameter %s=%s is invalid; expected a column in categorical format, got %s format.",
+                    CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME,
+                    actualConstraintGroupCol,
+                    constraintGroupField.get().getValueSchema().getClass().toString()));
+            return Optional.empty();
         }
+
+        // NOTE!
+        //  - this index corresponds to the index in our dataset schema;
+        //  - this value may be off by one when compared to LightGBM's expected index values;
+        //  - this is due to the fact that LightGBM disregards the target column when counting column indices;
+        final int constraintGroupColIndex = constraintGroupField.get().getFieldIndex();
 
         return Optional.of(constraintGroupColIndex);
     }
