@@ -114,7 +114,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             // Slack on the fairness constraints
             new ModelParameter(
                     "constraint_fpr_threshold",
-                    "(Fairness) FPR slack for fairness",
+                    "(Fairness) FPR tolerance for fairness",
                     "The tolerance when fulfilling fairness FPR constraints. "
                             + "The allowed difference between group-wise FPR. "
                             + "The value 0.0 enforces group-wise FPR to be *exactly* equal. "
@@ -124,8 +124,8 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             ),
             new ModelParameter(
                     "constraint_fnr_threshold",
-                    "(Fairness) FNR slack for fairness",
-                    "The slack when fulfilling fairness FNR constraints. "
+                    "(Fairness) FNR tolerance for fairness",
+                    "The tolerance when fulfilling fairness FNR constraints. "
                             + "The allowed difference between group-wise FNR. "
                             + "The value 0.0 enforces group-wise FNR to be *exactly* equal. "
                             + "Higher values lead to a less strict fairness enforcement.",
