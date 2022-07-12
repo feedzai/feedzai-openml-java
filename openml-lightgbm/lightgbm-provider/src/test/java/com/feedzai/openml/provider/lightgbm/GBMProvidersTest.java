@@ -34,18 +34,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Sérgio Jesus (sergio.jesus@feedzai.com)
  * @since 1.3.6
  */
-public class FairProvidersTest {
+public class GBMProvidersTest {
 
     /**
      * Enum of fairness-aware algorithms.
      */
     private final Set<LightGBMAlgorithms> FAIRNESS_AWARE_ALGORITHMS = ImmutableSet.of(LightGBMAlgorithms.FAIRGBM_BINARY_CLASSIFIER);
-
-
-    /**
-     * Enum of fairness-blind algorithms.
-     */
-    private final Set<LightGBMAlgorithms> FAIRNESS_BLIND_ALGORITHMS = EnumSet.allOf(LightGBMAlgorithms.class);
 
     /**
      * Ensures models in FairGBMProvider are in the list of fair algorithms.
@@ -53,7 +47,7 @@ public class FairProvidersTest {
      * @throws AssertionError In case there are algorithms which are not fair in provider.
      */
     @Test
-    public void assertFairAlgorithmsInFairGBMProviderTest() {
+    public void fairGBMProviderOnlyProvidesFairAlgorithms() {
         final FairGBMMLProvider fairGBMMLProvider = new FairGBMMLProvider();
 
         assertThat(
@@ -68,13 +62,15 @@ public class FairProvidersTest {
      * @throws AssertionError In case there are algorithms which are fair in provider.
      */
     @Test
-    public void assertBlindAlgorithmsInLightGBMProviderTest(){
+    public void lightGBMProviderOnlyProvidesFairnessBlindAlgorithms(){
         final LightGBMMLProvider lightGBMMLProvider = new LightGBMMLProvider();
-        FAIRNESS_BLIND_ALGORITHMS.removeAll(FAIRNESS_AWARE_ALGORITHMS);
+        final Set<LightGBMAlgorithms> fairnessBlindAlgorithms = EnumSet.allOf(LightGBMAlgorithms.class);
+
+        fairnessBlindAlgorithms.removeAll(FAIRNESS_AWARE_ALGORITHMS);
 
         assertThat(
             lightGBMMLProvider.getAlgorithms().stream().filter(
-                el -> FAIRNESS_BLIND_ALGORITHMS.contains(el)
+                el -> fairnessBlindAlgorithms.contains(el)
             ).collect(Collectors.toSet()).size()).as("number of invalid algorithms").isEqualTo(0);
     }
 }
