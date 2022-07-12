@@ -79,22 +79,22 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             new ModelParameter(
                     "global_target_fpr",
                     "(Fairness) Global target FPR",
-                    "This is an inequality constraint: inactive when FPR is lower than the target. "
-                            + "If you have an approximate value of FPR in mind for deploying the model, then "
-                            + "set it here as well, so that fairness constraints can better adapt to such value. "
+                    "This parameter is only active when '(Fairness) Global constraint type' includes "
+                            + "'FPR'. This is an inequality constraint: inactive when FPR is lower than the target. "
                             + "Oftentimes, some tension is required between global FPR and FNR constraints in order to "
-                            + "achieve the target values (a global constraint on FPR and FNR simultaneously).",
+                            + "achieve the target values (in these cases pick 'FPR,FNR' for the '(Fairness) Global "
+                            + "constraint type' parameter).",
                     NOT_MANDATORY,
                     doubleRange(0.0, 1.0, 0.05)
             ),
             new ModelParameter(
                     "global_target_fnr",
                     "(Fairness) Global target FNR",
-                    "This is an inequality constraint: inactive when FNR is lower than the target. "
-                            + "If you have an approximate value of FNR in mind for deploying the model, then "
-                            + "set it here as well, so that fairness constraints can better adapt to such value. "
+                    "This parameter is only active when '(Fairness) Global constraint type' includes "
+                            + "'FNR'. This is an inequality constraint: inactive when FNR is lower than the target. "
                             + "Oftentimes, some tension is required between global FPR and FNR constraints in order to "
-                            + "achieve the target values (a global constraint on FPR and FNR simultaneously).",
+                            + "achieve the target values (in these cases pick 'FPR,FNR' for the '(Fairness) Global "
+                            + "constraint type' parameter).",
                     NOT_MANDATORY,
                     doubleRange(0.0, 1.0, 0.5)
             ),
