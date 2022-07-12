@@ -548,7 +548,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","));
 
         // Set default objective parameter
-        Optional<String> objective = getLightGBMObjective(mapParams);
+        final Optional<String> objective = getLightGBMObjective(mapParams);
         if (! objective.isPresent()) {
             // Default to objective=binary
             preprocessedMapParams.put("objective", "binary");

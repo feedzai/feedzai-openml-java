@@ -197,6 +197,7 @@ public class SWIGTrainData implements AutoCloseable {
      * and releases the chunked data from memory.
      */
     SWIGTYPE_p_int coalesceChunkedSwigConstraintGroupDataArray() {
+        assert this.fairnessConstrained && this.swigConstraintGroupChunkedArray != null;
         this.swigConstraintGroupDataArray = lightgbmlib.new_intArray(this.swigConstraintGroupChunkedArray.get_add_count());
         this.swigConstraintGroupChunkedArray.coalesce_to(this.swigConstraintGroupDataArray);
         this.swigConstraintGroupChunkedArray.release();
