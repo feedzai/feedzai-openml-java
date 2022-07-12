@@ -64,8 +64,8 @@ public class GBMProvidersTest {
     @Test
     public void lightGBMProviderOnlyProvidesFairnessBlindAlgorithms(){
         final LightGBMMLProvider lightGBMMLProvider = new LightGBMMLProvider();
-        final Set<LightGBMAlgorithms> fairnessBlindAlgorithms = EnumSet.allOf(LightGBMAlgorithms.class);
 
+        final Set<LightGBMAlgorithms> fairnessBlindAlgorithms = EnumSet.allOf(LightGBMAlgorithms.class);
         fairnessBlindAlgorithms.removeAll(FAIRNESS_AWARE_ALGORITHMS);
 
         assertThat(
