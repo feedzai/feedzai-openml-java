@@ -115,7 +115,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             new ModelParameter(
                     "constraint_fpr_threshold",
                     "(Fairness) FPR slack for fairness",
-                    "The slack when fulfilling fairness FPR constraints. "
+                    "The tolerance when fulfilling fairness FPR constraints. "
                             + "The allowed difference between group-wise FPR. "
                             + "The value 0.0 enforces group-wise FPR to be *exactly* equal. "
                             + "Higher values lead to a less strict fairness enforcement.",
