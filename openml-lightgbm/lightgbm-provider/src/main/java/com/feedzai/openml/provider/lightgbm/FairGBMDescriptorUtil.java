@@ -69,11 +69,10 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
             new ModelParameter(
                     "global_constraint_type",
                     "(Fairness) Global constraint type",
-                    "Type of global constraint to enforce during training of fairness constraints. "
-                            + "For example, if you want to deploy your model on 5% FPR, use a global "
-                            + "constraint on 5% FPR, so that the fairness constraints are trained by considering this "
-                            + "FPR constraint in mind. Otherwise, fairness may not generalize well when you change "
-                            + "the model's operating point.",
+                    "FairGBM modifies the output scores to meet your target FPR and/or FNR as well as "
+                            + "fairness at a decision threshold of approximately 0.5 (or 500 in Pulse). Set parameters "
+                            + "(Fairness) Global target FPR/FNR accordingly. Using decision thresholds far from 0.5 "
+                            + "will not ensure fairness.",
                     NOT_MANDATORY,
                     new ChoiceFieldType(ImmutableSet.of("FPR", "FNR", "FPR,FNR"), "FPR,FNR")
             ),
@@ -111,7 +110,7 @@ public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
                             "constrained_cross_entropy")
             ),
 
-            // Slack on the fairness constraints
+            // Tolerance on the fairness constraints
             new ModelParameter(
                     "constraint_fpr_threshold",
                     "(Fairness) FPR tolerance for fairness",
