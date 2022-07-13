@@ -20,11 +20,13 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import com.feedzai.openml.provider.descriptor.fieldtype.BooleanFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
+import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ModelParameterType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class to return the LightGBM Algorithm's default parameters.
@@ -35,14 +37,34 @@ import java.util.Map;
 public class TestParameters {
 
     /**
-     * Gets default parameters.
+     * Gets default parameters for LightGBM.
      *
      * @return Returns all LightGBM ModelParameters with the default values.
      */
-    public static Map<String, String> getDefaultParameters() {
+    public static Map<String, String> getDefaultLightGBMParameters() {
+        return getDefaultParameters(LightGBMDescriptorUtil.PARAMS);
+    }
 
-        final Map<String, String> mapParams = new HashMap<>(LightGBMDescriptorUtil.PARAMS.size(), 1);
-        for (final ModelParameter modelParameter : LightGBMDescriptorUtil.PARAMS) {
+    /**
+     * Gets default parameters for FairGBM.
+     *
+     * @return Returns all FairGBM ModelParameters with the default values.
+     */
+    public static Map<String, String> getDefaultFairGBMParameters() {
+        return getDefaultParameters(FairGBMDescriptorUtil.PARAMS);
+    }
+
+    /**
+     * Extracts the default parameters from the provided set of Model Parameters.
+     *
+     * @param params A set of model parameters.
+     * @throws IllegalArgumentException if invalid parameters are received.
+     * @return the default set of parameters.
+     */
+    private static Map<String, String> getDefaultParameters(final Set<ModelParameter> params) {
+
+        final Map<String, String> mapParams = new HashMap<>(params.size());
+        for (final ModelParameter modelParameter : params) {
             final String defaultValue;
             final ModelParameterType type = modelParameter.getFieldType();
 
@@ -55,15 +77,21 @@ public class TestParameters {
                     defaultValue = String.valueOf(value);
                 }
             } else if (type instanceof ChoiceFieldType) {
-                defaultValue = String.valueOf(((ChoiceFieldType) type).getDefaultValue());
+                defaultValue = ((ChoiceFieldType) type).getDefaultValue();
             } else if (type instanceof BooleanFieldType) {
                 defaultValue = String.valueOf(((BooleanFieldType) type).isDefaultTrue());
+            } else if (type instanceof FreeTextFieldType) {
+                defaultValue = ((FreeTextFieldType) type).getDefaultValue();
             } else {
-                throw new RuntimeException("Invalid parameter type received.");
+                throw new IllegalArgumentException("Invalid parameter type received.");
             }
+
+            // Assert default value is not null
+            assert defaultValue != null : "Found null default value for parameter " + modelParameter.getName();
 
             mapParams.put(modelParameter.getName(), defaultValue);
         }
         return mapParams;
     }
+
 }

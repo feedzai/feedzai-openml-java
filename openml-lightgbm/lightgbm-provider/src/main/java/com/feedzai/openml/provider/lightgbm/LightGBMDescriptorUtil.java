@@ -20,7 +20,6 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import com.feedzai.openml.provider.descriptor.fieldtype.BooleanFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
-import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
@@ -31,7 +30,7 @@ import java.util.Set;
  * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
  * @since 1.0.10
  */
-public class LightGBMDescriptorUtil {
+public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
 
     /**
      * Boosting type parameter name.
@@ -74,44 +73,6 @@ public class LightGBMDescriptorUtil {
     public static final String FEATURE_FRACTION_PARAMETER_DESCRIPTION = "Feature fraction by tree";
 
     /**
-     * An alias to ease the readability of parameters' configuration that are not mandatory.
-     */
-    private static final boolean NOT_MANDATORY = false;
-
-    /**
-     * An alias to ease the readability of parameters' configuration that are not mandatory.
-     */
-    private static final boolean MANDATORY = true;
-
-    /**
-     * Helper method to return a range of type DOUBLE.
-     *
-     * @param minValue Minimum allowed value.
-     * @param maxValue Maximum allowed value.
-     * @param defaultValue Default value.
-     * @return Double range with the specs above.
-     */
-    private static NumericFieldType doubleRange(final double minValue,
-                                                final double maxValue,
-                                                final double defaultValue) {
-        return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.DOUBLE, defaultValue);
-    }
-
-    /**
-     * Helper method to return a range of type INT.
-     *
-     * @param minValue Minimum allowed value.
-     * @param maxValue Maximum allowed value.
-     * @param defaultValue Default value.
-     * @return Integer range with the specs above.
-     */
-    private static NumericFieldType intRange(final int minValue,
-                                             final int maxValue,
-                                             final int defaultValue) {
-        return NumericFieldType.range(minValue, maxValue, NumericFieldType.ParameterConfigType.INT, defaultValue);
-    }
-
-    /**
      * Defines the set of model parameters accepted by the LightGBM model.
      */
     static final Set<ModelParameter> PARAMS = ImmutableSet.of(
@@ -124,7 +85,7 @@ public class LightGBMDescriptorUtil {
                             + "'goss' is faster but slightly less accurate,\n"
                             + "'dart' is much slower but might improve performance,\n"
                             + "'rf' is the random forest mode.",
-                    NOT_MANDATORY,
+                    MANDATORY,
                     new ChoiceFieldType(
                             ImmutableSet.of("gbdt", "rf", "dart", "goss"),
                             "gbdt"
@@ -135,7 +96,7 @@ public class LightGBMDescriptorUtil {
                     "Number of booster iterations",
                     "LightGBM uses num_trees = num_classes * num_iterations for multi-classification.\n"
                             + "For binary classification it equals the number of trees.",
-                    NOT_MANDATORY,
+                    MANDATORY,
                     intRange(0, Integer.MAX_VALUE, 100)
             ),
             new ModelParameter(
@@ -143,7 +104,7 @@ public class LightGBMDescriptorUtil {
                     "Learning rate",
                     "Also named: 'shrinkage_rate' and 'eta'.\n"
                             + "In DART it also affects normalization weights of dropped trees.",
-                    NOT_MANDATORY,
+                    MANDATORY,
                     doubleRange(1E-99, Float.MAX_VALUE, 0.1)
             ),
             new ModelParameter(

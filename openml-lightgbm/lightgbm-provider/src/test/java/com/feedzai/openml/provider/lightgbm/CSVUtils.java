@@ -182,6 +182,9 @@ class CSVUtils {
             );
         }
 
+        // Ensure that file loaded is properly closed
+        csvParser.close();
+
         return new MockDataset(schema, instances);
     }
 }

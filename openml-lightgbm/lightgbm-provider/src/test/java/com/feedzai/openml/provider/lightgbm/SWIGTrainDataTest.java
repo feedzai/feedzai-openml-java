@@ -38,9 +38,10 @@ public class SWIGTrainDataTest {
      */
     @Before
     public void setupTest() {
-
         swigTrainData = new SWIGTrainData((int) NUM_FEATURES, NUM_INSTANCES_PER_CHUNK);
     }
+
+    // TODO: test SWIGTrainData with fairnessConstrained=true
 
     /**
      * Assert the features ChunkedArray has the proper size.

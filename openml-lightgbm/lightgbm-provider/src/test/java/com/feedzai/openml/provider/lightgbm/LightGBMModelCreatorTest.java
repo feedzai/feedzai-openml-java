@@ -192,10 +192,10 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForLoad(
                 TestResources.getModelFolderPath(),
                 TestSchemas.SCHEMA_WITH_REGRESSION_TARGET,
-                TestParameters.getDefaultParameters()
+                TestParameters.getDefaultLightGBMParameters()
         );
 
-        assertThat(errors.size()).as("error count").isGreaterThan(0);
+        assertThat(errors.size()).as("error count").isPositive();
     }
 
     /**
@@ -341,7 +341,7 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForFit(
                 tmpEmptyDir,
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
-                TestParameters.getDefaultParameters()
+                TestParameters.getDefaultLightGBMParameters()
         );
 
         assertZeroErrors(errors);
@@ -356,7 +356,7 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForFit(
                 tmpEmptyDir,
                 TestSchemas.SCHEMA_WITH_NON_BINARY_CLASSIFICATION_TARGET,
-                TestParameters.getDefaultParameters()
+                TestParameters.getDefaultLightGBMParameters()
         );
 
         assertSingleErrorMessage(errors, ERROR_MSG_NON_BINARY_TARGET);
@@ -371,10 +371,10 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForFit(
                 tmpEmptyDir,
                 TestSchemas.SCHEMA_WITH_REGRESSION_TARGET,
-                TestParameters.getDefaultParameters()
+                TestParameters.getDefaultLightGBMParameters()
         );
 
-        assertThat(errors.size()).as("error count").isGreaterThan(0);
+        assertThat(errors.size()).as("error count").isPositive();
     }
 
     /**
@@ -383,7 +383,7 @@ public class LightGBMModelCreatorTest {
     @Test
     public void validateForFitRandomForestBaggingTest() {
 
-        final Map<String, String> rfParams = TestParameters.getDefaultParameters();
+        final Map<String, String> rfParams = TestParameters.getDefaultLightGBMParameters();
         rfParams.put(LightGBMDescriptorUtil.BOOSTING_TYPE_PARAMETER_NAME, "rf");
 
         final List<ParamValidationError> errors = modelLoader.validateForFit(
@@ -404,10 +404,10 @@ public class LightGBMModelCreatorTest {
         final List<ParamValidationError> errors = modelLoader.validateForFit(
                 tmpEmptyDir,
                 TestSchemas.SCHEMA_WITH_NO_TARGET,
-                TestParameters.getDefaultParameters()
+                TestParameters.getDefaultLightGBMParameters()
         );
 
-        assertThat(errors.size()).as("error count").isGreaterThan(0);
+        assertThat(errors.size()).as("error count").isPositive();
     }
 
     /**

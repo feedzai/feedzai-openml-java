@@ -39,6 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 

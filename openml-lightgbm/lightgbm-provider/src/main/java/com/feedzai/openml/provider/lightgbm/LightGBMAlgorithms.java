@@ -40,6 +40,16 @@ public enum LightGBMAlgorithms implements MLAlgorithmEnum {
             MachineLearningAlgorithmType.SUPERVISED_BINARY_CLASSIFICATION,
             "https://lightgbm.readthedocs.io/"
     )),
+
+    /**
+     * FairGBM binary classifier algorithm.
+     */
+    FAIRGBM_BINARY_CLASSIFIER(createDescriptor(
+            "FairGBM (LightGBM with Fairness)",
+            FairGBMDescriptorUtil.PARAMS,
+            MachineLearningAlgorithmType.SUPERVISED_BINARY_CLASSIFICATION,
+            "https://lightgbm.readthedocs.io/"  // TODO: link to our documentation
+    )),
     ;
 
     /**

@@ -97,7 +97,7 @@ public class LightGBMBinaryClassificationModelTest {
         final DatasetSchema schema = TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END;
 
         for (final CSVRecord record : csvParser) {
-            assertTrue(modelScoreMatchesReferenceScore(this.model, schema, record));
+            assertTrue(modelScoreMatchesReferenceScore(model, schema, record));
         }
     }
 

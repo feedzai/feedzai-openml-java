@@ -55,17 +55,17 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     /**
      * Parameters for model train.
      */
-    private final static Map<String, String> MODEL_PARAMS = TestParameters.getDefaultParameters();
+    private static final Map<String, String> MODEL_PARAMS = TestParameters.getDefaultLightGBMParameters();
 
     /**
      * Maximum number of instances to train (to speed up tests).
      */
-    private final static int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = (int) 5e3;
+    private static final int MAX_NUMBER_OF_INSTANCES_TO_TRAIN = 5000;
 
     /**
      * Maximum number of instances to score (to speed up tests).
      */
-    private final static int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 300;
+    private static final int MAX_NUMBER_OF_INSTANCES_TO_SCORE = 300;
 
     /**
      * Dataset resource name to use for both fit and validation stages during tests.
@@ -315,7 +315,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_END,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -332,7 +332,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_IN_MIDDLE,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -349,7 +349,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 TestSchemas.CATEGORICALS_SCHEMA_LABEL_AT_START,
                 10000
         );
-        ensureFeatureContributions(dataset);
+        ensureFeatureContributions(dataset, MODEL_PARAMS);
     }
 
     /**
@@ -358,12 +358,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param dataset The {@link Dataset}.
      * @since 1.3.0
      */
-    private void ensureFeatureContributions(final Dataset dataset) {
+    static void ensureFeatureContributions(final Dataset dataset, final Map<String, String> modelParams) {
         final int targetIndex = dataset.getSchema().getTargetIndex().get();
         final int num1Index = 1;
         final int cat1Index = 4;
 
-        final Map<String, String> trainParams = new HashMap<>(MODEL_PARAMS);
+        final Map<String, String> trainParams = new HashMap<>(modelParams);
         trainParams.replace(NUM_ITERATIONS_PARAMETER_NAME, "100");
 
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator().fit(
@@ -408,12 +408,29 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException           For errors when reading the dataset.
      * @throws ModelLoadingException For errors training the model.
      */
-    private static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
+    static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
             final String datasetResourceName,
             final DatasetSchema schema,
             final int maxInstancesToTrain,
             final int maxInstancesToScore,
             final int chunkSizeInstances) throws URISyntaxException, IOException, ModelLoadingException {
+        return fitModelAndGetFirstScoresPerClass(
+                datasetResourceName,
+                schema,
+                maxInstancesToTrain,
+                maxInstancesToScore,
+                chunkSizeInstances,
+                MODEL_PARAMS
+        );
+    }
+
+    static ArrayList<List<Double>> fitModelAndGetFirstScoresPerClass(
+            final String datasetResourceName,
+            final DatasetSchema schema,
+            final int maxInstancesToTrain,
+            final int maxInstancesToScore,
+            final int chunkSizeInstances,
+            final Map<String, String> modelParams) throws URISyntaxException, IOException, ModelLoadingException {
 
         final Dataset dataset = CSVUtils.getDatasetWithSchema(
                 TestResources.getResourcePath(datasetResourceName),
@@ -421,13 +438,17 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 maxInstancesToTrain
         );
 
-        final LightGBMBinaryClassificationModel model = fit(
+        try (final LightGBMBinaryClassificationModel model = fit(
                 dataset,
-                MODEL_PARAMS,
+                modelParams,
                 chunkSizeInstances
-        );
-
-        return getClassScores(dataset, model, maxInstancesToScore);
+        )) {
+            return getClassScores(dataset, model, maxInstancesToScore);
+        } catch (ModelLoadingException e) {
+            throw e;
+        } catch (final Exception e) {
+            throw new RuntimeException("Could not properly release Model");
+        }
     }
 
     /**
@@ -439,7 +460,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param maxInstances Maximum number of instances to score (to reduce testing time).
      * @return Array with arrays of class scores.
      */
-    private static ArrayList<List<Double>> getClassScores(final Dataset dataset,
+    static ArrayList<List<Double>> getClassScores(final Dataset dataset,
                                                           final LightGBMBinaryClassificationModel model,
                                                           final int maxInstances) {
 
@@ -465,7 +486,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @param inputArray Input array from which to compute the average.
      * @return Average
      */
-    private double average(final List<Double> inputArray) {
+    static double average(final List<Double> inputArray) {
 
         double sum = 0.0;
         for (final Double x : inputArray) {
@@ -484,7 +505,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @throws IOException           Can be thrown when creating a temporary model file.
      * @throws ModelLoadingException If there was any issue training the model.
      */
-    private static LightGBMBinaryClassificationModel fit(
+    static LightGBMBinaryClassificationModel fit(
             final Dataset dataset,
             final Map<String, String> params,
             final long instancesPerChunk) throws IOException, ModelLoadingException {
@@ -506,7 +527,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @return A {@link ArrayList} of two {@link LinkedList}.
      * @since 1.3.0
      */
-    private static ArrayList<List<Double>> getListOfTwoLists() {
+    static ArrayList<List<Double>> getListOfTwoLists() {
         final ArrayList<List<Double>> list = new ArrayList<>(2);
         list.add(new LinkedList<>());
         list.add(new LinkedList<>());

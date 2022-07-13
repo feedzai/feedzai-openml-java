@@ -26,7 +26,6 @@ import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.assertj.core.api.Assertions;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -59,7 +58,7 @@ public class ClassifyUnknownCategoryTest {
                 new MockInstance(ImmutableList.of(1.0, 0.0))
         ));
         final LightGBMBinaryClassificationModel model = new LightGBMModelCreator()
-                .fit(dataset, new Random(0), TestParameters.getDefaultParameters());
+                .fit(dataset, new Random(0), TestParameters.getDefaultLightGBMParameters());
 
         final int predictedClass = model.classify(
                 new MockInstance(ImmutableList.of(1.0, 1.0))
