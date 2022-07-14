@@ -30,7 +30,7 @@ import com.feedzai.openml.util.algorithm.MLAlgorithmEnum;
  * This class implements Feedzai's OpenML MachineLearningProvider interface for FairGBM (constrained LightGBM).
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 @AutoService(MachineLearningProvider.class)
 public class FairGBMMLProvider implements TrainingMachineLearningProvider<LightGBMModelCreator> {

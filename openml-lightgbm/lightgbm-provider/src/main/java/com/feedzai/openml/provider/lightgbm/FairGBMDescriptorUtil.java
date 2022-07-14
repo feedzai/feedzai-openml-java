@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Utility to organize all the necessary Machine Learning Hyper-Parameters for configuring the training of LightGBM.
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 public class FairGBMDescriptorUtil extends LightGBMDescriptorUtil {
 

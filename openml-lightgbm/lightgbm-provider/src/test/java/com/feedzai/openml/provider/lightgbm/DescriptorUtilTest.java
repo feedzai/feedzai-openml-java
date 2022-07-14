@@ -31,7 +31,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for the descriptor util classes (both FairGBM and LightGBM).
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 public class DescriptorUtilTest {
 

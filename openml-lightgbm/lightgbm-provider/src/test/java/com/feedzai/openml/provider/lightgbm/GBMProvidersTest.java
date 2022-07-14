@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Conversely, it guarantees that no fairness-aware algorithm is used with LightGBMMLProvider.
  *
  * @author Sérgio Jesus (sergio.jesus@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 public class GBMProvidersTest {
 

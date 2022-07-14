@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * Tests for using the LightGBMBinaryClassificationModelTrainer class with FairGBM.
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 public class FairGBMBinaryClassificationModelTrainerTest {
 
