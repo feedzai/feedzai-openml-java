@@ -16,7 +16,7 @@ import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRA
  * Utility to parse parameters specific to the FairGBM model.
  *
  * @author Andre Cruz (andre.cruz@feedzai.com)
- * @since 1.3.6
+ * @since 1.4.0
  */
 public class FairGBMParamParserUtil {
 
