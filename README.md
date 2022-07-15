@@ -26,6 +26,15 @@ git push origin 1.2.29
 ```
 Then you need to [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) with this tag and the description according [to the previous ones](https://github.com/feedzai/feedzai-openml-java/releases).
 
+### Releasing an Experimental
+
+For experimental releases, the process is the same as above but with a lightweight tag instead of annotated.
+```bash
+#the xp part is not needed, what matters is that the tag is not annotated, but is a good indicator for others that this was a tag for an experimental release
+git tag 1.5.0-xp 
+git push origin 1.5.0-xp
+```
+
 ## Modules
 
 ### H2O
