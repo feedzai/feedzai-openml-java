@@ -104,13 +104,13 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
                     "Learning rate",
                     "Also named: 'shrinkage_rate' and 'eta'.\n"
                             + "In DART it also affects normalization weights of dropped trees.",
-                    MANDATORY,
+                    NOT_MANDATORY,
                     doubleRange(1E-99, Float.MAX_VALUE, 0.1)
             ),
             new ModelParameter(
                     "num_leaves",
                     "Maximum tree leaves",
-                    "Maimum number of leaves per tree. Can be used to control over-fitting.",
+                    "Maximum number of leaves per tree. Can be used to control over-fitting.",
                     NOT_MANDATORY,
                     intRange(1, 131072, 31)
             ),
