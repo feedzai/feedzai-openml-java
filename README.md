@@ -14,19 +14,23 @@ mvn clean install
 
 ## Releasing
 
-For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head (example below for releasing version 1.2.29):
+For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head.
 
+### Public Release
+
+For a public release you need to create and push an annotated tag. See the example below for releasing version 1.2.29:
 ```bash
-# Ensure the tag is made on the udpated branch
+# Ensure the tag is made on the updated branch
 git fetch -a
 git checkout origin/hf-1.2.X
 git tag -a 1.2.29
 # Your EDITOR will open. Write a good message and save as it is used on Github as a release message
 git push origin 1.2.29
 ```
-Then you need to [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) with this tag and the description according [to the previous ones](https://github.com/feedzai/feedzai-openml-java/releases).
+Then you need to [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) with this tag.
+There is a "Generate release notes" button available to create the release notes, just organize them according [to the previous ones](https://github.com/feedzai/feedzai-openml-java/releases).
 
-### Releasing an Experimental
+### Experimental Release
 
 For experimental releases, the process is the same as above but with a lightweight tag instead of annotated.
 ```bash
