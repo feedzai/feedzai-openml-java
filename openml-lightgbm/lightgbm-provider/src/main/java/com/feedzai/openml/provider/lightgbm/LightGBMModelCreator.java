@@ -18,13 +18,10 @@
 package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Dataset;
-import com.feedzai.openml.data.schema.AbstractValueSchema;
-import com.feedzai.openml.data.schema.CategoricalValueSchema;
-import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.data.schema.FieldSchema;
-import com.feedzai.openml.data.schema.StringValueSchema;
+import com.feedzai.openml.data.schema.*;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.feedzai.openml.provider.lightgbm.parameters.SoftLabelParamParserUtil;
 import com.feedzai.openml.provider.model.MachineLearningModelTrainer;
 import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.google.common.collect.ImmutableList;
@@ -39,13 +36,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
-import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FRACTION_PARAMETER_NAME;
-import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FREQUENCY_PARAMETER_NAME;
-import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BOOSTING_TYPE_PARAMETER_NAME;
-import static com.feedzai.openml.util.validate.ValidationUtils.baseLoadValidations;
-import static com.feedzai.openml.util.validate.ValidationUtils.checkParams;
-import static com.feedzai.openml.util.validate.ValidationUtils.validateCategoricalSchema;
-import static com.feedzai.openml.util.validate.ValidationUtils.validateModelPathToTrain;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.*;
+import static com.feedzai.openml.util.validate.ValidationUtils.*;
 import static java.nio.file.Files.createTempFile;
 
 /**
@@ -145,7 +137,6 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     }
 
 
-
     @Override
     public List<ParamValidationError> validateForFit(final Path pathToPersist,
                                                      final DatasetSchema schema,
@@ -155,7 +146,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         errorsBuilder
                 .addAll(validateModelPathToTrain(pathToPersist))
                 .addAll(validateSchema(schema))
-                .addAll(validateFitParams(params));
+                .addAll(validateFitParams(params))
+                .addAll(validateSoftLabelParam(schema, params));
 
         return errorsBuilder.build();
     }
@@ -181,6 +173,40 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         return errorsBuilder.build();
+    }
+
+    /**
+     * Ensure that if the soft label parameter is passed, it uses a floating point field.
+     *
+     * @param schema Dataset schema.
+     * @param params Model fit parameters.
+     * @return list of validation errors.
+     */
+    private List<ParamValidationError> validateSoftLabelParam(final DatasetSchema schema,
+                                                              final Map<String, String> params) {
+        // Don't test anything if the parameter is not set:
+        final Optional<String> softLabelFieldName = SoftLabelParamParserUtil.getSoftLabelFieldName(params);
+        if (!softLabelFieldName.isPresent()) {
+            return ImmutableList.of();
+        }
+
+        // Check if the field exists in the dataset:
+        final Optional<Integer> softLabelIndex = SoftLabelParamParserUtil.getSoftLabelColumnIndex(params, schema);
+        if (!softLabelIndex.isPresent()) {
+            return ImmutableList.of(new ParamValidationError(
+                    String.format("Soft label field '%s' doesn't exist in the dataset.", softLabelFieldName.get())));
+        }
+
+        // Ensure the soft label is numerical:
+        final FieldSchema softLabelSchema = schema
+                .getFieldSchemas()
+                .get(softLabelIndex.get());
+        final AbstractValueSchema valueSchema = softLabelSchema.getValueSchema();
+        if (!(softLabelSchema.getValueSchema() instanceof NumericValueSchema)) {
+            return ImmutableList.of(new ParamValidationError("Soft label must be a numeric field!"));
+        }
+
+        return ImmutableList.of();
     }
 
     /**
@@ -221,7 +247,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
     @Override
     public LightGBMBinaryClassificationModel loadModel(final Path modelPath,
-                                                       final DatasetSchema schema)  throws ModelLoadingException {
+                                                       final DatasetSchema schema) throws ModelLoadingException {
 
         final Path modelFilePath = getPath(modelPath);
 
@@ -340,11 +366,10 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     /**
      * Gets the feature names from schema.
      *
-     * @implNote The space character is replaced with underscore
-     * to comply with LightGBM's model features representation.
-     *
      * @param schema Schema
      * @return Feature names from the schema.
+     * @implNote The space character is replaced with underscore
+     * to comply with LightGBM's model features representation.
      * @since 1.0.18
      */
     private static String[] getFeatureNamesFrom(final DatasetSchema schema) {
@@ -360,7 +385,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
      * {@link DatasetSchema} and an array of feature names.
      * This way the first mismatch is logged, improving debug.
      *
-     * @param schema Schema
+     * @param schema       Schema
      * @param featureNames Feature names to validate.
      * @return {@code true} if the schema predictive field names
      * match the provided array, {@code false} otherwise.
