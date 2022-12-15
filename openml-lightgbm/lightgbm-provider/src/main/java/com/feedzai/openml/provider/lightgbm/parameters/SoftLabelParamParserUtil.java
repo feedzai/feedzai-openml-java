@@ -1,11 +1,9 @@
 package com.feedzai.openml.provider.lightgbm.parameters;
 
 import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.data.schema.FieldSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,7 +30,8 @@ public class SoftLabelParamParserUtil {
     public static Optional<String> getSoftLabelFieldName(final Map<String, String> params) {
         final String softLabelFieldName = params.get(SOFT_LABEL_PARAMETER_NAME);
 
-        return softLabelFieldName.equals("") ? Optional.empty() : Optional.of(softLabelFieldName.trim());
+        return softLabelFieldName == null || softLabelFieldName.equals("") ?
+                Optional.empty() : Optional.of(softLabelFieldName.trim());
     }
 
     public static boolean useSoftLabel(final Map<String, String> mapParams) {
@@ -45,7 +44,7 @@ public class SoftLabelParamParserUtil {
      * NOTE: the soft label column must be part of the features in the Dataset, but it may be ignored for training
      *
      * @param params LightGBM train parameters.
-     * @param schema    Schema of the dataset.
+     * @param schema Schema of the dataset.
      * @return the index of the soft label column if one was provided, else returns an empty Optional.
      */
     public static Optional<Integer> getSoftLabelColumnIndex(final Map<String, String> params,
