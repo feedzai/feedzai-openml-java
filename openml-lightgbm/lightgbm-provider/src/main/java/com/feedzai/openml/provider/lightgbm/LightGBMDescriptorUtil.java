@@ -327,7 +327,7 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
             ),
             new ModelParameter(
                     "min_data_in_bin",
-                    "Minimium bin data",
+                    "Minimum bin data",
                     "Minimum number of samples inside one bin. Limit over-fitting. E.g., not using 1 point per bin.",
                     NOT_MANDATORY,
                     intRange(1, Integer.MAX_VALUE, 3)

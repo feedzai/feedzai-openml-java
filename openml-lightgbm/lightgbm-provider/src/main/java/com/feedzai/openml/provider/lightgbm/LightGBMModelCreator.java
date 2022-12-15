@@ -194,7 +194,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         final Optional<Integer> softLabelIndex = SoftLabelParamParserUtil.getSoftLabelColumnIndex(params, schema);
         if (!softLabelIndex.isPresent()) {
             return ImmutableList.of(new ParamValidationError(
-                    String.format("Soft label field '%s' doesn't exist in the dataset.", softLabelFieldName.get())));
+                    String.format("Soft label field '%s' doesn't exist in the dataset. Please select it in the features.", softLabelFieldName.get()))); // TODO: bad formatting (optional%$%WER)
         }
 
         // Ensure the soft label is numerical:

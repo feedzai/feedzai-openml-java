@@ -23,6 +23,7 @@ import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.provider.lightgbm.parameters.SoftLabelParamParserUtil;
+import com.feedzai.openml.provider.lightgbm.schema.TrainSchemaUtil;
 import com.google.common.collect.ImmutableSet;
 import com.microsoft.ml.lightgbm.*;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,7 @@ import java.util.*;
 
 import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SOFT_LABEL_PARAMETER_NAME;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 
@@ -125,18 +127,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final DatasetSchema schema = dataset.getSchema();
         final Optional<Integer> softLabelColumnIndex = SoftLabelParamParserUtil.getSoftLabelColumnIndex(params, schema);
-        final int numFeatures;
-        final int numPredictiveFields = schema.getPredictiveFields().size();
-        if (!softLabelColumnIndex.isPresent()) {
-            numFeatures = numPredictiveFields;
-        } else {
-            final boolean isSoftLabelSelectedAsFeature = schema.getPredictiveFields()
-                    .stream().anyMatch(
-                            field -> field.getFieldName()
-                                    .equals(SoftLabelParamParserUtil.getSoftLabelFieldName(params).get()));
-
-            numFeatures = numPredictiveFields - (isSoftLabelSelectedAsFeature ? 1 : 0);
-        }
+        final int numActualFeatures = TrainSchemaUtil.getNumActualFeatures(schema, params);
 
 
         // Parse train parameters to LightGBM format
@@ -146,7 +137,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
         final SWIGTrainData swigTrainData = new SWIGTrainData(
-                numFeatures,
+                numActualFeatures,
                 instancesPerChunk,
                 FairGBMParamParserUtil.isFairnessConstrained(params));
         final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
@@ -162,9 +153,10 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         createTrainDataset(
                 dataset,
-                numFeatures,
+                numActualFeatures,
                 trainParams,
                 constraintGroupColIndex,
+                SoftLabelParamParserUtil.getSoftLabelFieldName(params),
                 softLabelColumnIndex,
                 swigTrainData
         );
@@ -215,15 +207,16 @@ final class LightGBMBinaryClassificationModelTrainer {
      * - Setting the feature names in the dataset.
      *
      * @param dataset                 Dataset
-     * @param numFeatures             Number of features
+     * @param numActualFeatures       Number of features excluding soft label if used
      * @param trainParams             LightGBM-formatted params string ("key1=value1 key2=value2 ...")
      * @param constraintGroupColIndex The index of the constraint group column.
      * @param swigTrainData           SWIGTrainData object
      */
     private static void createTrainDataset(final Dataset dataset,
-                                           final int numFeatures,
+                                           final int numActualFeatures,
                                            final String trainParams,
                                            final int constraintGroupColIndex,
+                                           final Optional<String> softLabelFieldName,
                                            final Optional<Integer> softLabelColumnIndex,
                                            final SWIGTrainData swigTrainData) {
 
@@ -239,7 +232,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         initializeLightGBMTrainDatasetFeatures(
                 swigTrainData,
-                numFeatures,
+                numActualFeatures,
                 trainParams
         );
 
@@ -253,7 +246,12 @@ final class LightGBMBinaryClassificationModelTrainer {
             );
         }
 
-        setLightGBMDatasetFeatureNames(swigTrainData.swigDatasetHandle, dataset.getSchema());
+        setLightGBMDatasetFeatureNames(
+                swigTrainData.swigDatasetHandle,
+                dataset.getSchema(),
+                softLabelFieldName,
+                numActualFeatures
+        );
 
         logger.info("Created LightGBM dataset.");
     }
@@ -262,17 +260,17 @@ final class LightGBMBinaryClassificationModelTrainer {
      * Initializes the LightGBM dataset structure and copies the feature data.
      *
      * @param swigTrainData SWIGTrainData object.
-     * @param numFeatures   Number of features used to predict.
+     * @param numActualFeatures   Number of features used to predict.
      * @param trainParams   LightGBM string with the train params ("key1=value1 key2=value2 ...").
      */
     private static void initializeLightGBMTrainDatasetFeatures(final SWIGTrainData swigTrainData,
-                                                               final int numFeatures,
+                                                               final int numActualFeatures,
                                                                final String trainParams) {
 
         logger.debug("Initializing LightGBM in-memory structure and setting feature data.");
 
         /// First generate the array that has the chunk sizes for `LGBM_DatasetCreateFromMats`.
-        final SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numFeatures);
+        final SWIGTYPE_p_int swigChunkSizesArray = genSWIGFeatureChunkSizesArray(swigTrainData, numActualFeatures);
 
         /// Now create the LightGBM Dataset itself from the chunks:
         logger.debug("Creating LGBM_Dataset from chunked data...");
@@ -281,7 +279,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 swigTrainData.swigFeaturesChunkedArray.data_as_void(), // input data (void**)
                 lightgbmlibConstants.C_API_DTYPE_FLOAT64,
                 swigChunkSizesArray,
-                numFeatures,
+                numActualFeatures,
                 1, // rowMajor.
                 trainParams, // parameters.
                 null, // No alignment with other datasets.
@@ -301,11 +299,11 @@ final class LightGBMBinaryClassificationModelTrainer {
      * Generates a SWIG array of ints with the size of each train chunk (partition).
      *
      * @param swigTrainData SWIGTrainData object.
-     * @param numFeatures   Number of features used to predict.
+     * @param numActualFeatures   Number of features used to predict (excludes soft label field if used).
      * @return SWIG (int*) array of the train chunks' sizes.
      */
     private static SWIGTYPE_p_int genSWIGFeatureChunkSizesArray(final SWIGTrainData swigTrainData,
-                                                                final int numFeatures) {
+                                                                final int numActualFeatures) {
 
         logger.debug("Retrieving chunked data block sizes...");
 
@@ -322,11 +320,11 @@ final class LightGBMBinaryClassificationModelTrainer {
         lightgbmlib.intArray_setitem(
                 swigChunkSizesArray,
                 numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numFeatures
+                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numActualFeatures
         );
         logger.debug("FTL: chunk-size report: chunk #{} is partial-chunk of size {}",
                 numChunks - 1,
-                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numFeatures);
+                (int) swigTrainData.swigFeaturesChunkedArray.get_last_chunk_add_count() / numActualFeatures);
 
         return swigChunkSizesArray;
     }
@@ -393,14 +391,20 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigDatasetHandle SWIG dataset handle
      * @param schema            Dataset schema
      */
-    private static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle, final DatasetSchema schema) {
+    private static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle,
+                                                       final DatasetSchema schema,
+                                                       final Optional<String> softLabelFieldName,
+                                                       final int numActualFeatures) {
 
-        final int numFeatures = schema.getPredictiveFields().size();
 
-        final String[] featureNames = getFieldNames(schema.getPredictiveFields());
-        logger.debug("featureNames {}", Arrays.toString(featureNames));
+        final String[] actualFeatureNames = TrainSchemaUtil.getActualFeatureNames(schema, softLabelFieldName);
+        logger.debug("featureNames {}", Arrays.toString(actualFeatureNames));
 
-        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(swigDatasetHandle, featureNames, numFeatures);
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(
+                swigDatasetHandle,
+                actualFeatureNames,
+                numActualFeatures
+        );
         if (returnCodeLGBM == -1) {
             logger.error("Could not set feature names.");
             throw new LightGBMException();
@@ -550,7 +554,7 @@ final class LightGBMBinaryClassificationModelTrainer {
         }
 
         assert swigTrainData.swigLabelsChunkedArray.get_add_count() ==
-                (swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numFeatures);
+                (swigTrainData.swigFeaturesChunkedArray.get_add_count() / swigTrainData.numActualFeatures);
 
         if (swigTrainData.fairnessConstrained) {
             assert swigTrainData.swigConstraintGroupChunkedArray.get_add_count() ==
@@ -595,7 +599,11 @@ final class LightGBMBinaryClassificationModelTrainer {
                 integer -> preprocessedMapParams.put(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, Integer.toString(integer)));
 
         // Add all **other** parameters
-        mapParams.forEach(preprocessedMapParams::putIfAbsent);
+        mapParams
+                .entrySet()
+                .stream()
+                .filter(entry -> !entry.getKey().equals(SOFT_LABEL_PARAMETER_NAME))
+                .forEach(entry -> preprocessedMapParams.putIfAbsent(entry.getKey(), entry.getValue()));
 
         // Build string containing params in LightGBM format
         final StringBuilder paramsBuilder = new StringBuilder();

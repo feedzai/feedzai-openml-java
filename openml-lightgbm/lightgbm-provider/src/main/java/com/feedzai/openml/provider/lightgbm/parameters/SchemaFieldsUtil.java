@@ -38,7 +38,7 @@ public class SchemaFieldsUtil {
         // Check if column exists
         if (!field.isPresent()) {
             logger.error(String.format(
-                    "Column %s was not found in the dataset.",
+                    "Column '%s' was not found in the dataset.",
                     fieldName));
             return Optional.empty();
         }

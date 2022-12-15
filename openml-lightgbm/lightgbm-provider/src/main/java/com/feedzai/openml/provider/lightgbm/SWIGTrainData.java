@@ -17,28 +17,21 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_p_void;
-import com.microsoft.ml.lightgbm.SWIGTYPE_p_void;
-import com.microsoft.ml.lightgbm.doubleChunkedArray;
-import com.microsoft.ml.lightgbm.floatChunkedArray;
-import com.microsoft.ml.lightgbm.int32ChunkedArray;
-import com.microsoft.ml.lightgbm.lightgbmlib;
+import com.microsoft.ml.lightgbm.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Handles train data resources and provides basic operations to manipulate train data.
+ * <p>
+ * This class is responsible for initializing, managing and releasing all
+ * Handles train data resources and provides basic operations to manipulate train data.
+ * LightGBM SWIG train resources and resource handlers in a memory-safe manner.
+ * <p>
+ * Whatever happens, it guarantees that no memory leaks are left behind.
  *
- *  This class is responsible for initializing, managing and releasing all
- *  Handles train data resources and provides basic operations to manipulate train data.
- *  LightGBM SWIG train resources and resource handlers in a memory-safe manner.
- *
- *  Whatever happens, it guarantees that no memory leaks are left behind.
- *
- *  @author Alberto Ferreira (alberto.ferreira@feedzai.com)
- *  @since 1.0.10
+ * @author Alberto Ferreira (alberto.ferreira@feedzai.com)
+ * @since 1.0.10
  */
 public class SWIGTrainData implements AutoCloseable {
 
@@ -56,7 +49,7 @@ public class SWIGTrainData implements AutoCloseable {
      * SWIG Features chunked data array.
      * This objects stores elements in float64 format
      * as a list of chunks that it manages automatically.
-     *
+     * <p>
      * In the current implementation, features are stored in row-major order, i.e.,
      * each instance is stored contiguously.
      */
@@ -80,7 +73,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Number of features per instance.
      */
-    public final int numFeatures;
+    public final int numActualFeatures;
 
     /**
      * Number of instances to store in each chunk.
@@ -104,42 +97,42 @@ public class SWIGTrainData implements AutoCloseable {
 
     /**
      * Constructor.
-     *
+     * <p>
      * Allocates all the initial handles necessary to bootstrap (but not use) the
      * in-memory LightGBM dataset + booster structures.
-     *
+     * <p>
      * After that the BoosterHandle and the DatasetHandle will still need to be initialized at the proper times:
-     * @see SWIGTrainData#initSwigDatasetHandle()
      *
-     * @param numFeatures       The number of features.
+     * @param numActualFeatures The number of features (excludes soft label if used).
      * @param numInstancesChunk The number of instances per chunk of data.
+     * @see SWIGTrainData#initSwigDatasetHandle()
      */
-    public SWIGTrainData(final int numFeatures, final long numInstancesChunk) {
-        this(numFeatures, numInstancesChunk, false);
+    public SWIGTrainData(final int numActualFeatures, final long numInstancesChunk) {
+        this(numActualFeatures, numInstancesChunk, false);
     }
 
     /**
      * Constructor.
-     *
+     * <p>
      * Allocates al the initial ahndles necessary to bootstrap (but not use) the
      * in-memory LightGBM dataset, plus booster structures.
-     *
+     * <p>
      * If fairnessConstrained=true, this will also include data on which sensitive
      * group each instance belongs to.
      *
-     * @param numFeatures           The number of features.
-     * @param numInstancesChunk     The number of instances per chunk of data.
-     * @param fairnessConstrained   Whether this data will be used for a model with fairness (group) constraints.
+     * @param numActualFeatures   The number of features (excludes soft label if used).
+     * @param numInstancesChunk   The number of instances per chunk of data.
+     * @param fairnessConstrained Whether this data will be used for a model with fairness (group) constraints.
      */
-    public SWIGTrainData(final int numFeatures, final long numInstancesChunk, final boolean fairnessConstrained) {
-        this.numFeatures = numFeatures;
+    public SWIGTrainData(final int numActualFeatures, final long numInstancesChunk, final boolean fairnessConstrained) {
+        this.numActualFeatures = numActualFeatures;
         this.numInstancesChunk = numInstancesChunk;
         this.swigOutDatasetHandlePtr = lightgbmlib.voidpp_handle();
         this.fairnessConstrained = fairnessConstrained;
 
         logger.debug("Intermediate SWIG train buffers will be allocated in chunks of {} instances.", numInstancesChunk);
         // 1-D Array in row-major-order that stores only the features (excludes label) in double format by chunks:
-        this.swigFeaturesChunkedArray = new doubleChunkedArray(numFeatures * numInstancesChunk);
+        this.swigFeaturesChunkedArray = new doubleChunkedArray(numActualFeatures * numInstancesChunk);
 
         // 1-D Array with the labels (float32):
         this.swigLabelsChunkedArray = new floatChunkedArray(numInstancesChunk);
@@ -152,6 +145,7 @@ public class SWIGTrainData implements AutoCloseable {
 
     /**
      * Adds a value to the features' ChunkedArray.
+     *
      * @param value value to insert.
      */
     public void addFeatureValue(double value) {
@@ -167,6 +161,7 @@ public class SWIGTrainData implements AutoCloseable {
 
     /**
      * Adds a value to the constraint group ChunkedArray.
+     *
      * @param value the value to add.
      */
     public void addConstraintGroupValue(int value) {
@@ -239,7 +234,7 @@ public class SWIGTrainData implements AutoCloseable {
     /**
      * Release the memory of the chunked features array.
      * This can be called after instantiating the dataset.
-     *
+     * <p>
      * Although this simply calls `release()`.
      * After this that object becomes unusable.
      * To cleanup and reuse call `clear()` instead.
