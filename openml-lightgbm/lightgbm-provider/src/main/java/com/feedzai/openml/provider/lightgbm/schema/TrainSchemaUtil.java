@@ -33,6 +33,8 @@ public class TrainSchemaUtil {
      */
     static public int getNumActualFeatures(final DatasetSchema schema, final Map<String, String> params) {
         final int rawNumPredictiveFields = schema.getPredictiveFields().size();
+        return rawNumPredictiveFields;
+        /*
 
         final Optional<String> softLabelFieldName = SoftLabelParamParserUtil.getSoftLabelFieldName(params);
 
@@ -48,11 +50,14 @@ public class TrainSchemaUtil {
                                 .equals(softLabelFieldName.get()));
 
         return rawNumPredictiveFields - (isSoftLabelSelectedAsFeature ? 1 : 0);
+        */
     }
 
     static public String[] getActualFeatureNames(final DatasetSchema schema,
                                                      final Optional<String> softLabelFieldName) {
 
+        return getFieldNamesArray(schema.getPredictiveFields());
+        /*
         if (!softLabelFieldName.isPresent()) {
             return getFieldNamesArray(schema.getPredictiveFields());
         }
@@ -63,6 +68,8 @@ public class TrainSchemaUtil {
                         .filter(field -> !field.getFieldName().equals(softLabelFieldName.orElse("")))
                         .collect(toList())
         );
+
+         */
     }
 
 

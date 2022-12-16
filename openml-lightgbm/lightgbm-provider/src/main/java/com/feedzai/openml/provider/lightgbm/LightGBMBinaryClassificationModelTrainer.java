@@ -36,6 +36,7 @@ import java.util.*;
 import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SOFT_LABEL_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.parameters.SoftLabelParamParserUtil.getSoftLabelFieldName;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 
@@ -156,7 +157,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                 numActualFeatures,
                 trainParams,
                 constraintGroupColIndex,
-                SoftLabelParamParserUtil.getSoftLabelFieldName(params),
+                getSoftLabelFieldName(params),
                 softLabelColumnIndex,
                 swigTrainData
         );
@@ -501,20 +502,6 @@ final class LightGBMBinaryClassificationModelTrainer {
         logger.info("Saved model to disk");
     }
 
-    /**
-     * Takes the data in dataset and copies it into the features and label C++ arrays through SWIG.
-     *
-     * @param dataset       Input train dataset (with target label)
-     * @param swigTrainData SWIGTrainData object.
-     */
-    private static void copyTrainDataToSWIGArrays(final Dataset dataset,
-                                                  final SWIGTrainData swigTrainData) {
-        copyTrainDataToSWIGArrays(
-                dataset,
-                swigTrainData,
-                FairGBMParamParserUtil.NO_SPECIFIC,
-                Optional.empty());
-    }
 
     private static void copyTrainDataToSWIGArrays(final Dataset dataset,
                                                   final SWIGTrainData swigTrainData,
@@ -547,8 +534,10 @@ final class LightGBMBinaryClassificationModelTrainer {
 
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
                 // If we're using the soft label, it cannot be used as a feature:
-                if (colIdx != hardLabelIndex && colIdx != labelFieldIndex) {
-                    swigTrainData.addFeatureValue(instance.getValue(colIdx));
+                if (colIdx != hardLabelIndex) {
+                    swigTrainData.addFeatureValue(
+                            colIdx != labelFieldIndex ? instance.getValue(colIdx) : 0
+                    );
                 }
             }
         }
@@ -586,11 +575,13 @@ final class LightGBMBinaryClassificationModelTrainer {
         preprocessedMapParams
                 .put("categorical_feature", StringUtils.join(categoricalFeatureIndices, ","));
 
-        // Set default objective parameter
-        final Optional<String> objective = getLightGBMObjective(mapParams);
-        if (!objective.isPresent()) {
-            // Default to objective=binary
-            preprocessedMapParams.put("objective", "binary");
+        // Set default objective parameter - by default "binary":
+        final Optional<String> customObjective = getLightGBMObjective(mapParams);
+        if (!customObjective.isPresent()) {
+            final String objective = SoftLabelParamParserUtil.getSoftLabelFieldName(mapParams).isPresent() ?
+                    "cross_entropy" : "binary";
+
+            preprocessedMapParams.put("objective",  objective);
         }
 
         // Add constraint_group_column parameter
@@ -599,10 +590,11 @@ final class LightGBMBinaryClassificationModelTrainer {
                 integer -> preprocessedMapParams.put(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, Integer.toString(integer)));
 
         // Add all **other** parameters
+        final Set<String> lgbmUnknownParams = ImmutableSet.of(SOFT_LABEL_PARAMETER_NAME);
         mapParams
                 .entrySet()
                 .stream()
-                .filter(entry -> !entry.getKey().equals(SOFT_LABEL_PARAMETER_NAME))
+                .filter(entry -> !lgbmUnknownParams.contains(entry.getKey()))
                 .forEach(entry -> preprocessedMapParams.putIfAbsent(entry.getKey(), entry.getValue()));
 
         // Build string containing params in LightGBM format
