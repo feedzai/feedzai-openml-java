@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SOFT_LABEL_PARAMETER_NAME;
 import static com.google.common.escape.Escapers.builder;
+import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -332,6 +333,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 .forEach(entry -> trainParams.put(entry.getKey(), entry.getValue()));
         trainParams.put(SOFT_LABEL_PARAMETER_NAME, "soft");
 
+        assertThat(new LightGBMModelCreator().validateForFit(createTempDirectory("lixo"), SOFT_SCHEMA, trainParams)).isEmpty();
+
         final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
                 "test_data/soft.csv",
                 SOFT_SCHEMA,
@@ -340,6 +343,9 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 100,
                 trainParams
         );
+
+        assertThat(average(scoresPerClass.get(0)))
+                .isLessThan(average(scoresPerClass.get(1)));
     }
 
     /**
