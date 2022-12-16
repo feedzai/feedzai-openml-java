@@ -399,7 +399,7 @@ final class LightGBMBinaryClassificationModelTrainer {
 
 
         final String[] actualFeatureNames = TrainSchemaUtil.getActualFeatureNames(schema, softLabelFieldName);
-        logger.debug("featureNames {}", Arrays.toString(actualFeatureNames));
+        logger.debug("featureNames {} (numFeatures = {})", Arrays.toString(actualFeatureNames), numActualFeatures);
 
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(
                 swigDatasetHandle,
@@ -533,8 +533,8 @@ final class LightGBMBinaryClassificationModelTrainer {
             }
 
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
-                // If we're using the soft label, it cannot be used as a feature:
                 if (colIdx != hardLabelIndex) {
+                    // If we're using the soft label, remove all information from its feature (keeps schema and avoids label leakage):
                     swigTrainData.addFeatureValue(
                             colIdx != labelFieldIndex ? instance.getValue(colIdx) : 0
                     );

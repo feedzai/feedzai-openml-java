@@ -25,6 +25,7 @@ import com.feedzai.openml.data.schema.FieldSchema;
 import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.feedzai.openml.provider.lightgbm.resources.schemas.SoftSchemas;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -40,6 +41,7 @@ import java.util.stream.Collectors;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SOFT_LABEL_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.resources.schemas.SoftSchemas.SOFT_SCHEMA;
 import static com.google.common.escape.Escapers.builder;
 import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.createTempFile;
@@ -305,48 +307,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 .isBetween(0.0, 1.0);
     }
 
-    @Test
-    public void fitWithSoftLabels() throws ModelLoadingException, URISyntaxException, IOException {
 
-        final List<FieldSchema> SOFT_SCHEMA_FIELDS = ImmutableList.<FieldSchema>builder()
-                .add(new FieldSchema("f_float", 0, new NumericValueSchema(false)))
-                .add(new FieldSchema("f_cat", 1, new CategoricalValueSchema(false, ImmutableSet.of("a", "b"))))
-                .add(new FieldSchema("f_int", 2, new NumericValueSchema(false)))
-                .add(new FieldSchema("soft", 3, new NumericValueSchema(false)))
-                .add(new FieldSchema("soft_uninformative", 4, new NumericValueSchema(false)))
-                .add(new FieldSchema("hard", 5, new CategoricalValueSchema(true, ImmutableSet.of("0", "1"))))
-                .add(new FieldSchema("tempo_ms", 6, new NumericValueSchema(false)))
-                .build();
-
-        final DatasetSchema SOFT_SCHEMA = new DatasetSchema(
-                5,
-                ImmutableList.<FieldSchema>builder()
-                        .addAll(SOFT_SCHEMA_FIELDS)
-                        .build()
-        );
-
-        final Map<String, String> trainParams = new HashMap<>();
-        MODEL_PARAMS
-                .entrySet()
-                .stream()
-                .filter(entry -> !entry.getKey().equals(SOFT_LABEL_PARAMETER_NAME))
-                .forEach(entry -> trainParams.put(entry.getKey(), entry.getValue()));
-        trainParams.put(SOFT_LABEL_PARAMETER_NAME, "soft");
-
-        assertThat(new LightGBMModelCreator().validateForFit(createTempDirectory("lixo"), SOFT_SCHEMA, trainParams)).isEmpty();
-
-        final ArrayList<List<Double>> scoresPerClass = fitModelAndGetFirstScoresPerClass(
-                "test_data/soft.csv",
-                SOFT_SCHEMA,
-                9999,
-                9999,
-                100,
-                trainParams
-        );
-
-        assertThat(average(scoresPerClass.get(0)))
-                .isLessThan(average(scoresPerClass.get(1)));
-    }
 
     /**
      * Test Feature Contributions with target at end.
