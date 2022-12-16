@@ -19,9 +19,16 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+import com.feedzai.openml.provider.lightgbm.resources.schemas.SoftSchemas;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,15 +36,14 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SOFT_LABEL_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.resources.schemas.SoftSchemas.SOFT_SCHEMA;
+import static com.google.common.escape.Escapers.builder;
+import static java.nio.file.Files.createTempDirectory;
 import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -239,12 +245,12 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         final Dataset emptyDataset = new MockDataset(TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END, noInstances);
 
         assertThatThrownBy(() ->
-                    new LightGBMModelCreator().fit(
-                            emptyDataset,
-                            new Random(),
-                            MODEL_PARAMS
-                    )
+                new LightGBMModelCreator().fit(
+                        emptyDataset,
+                        new Random(),
+                        MODEL_PARAMS
                 )
+        )
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -300,6 +306,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         assertThat(model.getClassDistribution(dataset.instance(0))[1]).as("score")
                 .isBetween(0.0, 1.0);
     }
+
+
 
     /**
      * Test Feature Contributions with target at end.
@@ -461,8 +469,8 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      * @return Array with arrays of class scores.
      */
     static ArrayList<List<Double>> getClassScores(final Dataset dataset,
-                                                          final LightGBMBinaryClassificationModel model,
-                                                          final int maxInstances) {
+                                                  final LightGBMBinaryClassificationModel model,
+                                                  final int maxInstances) {
 
         final int targetIndex = dataset.getSchema().getTargetIndex().get(); // We need a label for the tests.
 

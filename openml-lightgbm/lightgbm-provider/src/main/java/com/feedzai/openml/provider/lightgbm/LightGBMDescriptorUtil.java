@@ -20,6 +20,7 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import com.feedzai.openml.provider.descriptor.fieldtype.BooleanFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
+import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
@@ -72,6 +73,7 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
      */
     public static final String FEATURE_FRACTION_PARAMETER_DESCRIPTION = "Feature fraction by tree";
 
+    public static final String SOFT_LABEL_PARAMETER_NAME = "soft_label";
     /**
      * Defines the set of model parameters accepted by the LightGBM model.
      */
@@ -99,6 +101,17 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
                     MANDATORY,
                     intRange(0, Integer.MAX_VALUE, 100)
             ),
+            new ModelParameter(
+                    SOFT_LABEL_PARAMETER_NAME,
+                    "(Soft classification) Soft Label",
+                    "Train the classifier with a soft label instead. \n"
+                            + "These values should be between 0.0 and 1.0. This field is ignored for validations. \n"
+                            + "Simply pass the name of the field.\n"
+                            + "If this field is selected, it is automatically dropped from the selected features.",
+                    NOT_MANDATORY,
+                    new FreeTextFieldType("")
+            )
+            ,
             new ModelParameter(
                     "learning_rate",
                     "Learning rate",
@@ -314,7 +327,7 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
             ),
             new ModelParameter(
                     "min_data_in_bin",
-                    "Minimium bin data",
+                    "Minimum bin data",
                     "Minimum number of samples inside one bin. Limit over-fitting. E.g., not using 1 point per bin.",
                     NOT_MANDATORY,
                     intRange(1, Integer.MAX_VALUE, 3)
