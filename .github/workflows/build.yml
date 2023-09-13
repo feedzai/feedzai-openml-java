@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - 'hf-*'    # hotfix branches
+      - ft-ap-lgbm-arm64 # FIXME - remove
     tags:
       - '*.*.*'   # release tag xx.yy.zz
   pull_request:
@@ -21,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - run: |
@@ -30,19 +31,28 @@ jobs:
           git tag --list
 
       - name: Set up JDK 1.8
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v3
         with:
-          java-version: 1.8
+          java-version: '8'
+          distribution: 'zulu'
 
       - name: Cache Maven packages
-        uses: actions/cache@v2.1.4
+        uses: actions/cache@v3.3.2
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: "arm64"
+
       - name: Build and test
         run: mvn test -B
+
+      # The skipped tests is because h2o-xgboost isn't ready to use on arm64
+      - name: Test on arm64
+        run: docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.8-openjdk-8-slim /bin/bash -c 'apt update && apt install -y --no-install-recommends git && git config --global --add safe.directory /feedzai-openml-java && git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && cd /feedzai-openml-java && mvn test -B -DfailIfNoTests=false -Dtest=!ClassifyUnknownCategoryTest#test,!H2OModelProviderTrainTest#trainModelsForAllAlgorithms'
 
       - uses: codecov/codecov-action@v1
         with:

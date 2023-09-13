@@ -43,8 +43,8 @@
                 <directory>make-lightgbm/build/</directory>
                 <filtering>false</filtering>
                 <includes>
-                    <include>*.so</include>
-                    <include>*.so.1.0.0</include>
+                    <include>**/*.so</include>
+                    <include>**/*.so.1.0.0</include>
                 </includes>
             </resource>
             <resource>

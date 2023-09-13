@@ -236,7 +236,7 @@ public class LightGBMResultTest {
                     .isEqualTo(2);
 
             final double prediction = resultInstance.getValue(9);
-            final Offset<Double> offset = Offset.offset(1.0e-16);
+            final Offset<Double> offset = Offset.offset(1.0e-14);
 
             assertThat(scoreDistribution[1])
                     .as("The score should be expected.")

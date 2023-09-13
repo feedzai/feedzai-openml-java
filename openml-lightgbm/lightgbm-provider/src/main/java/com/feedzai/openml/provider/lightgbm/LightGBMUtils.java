@@ -57,9 +57,11 @@ public class LightGBMUtils {
 
         if (!libsLoaded) {
             try {
-                loadSharedLibraryFromJar("libgomp.so.1.0.0");
-                loadSharedLibraryFromJar("lib_lightgbm.so");
-                loadSharedLibraryFromJar("lib_lightgbm_swig.so");
+                final String cpuArchName = System.getProperty("os.arch");
+                final CpuArchitecture cpuArchitecture = CpuArchitecture.valueOf(cpuArchName.toUpperCase());
+                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture);
+                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture);
+                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture);
             } catch (final IOException e) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", e);
             }
@@ -73,13 +75,18 @@ public class LightGBMUtils {
      * Loads a single shared library from the Jar.
      *
      * @param sharedLibResourceName library "filename" inside the jar.
+     * @param cpuArchitecture cpu architecture.
      * @throws IOException if any error happens loading the library.
      */
-    static private void loadSharedLibraryFromJar(final String sharedLibResourceName) throws IOException {
+    static private void loadSharedLibraryFromJar(
+            final String sharedLibResourceName,
+            final CpuArchitecture cpuArchitecture
+    ) throws IOException {
 
-        logger.debug("Loading LightGBM shared lib: {}.", sharedLibResourceName);
+        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
 
-        final InputStream inputStream = LightGBMUtils.class.getClassLoader().getResourceAsStream(sharedLibResourceName);
+        final InputStream inputStream = LightGBMUtils.class.getClassLoader()
+                .getResourceAsStream(cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName);
         final File tempFile = File.createTempFile("lib", ".so");
         final OutputStream outputStream = new FileOutputStream(tempFile);
 
