@@ -12,6 +12,11 @@ This is a Maven project which you can build using the following command:
 mvn clean install
 ```
 
+In case it fails compiling for ARM64 you may need to run:
+```bash
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+```
+
 ## Releasing
 
 For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head.

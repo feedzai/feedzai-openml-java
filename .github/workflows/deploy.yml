@@ -32,6 +32,10 @@ jobs:
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
 
+      - uses: docker/setup-qemu-action@v2
+        with:
+          platforms: "arm64"
+
       - name: Publish maven package
         run: mvn deploy -B -Prelease --batch-mode -DskipTests=true
         env:
