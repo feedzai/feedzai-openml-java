@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - 'hf-*'    # hotfix branches
-      - ft-ap-lgbm-arm64 # FIXME - remove
     tags:
       - '*.*.*'   # release tag xx.yy.zz
   pull_request:

@@ -1,5 +1,3 @@
-# FIXME - change link after testing stuff in fork
 [submodule "openml-lightgbm/lightgbm-builder/make-lightgbm"]
 	path = openml-lightgbm/lightgbm-builder/make-lightgbm
-	url = https://github.com/artpdr/make-lightgbm
-	branch = ft-ap-lgbm-arm64
+	url = https://github.com/feedzai/make-lightgbm
