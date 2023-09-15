@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 
+import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FRACTION_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BAGGING_FREQUENCY_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.BOOSTING_TYPE_PARAMETER_NAME;
@@ -157,6 +158,10 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
                 .addAll(validateSchema(schema))
                 .addAll(validateFitParams(params));
 
+        if (params.containsKey(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME)) { // IT IS A FAIRGBM MODEL.
+            errorsBuilder.addAll(validateFairGBMParams(params));
+        }
+
         return errorsBuilder.build();
     }
 
@@ -200,6 +205,20 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             logger.warn("RF requires bagging. Set bagging fraction < 1 and bagging frequency > 0.");
             errorsBuilder.add(new ParamValidationError(ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING));
         }
+
+        return errorsBuilder.build();
+    }
+
+    private List<ParamValidationError> validateFairGBMParams(final Map<String, String> params) {
+        final ImmutableList.Builder<ParamValidationError> errorsBuilder = ImmutableList.builder();
+
+        final String constraintParam = params.get(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME);
+
+        if (constraintParam == null || constraintParam.trim().isEmpty()) {
+            return ImmutableList.of(new ParamValidationError("FairGBM models require a constraint group column parameter name."));
+        }
+
+        if (constraintParam)
 
         return errorsBuilder.build();
     }
