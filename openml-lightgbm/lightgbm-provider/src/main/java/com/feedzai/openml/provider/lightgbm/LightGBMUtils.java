@@ -59,12 +59,12 @@ public class LightGBMUtils {
     static public void loadLibs() {
 
         if (!libsLoaded) {
+            final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
             try {
-                final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
                 loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture);
                 loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture);
                 loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture);
-            } catch (final Exception ex) {
+            } catch (final IOException ex) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", ex);
             }
 
@@ -74,19 +74,12 @@ public class LightGBMUtils {
     }
 
     static CpuArchitecture getCpuArchitecture(final String cpuArchName) {
-        final String upperCaseCpuArchName = cpuArchName.toUpperCase();
-        final boolean knownCpuArchitecture = Arrays.stream(CpuArchitecture.values())
-                .map(Objects::toString)
-                .collect(Collectors.toSet())
-                .contains(upperCaseCpuArchName);
-
-        if (!knownCpuArchitecture) {
-            final String errorMsg = "Trying to use LightGBM on an unsupported architecture " + cpuArchName + ".";
-            logger.error(errorMsg);
-            throw new IllegalStateException(errorMsg);
+        try {
+            return CpuArchitecture.valueOf(cpuArchName.toUpperCase());
+        } catch (final IllegalArgumentException ex) {
+            logger.error("Trying to use LightGBM on an unsupported architecture {}.", cpuArchName, ex);
+            throw ex;
         }
-
-        return CpuArchitecture.valueOf(upperCaseCpuArchName);
     }
 
     /**

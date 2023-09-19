@@ -20,7 +20,7 @@ public class TestCpuArchitecture {
     @Test
     public void unknownCpuArchitectureThrowsException() {
         Assertions.assertThatThrownBy(() -> LightGBMUtils.getCpuArchitecture("x86_64"))
-                .isInstanceOf(IllegalStateException.class);
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
