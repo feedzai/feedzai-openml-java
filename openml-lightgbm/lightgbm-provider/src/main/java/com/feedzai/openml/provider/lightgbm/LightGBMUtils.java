@@ -21,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.google.common.io.ByteStreams.copy;
 
@@ -56,12 +59,13 @@ public class LightGBMUtils {
     static public void loadLibs() {
 
         if (!libsLoaded) {
+            final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
             try {
-                loadSharedLibraryFromJar("libgomp.so.1.0.0");
-                loadSharedLibraryFromJar("lib_lightgbm.so");
-                loadSharedLibraryFromJar("lib_lightgbm_swig.so");
-            } catch (final IOException e) {
-                throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", e);
+                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture);
+                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture);
+                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture);
+            } catch (final IOException ex) {
+                throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", ex);
             }
 
             logger.info("Loaded LightGBM libs.");
@@ -69,17 +73,31 @@ public class LightGBMUtils {
         }
     }
 
+    static CpuArchitecture getCpuArchitecture(final String cpuArchName) {
+        try {
+            return CpuArchitecture.valueOf(cpuArchName.toUpperCase());
+        } catch (final IllegalArgumentException ex) {
+            logger.error("Trying to use LightGBM on an unsupported architecture {}.", cpuArchName, ex);
+            throw ex;
+        }
+    }
+
     /**
      * Loads a single shared library from the Jar.
      *
      * @param sharedLibResourceName library "filename" inside the jar.
+     * @param cpuArchitecture cpu architecture.
      * @throws IOException if any error happens loading the library.
      */
-    static private void loadSharedLibraryFromJar(final String sharedLibResourceName) throws IOException {
+    static private void loadSharedLibraryFromJar(
+            final String sharedLibResourceName,
+            final CpuArchitecture cpuArchitecture
+    ) throws IOException {
 
-        logger.debug("Loading LightGBM shared lib: {}.", sharedLibResourceName);
+        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
 
-        final InputStream inputStream = LightGBMUtils.class.getClassLoader().getResourceAsStream(sharedLibResourceName);
+        final InputStream inputStream = LightGBMUtils.class.getClassLoader()
+                .getResourceAsStream(cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName);
         final File tempFile = File.createTempFile("lib", ".so");
         final OutputStream outputStream = new FileOutputStream(tempFile);
 

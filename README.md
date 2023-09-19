@@ -6,10 +6,18 @@
 Implementations of the Feedzai OpenML API to allow support for machine
 learning models in Java. 
 
+All models may be used in nodes with AMD64 and ARM64 cpu architectures
+except for H2O-xgboost that can be used only with AMD64 cpu architectures.
+
 ## Building
 This is a Maven project which you can build using the following command:
 ```bash
 mvn clean install
+```
+
+If the build fails compiling for ARM64 you may need to run:
+```bash
+docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 ```
 
 ## Releasing
