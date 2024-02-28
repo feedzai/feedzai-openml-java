@@ -60,10 +60,12 @@ public class LightGBMUtils {
 
         if (!libsLoaded) {
             final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
+            final boolean isAlpine = isAlpine();
+
             try {
-                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture);
-                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture);
-                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture);
+                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture, isAlpine);
+                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture, isAlpine);
+                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture, isAlpine);
             } catch (final IOException ex) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", ex);
             }
@@ -83,6 +85,31 @@ public class LightGBMUtils {
     }
 
     /**
+     * Checks if the current operative system is Alpine.
+     *
+     * @return true when the operative system is Alpine and false otherwise.
+     */
+    static private boolean isAlpine() {
+        final String osReleasePath = "/etc/os-release";
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(osReleasePath));
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("ID=alpine")) {
+                    reader.close();
+                    return true;
+                }
+            }
+        } catch (IOException ex) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
      * Loads a single shared library from the Jar.
      *
      * @param sharedLibResourceName library "filename" inside the jar.
@@ -91,13 +118,26 @@ public class LightGBMUtils {
      */
     static private void loadSharedLibraryFromJar(
             final String sharedLibResourceName,
-            final CpuArchitecture cpuArchitecture
+            final CpuArchitecture cpuArchitecture,
+            final boolean isAlpine
     ) throws IOException {
 
-        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
+        if (isAlpine && cpuArchitecture.getLgbmNativeLibsFolder().equals("arm64")) {
+            throw new IOException("Trying to use LightGBM on an unsupported architecture arm64 on Alpine.");
+        }
+
+        final String libraryPath;
+        if (isAlpine) {
+            logger.debug("Loading LightGBM shared lib: {} for {} on Alpine.", sharedLibResourceName, cpuArchitecture);
+            libraryPath = "alpine/" + sharedLibResourceName;
+        }
+        else {
+            logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
+            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName;
+        }
 
         final InputStream inputStream = LightGBMUtils.class.getClassLoader()
-                .getResourceAsStream(cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName);
+                .getResourceAsStream(libraryPath);
         final File tempFile = File.createTempFile("lib", ".so");
         final OutputStream outputStream = new FileOutputStream(tempFile);
 
