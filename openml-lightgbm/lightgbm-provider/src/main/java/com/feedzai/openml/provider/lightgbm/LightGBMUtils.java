@@ -127,9 +127,13 @@ public class LightGBMUtils {
         }
 
         final String libraryPath;
-        if (isAlpine) {
+        if (cpuArchitecture.getLgbmNativeLibsFolder().equals("amd64") && isAlpine) {
             logger.debug("Loading LightGBM shared lib: {} for {} on Alpine.", sharedLibResourceName, cpuArchitecture);
-            libraryPath = "alpine/" + sharedLibResourceName;
+            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/alpine/" + sharedLibResourceName;
+        }
+        else if (cpuArchitecture.getLgbmNativeLibsFolder().equals("amd64")) {
+            logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
+            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/glibc/" + sharedLibResourceName;
         }
         else {
             logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
