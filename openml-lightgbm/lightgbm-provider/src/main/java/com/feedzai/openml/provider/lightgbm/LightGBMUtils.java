@@ -60,12 +60,13 @@ public class LightGBMUtils {
 
         if (!libsLoaded) {
             final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
-            final boolean isAlpine = isAlpine();
+            final LibcImplementation libcImpl = getLibcImplementation(System.getenv("FDZ_OPENML_JAVA_LIBC"));
+            final Infrastructure infrastructure = new Infrastructure(cpuArchitecture, libcImpl);
 
             try {
-                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture, isAlpine);
-                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture, isAlpine);
-                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture, isAlpine);
+                loadSharedLibraryFromJar("libgomp.so.1.0.0", infrastructure);
+                loadSharedLibraryFromJar("lib_lightgbm.so", infrastructure);
+                loadSharedLibraryFromJar("lib_lightgbm_swig.so", infrastructure);
             } catch (final IOException ex) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", ex);
             }
@@ -84,61 +85,30 @@ public class LightGBMUtils {
         }
     }
 
-    /**
-     * Checks if the current operative system is Alpine.
-     *
-     * @return true when the operative system is Alpine and false otherwise.
-     */
-    static private boolean isAlpine() {
-        final String osReleasePath = "/etc/os-release";
+    static LibcImplementation getLibcImplementation(final String libcImpl) {
+        if (libcImpl == null || libcImpl.isEmpty()) return LibcImplementation.GLIBC;
 
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(osReleasePath));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("ID=alpine")) {
-                    reader.close();
-                    return true;
-                }
-            }
-        } catch (IOException ex) {
-            return false;
+            return LibcImplementation.valueOf(libcImpl.toUpperCase());
+        } catch (final IllegalArgumentException ex) {
+            logger.error("Trying to use LightGBM with an unsupported libc implementation {}.", libcImpl, ex);
+            throw ex;
         }
-
-        return false;
     }
 
     /**
      * Loads a single shared library from the Jar.
      *
      * @param sharedLibResourceName library "filename" inside the jar.
-     * @param cpuArchitecture cpu architecture.
+     * @param infrastructure infrastructure used composed of CPU architecture and libc implementation.
      * @throws IOException if any error happens loading the library.
      */
     static private void loadSharedLibraryFromJar(
             final String sharedLibResourceName,
-            final CpuArchitecture cpuArchitecture,
-            final boolean isAlpine
+            final Infrastructure infrastructure
     ) throws IOException {
 
-        if (isAlpine && cpuArchitecture.getLgbmNativeLibsFolder().equals("arm64")) {
-            throw new IOException("Trying to use LightGBM on an unsupported architecture arm64 on Alpine.");
-        }
-
-        final String libraryPath;
-        if (cpuArchitecture.getLgbmNativeLibsFolder().equals("amd64") && isAlpine) {
-            logger.debug("Loading LightGBM shared lib: {} for {} on Alpine with musl.", sharedLibResourceName, cpuArchitecture);
-            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/musl/" + sharedLibResourceName;
-        }
-        else if (cpuArchitecture.getLgbmNativeLibsFolder().equals("amd64")) {
-            logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
-            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/glibc/" + sharedLibResourceName;
-        }
-        else {
-            logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
-            libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName;
-        }
+        final String libraryPath = infrastructure.getLgbmNativeLibsFolder() + sharedLibResourceName;
 
         final InputStream inputStream = LightGBMUtils.class.getClassLoader()
                 .getResourceAsStream(libraryPath);
