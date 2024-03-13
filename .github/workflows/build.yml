@@ -56,7 +56,6 @@ jobs:
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
           cd /feedzai-openml-java && \
-          mvn clean install -B -DskipTests && \
           cp openml-lightgbm/lightgbm-builder/make-lightgbm/build/amd64/alpine/lib_lightgbm.so /lib/lib_lightgbm.so && \
           mvn test -B'
 
