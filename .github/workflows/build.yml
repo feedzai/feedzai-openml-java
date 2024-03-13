@@ -51,7 +51,7 @@ jobs:
 
       - name: Run tests on Alpine docker
         run: |
-          docker run --rm -t -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
+          docker run --rm -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
           /bin/sh -c 'apk add clang openjdk8 maven bash git && \
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
@@ -61,7 +61,13 @@ jobs:
 
       # The skipped tests is because h2o-xgboost isn't ready to use on arm64
       - name: Test on arm64
-        run: docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.8-openjdk-8-slim /bin/bash -c 'apt update && apt install -y --no-install-recommends git && git config --global --add safe.directory /feedzai-openml-java && git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && cd /feedzai-openml-java && mvn test -B -DfailIfNoTests=false -Dtest=!ClassifyUnknownCategoryTest#test,!H2OModelProviderTrainTest#trainModelsForAllAlgorithms'
+        run: |
+          docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.8-openjdk-8-slim \
+          /bin/bash -c 'apt update && apt install -y --no-install-recommends git && \
+          git config --global --add safe.directory /feedzai-openml-java && \
+          git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
+          cd /feedzai-openml-java && \
+          mvn test -B -DfailIfNoTests=false -Dtest=!ClassifyUnknownCategoryTest#test,!H2OModelProviderTrainTest#trainModelsForAllAlgorithms'
 
       - uses: codecov/codecov-action@v1
         with:
