@@ -86,10 +86,13 @@ public class LightGBMUtils {
     }
 
     static LibcImplementation getLibcImplementation(final String libcImpl) {
-        if (libcImpl == null || libcImpl.isEmpty()) return LibcImplementation.GLIBC;
+        if (libcImpl == null || libcImpl.isEmpty()) {
+            logger.debug("FDZ_OPENML_JAVA_LIBC not set, assuming glibc as libc implementation.");
+            return LibcImplementation.GLIBC;
+        }
 
         try {
-            return LibcImplementation.valueOf(libcImpl.toUpperCase());
+            return LibcImplementation.valueOf(libcImpl.toUpperCase().trim());
         } catch (final IllegalArgumentException ex) {
             logger.error("Trying to use LightGBM with an unsupported libc implementation {}.", libcImpl, ex);
             throw ex;
@@ -108,6 +111,7 @@ public class LightGBMUtils {
             final Infrastructure infrastructure
     ) throws IOException {
 
+        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, infrastructure);
         final String libraryPath = infrastructure.getLgbmNativeLibsFolder() + sharedLibResourceName;
 
         final InputStream inputStream = LightGBMUtils.class.getClassLoader()
