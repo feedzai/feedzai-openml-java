@@ -71,7 +71,8 @@ jobs:
           git tag --list
 
       - name: Run tests on Alpine docker
-        run: docker run --rm -t -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
+        run: |
+          docker run --rm -t -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
           /bin/sh -c 'apk add clang openjdk8 maven bash && \
           cd /feedzai-openml-java && \
           mvn clean install -DskipTests && \
