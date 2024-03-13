@@ -49,7 +49,7 @@ jobs:
       - name: Build and test
         run: mvn test -B
 
-      # The skipped tests is because h2o-xgboost isn't ready to use on arm64
+      # The skipped tests is because h2o-xgboost isn't ready to use with musl
       - name: Test with musl
         run: |
           docker run --rm -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
