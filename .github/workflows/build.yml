@@ -56,3 +56,28 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           fail_ci_if_error: true
+
+  build_alpine:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - run: |
+          git fetch -f --tags
+          echo exit code $?
+          git tag --list
+
+      - name: Run tests on Alpine docker
+        run: docker run --rm -t -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
+          /bin/sh -c 'apk add clang openjdk8 maven bash && \
+          cd /feedzai-openml-java && \
+          mvn clean install -DskipTests && \
+          cp openml-lightgbm/lightgbm-builder/make-lightgbm/build/amd64/alpine/lib_lightgbm.so /lib/lib_lightgbm.so && \
+          mvn surefire:test -pl :openml-lightgbm,:openml-datarobot'
+
+      - uses: codecov/codecov-action@v1
+        with:
+          fail_ci_if_error: true
