@@ -48,6 +48,9 @@ jobs:
 
       - name: Build and test
         run: mvn test -B
+        # skip build arm temporarily to speedup tests
+        env:
+          ARCH_BUILD: "single"
 
       - name: Run tests on Alpine docker
         run: |
@@ -56,8 +59,11 @@ jobs:
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
           cd /feedzai-openml-java && \
-          cp openml-lightgbm/lightgbm-builder/make-lightgbm/build/amd64/alpine/lib_lightgbm.so /lib/lib_lightgbm.so && \
+          cp openml-lightgbm/lightgbm-builder/make-lightgbm/build/amd64/musl/lib_lightgbm.so /lib/lib_lightgbm.so && \
           mvn test -B'
+        # skip build arm temporarily to speedup tests
+        env:
+          ARCH_BUILD: "single"
 
       # The skipped tests is because h2o-xgboost isn't ready to use on arm64
       - name: Test on arm64
