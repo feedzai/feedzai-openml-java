@@ -23,7 +23,13 @@ public class Infrastructure {
         this.libcImpl = libcImpl;
     }
 
+    @Override
     public String toString() {
+        return "Infrastructure{" +
+                "cpuArchitecture=" + cpuArchitecture +
+                ", libcImpl=" + libcImpl +
+                '}';
+    }
         return cpuArchitecture.getLgbmNativeLibsFolder() + " architecture with " + libcImpl.getLibcImpl() + " libc implementation";
     }
 
