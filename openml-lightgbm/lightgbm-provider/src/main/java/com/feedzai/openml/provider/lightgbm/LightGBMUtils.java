@@ -47,6 +47,11 @@ public class LightGBMUtils {
     static final int BINARY_LGBM_NUM_CLASSES = 1;
 
     /**
+     * Environment variable with the implementation of libc available on the system.
+     */
+    static final String FDZ_OPENML_JAVA_LIBC = "FDZ_OPENML_JAVA_LIBC";
+
+    /**
      * State variable to know if it loadLibs was ever called.
      */
     private static boolean libsLoaded = false;
@@ -60,7 +65,7 @@ public class LightGBMUtils {
 
         if (!libsLoaded) {
             final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
-            final LibcImplementation libcImpl = getLibcImplementation(System.getenv("FDZ_OPENML_JAVA_LIBC"));
+            final LibcImplementation libcImpl = getLibcImplementation(System.getenv(FDZ_OPENML_JAVA_LIBC));
             final Infrastructure infrastructure = new Infrastructure(cpuArchitecture, libcImpl);
 
             try {
@@ -87,7 +92,7 @@ public class LightGBMUtils {
 
     static LibcImplementation getLibcImplementation(final String libcImpl) {
         if (libcImpl == null || libcImpl.isEmpty()) {
-            logger.debug("FDZ_OPENML_JAVA_LIBC not set, assuming glibc as libc implementation.");
+            logger.debug("{} not set, assuming glibc as libc implementation.", FDZ_OPENML_JAVA_LIBC);
             return LibcImplementation.GLIBC;
         }
 
