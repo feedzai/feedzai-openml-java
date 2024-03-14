@@ -47,6 +47,11 @@ public class LightGBMUtils {
     static final int BINARY_LGBM_NUM_CLASSES = 1;
 
     /**
+     * Environment variable with the implementation of libc available on the system.
+     */
+    private static final String FDZ_OPENML_JAVA_LIBC = "FDZ_OPENML_JAVA_LIBC";
+
+    /**
      * State variable to know if it loadLibs was ever called.
      */
     private static boolean libsLoaded = false;
@@ -60,10 +65,13 @@ public class LightGBMUtils {
 
         if (!libsLoaded) {
             final CpuArchitecture cpuArchitecture = getCpuArchitecture(System.getProperty("os.arch"));
+            final LibcImplementation libcImpl = getLibcImplementation(System.getenv(FDZ_OPENML_JAVA_LIBC));
+            final Infrastructure infrastructure = new Infrastructure(cpuArchitecture, libcImpl);
+
             try {
-                loadSharedLibraryFromJar("libgomp.so.1.0.0", cpuArchitecture);
-                loadSharedLibraryFromJar("lib_lightgbm.so", cpuArchitecture);
-                loadSharedLibraryFromJar("lib_lightgbm_swig.so", cpuArchitecture);
+                loadSharedLibraryFromJar("libgomp.so.1.0.0", infrastructure);
+                loadSharedLibraryFromJar("lib_lightgbm.so", infrastructure);
+                loadSharedLibraryFromJar("lib_lightgbm_swig.so", infrastructure);
             } catch (final IOException ex) {
                 throw new RuntimeException("Failed to load LightGBM shared libraries from jar.", ex);
             }
@@ -82,22 +90,37 @@ public class LightGBMUtils {
         }
     }
 
+    protected static LibcImplementation getLibcImplementation(final String libcImpl) {
+        if (libcImpl == null || libcImpl.isEmpty()) {
+            logger.debug("{} not set, assuming glibc as libc implementation.", FDZ_OPENML_JAVA_LIBC);
+            return LibcImplementation.GLIBC;
+        }
+
+        try {
+            return LibcImplementation.valueOf(libcImpl.toUpperCase().trim());
+        } catch (final IllegalArgumentException ex) {
+            logger.error("Trying to use LightGBM with an unsupported libc implementation {}.", libcImpl, ex);
+            throw ex;
+        }
+    }
+
     /**
      * Loads a single shared library from the Jar.
      *
      * @param sharedLibResourceName library "filename" inside the jar.
-     * @param cpuArchitecture cpu architecture.
+     * @param infrastructure infrastructure used composed of CPU architecture and libc implementation.
      * @throws IOException if any error happens loading the library.
      */
     static private void loadSharedLibraryFromJar(
             final String sharedLibResourceName,
-            final CpuArchitecture cpuArchitecture
+            final Infrastructure infrastructure
     ) throws IOException {
 
-        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, cpuArchitecture);
+        logger.debug("Loading LightGBM shared lib: {} for {}.", sharedLibResourceName, infrastructure);
+        final String libraryPath = infrastructure.getLgbmNativeLibsFolder() + sharedLibResourceName;
 
         final InputStream inputStream = LightGBMUtils.class.getClassLoader()
-                .getResourceAsStream(cpuArchitecture.getLgbmNativeLibsFolder() + "/" + sharedLibResourceName);
+                .getResourceAsStream(libraryPath);
         final File tempFile = File.createTempFile("lib", ".so");
         final OutputStream outputStream = new FileOutputStream(tempFile);
 
