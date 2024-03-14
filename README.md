@@ -20,6 +20,9 @@ If the build fails compiling for ARM64 you may need to run:
 docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 ```
 
+To use the models on Operating Systems with musl (supported only for AMD64 architectures), the ENV variable `FDZ_OPENML_JAVA_LIBC`
+must be set to `musl`.  This variable can take the values `glibc` and `musl`. H2O-xgboost can't be used with musl.
+
 ## Releasing
 
 For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head.
