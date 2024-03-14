@@ -38,22 +38,16 @@ public class Infrastructure {
      */
     public String getLgbmNativeLibsFolder() throws IOException {
 
-        final String libraryPath;
         switch (cpuArchitecture) {
             case AARCH64:
                 if (libcImpl == LibcImplementation.MUSL) {
                     throw new IOException("Trying to use LightGBM on a musl-based OS with unsupported arm64 architecture.");
                 }
-                libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/";
-                break;
+                return cpuArchitecture.getLgbmNativeLibsFolder() + "/";
             case AMD64:
-
-                libraryPath = cpuArchitecture.getLgbmNativeLibsFolder() + "/" + libcImpl.getLibcImpl() + "/";
-                break;
+                return cpuArchitecture.getLgbmNativeLibsFolder() + "/" + libcImpl.getLibcImpl() + "/";
             default:
                 throw new IllegalStateException("Unexpected value: " + cpuArchitecture);
         }
-
-        return libraryPath;
     }
 }
