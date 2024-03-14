@@ -30,8 +30,6 @@ public class Infrastructure {
                 ", libcImpl=" + libcImpl +
                 '}';
     }
-        return cpuArchitecture.getLgbmNativeLibsFolder() + " architecture with " + libcImpl.getLibcImpl() + " libc implementation";
-    }
 
     /**
      * Gets the native libraries folder name according to the cpu architecture and libc implementation.
