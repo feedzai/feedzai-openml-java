@@ -19,7 +19,7 @@ import org.junit.Test;
 public class TestLibcImplementation {
     @Test
     public void unknownLibcImplementationThrowsException() {
-        Assertions.assertThatThrownBy(() -> LightGBMUtils.getCpuArchitecture("klibc"))
+        Assertions.assertThatThrownBy(() -> LightGBMUtils.getLibcImplementation("klibc"))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
