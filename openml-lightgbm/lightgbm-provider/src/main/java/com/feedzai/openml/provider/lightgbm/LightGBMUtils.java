@@ -49,7 +49,7 @@ public class LightGBMUtils {
     /**
      * Environment variable with the implementation of libc available on the system.
      */
-    static final String FDZ_OPENML_JAVA_LIBC = "FDZ_OPENML_JAVA_LIBC";
+    private static final String FDZ_OPENML_JAVA_LIBC = "FDZ_OPENML_JAVA_LIBC";
 
     /**
      * State variable to know if it loadLibs was ever called.
