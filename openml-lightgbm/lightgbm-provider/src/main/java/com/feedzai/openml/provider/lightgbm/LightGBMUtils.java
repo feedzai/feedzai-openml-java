@@ -90,7 +90,7 @@ public class LightGBMUtils {
         }
     }
 
-    static LibcImplementation getLibcImplementation(final String libcImpl) {
+    protected static LibcImplementation getLibcImplementation(final String libcImpl) {
         if (libcImpl == null || libcImpl.isEmpty()) {
             logger.debug("{} not set, assuming glibc as libc implementation.", FDZ_OPENML_JAVA_LIBC);
             return LibcImplementation.GLIBC;
