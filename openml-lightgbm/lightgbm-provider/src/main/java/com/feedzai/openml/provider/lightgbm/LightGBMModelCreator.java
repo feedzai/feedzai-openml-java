@@ -22,12 +22,17 @@ import com.feedzai.openml.data.schema.AbstractValueSchema;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.provider.model.MachineLearningModelTrainer;
 import com.feedzai.openml.util.load.LoadSchemaUtils;
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +136,20 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         try {
             LightGBMBinaryClassificationModelTrainer.fit(
                     dataset, params, tmpModelFilePath);
-            return loadModel(tmpModelFilePath, dataset.getSchema());
+
+            // Build a schema without the weight column for model loading validation
+            final DatasetSchema schemaForLoading;
+            final Optional<Integer> weightColIdx =
+                    SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, dataset.getSchema());
+            if (weightColIdx.isPresent()) {
+                final List<FieldSchema> fieldsWithoutWeight = dataset.getSchema().getPredictiveFields().stream()
+                    .filter(field -> field.getFieldIndex() != weightColIdx.get())
+                    .collect(Collectors.toList());
+                schemaForLoading = new DatasetSchema(fieldsWithoutWeight);
+            } else {
+                schemaForLoading = dataset.getSchema();
+            }
+            return loadModel(tmpModelFilePath, schemaForLoading);
         } catch (final Exception e) {
             logger.error("Could not train the model.");
             throw new RuntimeException(e);
@@ -155,7 +173,8 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         errorsBuilder
                 .addAll(validateModelPathToTrain(pathToPersist))
                 .addAll(validateSchema(schema))
-                .addAll(validateFitParams(params));
+                .addAll(validateFitParams(params))
+                .addAll(validateSampleWeightsCol(schema, params));
 
         return errorsBuilder.build();
     }
@@ -181,6 +200,42 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
 
         return errorsBuilder.build();
+    }
+
+    /**
+     * Ensure that if the sample weight column parameter is specified, it corresponds
+     * to a column in the dataset schema
+     *
+     * @param schema Dataset schema.
+     * @param params Model fit parameters.
+     * @return list of validation errors.
+     */
+    private List<ParamValidationError> validateSampleWeightsCol(DatasetSchema schema,
+                                                                final Map<String, String> params) {
+        // Don't test anything if the parameter is not set:
+        final Optional<String> sampleWeightFieldName = SampleWeightParamParserUtil.getSampleWeightFieldName(params);
+        if (!sampleWeightFieldName.isPresent()) {
+            return ImmutableList.of();
+        }
+
+        // Check if the field exists in the dataset:
+        final Optional<Integer> sampleWeightColIndex =
+                SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, schema);
+        if (!sampleWeightColIndex.isPresent()) {
+            return ImmutableList.of(new ParamValidationError(String.format(
+                    "Sample weight field %s doesn't exist in the dataset.",
+                    sampleWeightFieldName.get()
+            )));
+        }
+
+        // Ensure the sample weight field is numeric
+        final FieldSchema sampleWeightSchema = schema.getFieldSchemas().get(sampleWeightColIndex.get());
+        final AbstractValueSchema valueSchema = sampleWeightSchema.getValueSchema();
+        if (!(valueSchema instanceof NumericValueSchema)) {
+            return ImmutableList.of(new ParamValidationError("Sample weight must be a numeric field!"));
+        }
+
+        return ImmutableList.of();
     }
 
     /**
@@ -235,11 +290,21 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             throw new ModelLoadingException(ERROR_MSG_CANNOT_LOAD_NON_BINARY_LIGHTGBM_MODEL);
         }
 
-        if (model.getBoosterNumFeatures() != schema.getPredictiveFields().size()) {
+        // Check predictive fields size
+        //  - In LightGBM, if the sample weights are provided then the trained model will not
+        //    have this field, but the DatasetSchema will -- Need to exclude this field
+        //    In short, ensure all fields in model.getBoosterNumFeatures() exist in the DatasetSchema
+        final String[] boosterFeatureNames = model.getBoosterFeatureNames();
+        final Set<String> modelFeatureSet = new HashSet<>(Arrays.asList(boosterFeatureNames));
+        final List<FieldSchema> relevantFields = schema.getPredictiveFields().stream()
+                .filter(field -> modelFeatureSet.contains(field.getFieldName().replace(" ", "_")))
+                .collect(Collectors.toList());
+
+        if (relevantFields.size() != boosterFeatureNames.length) {
             throw new ModelLoadingException(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
         }
 
-        if (!schemaMatchAllFeatures(schema, model.getBoosterFeatureNames())) {
+        if (!schemaMatchAllFeatures(relevantFields, boosterFeatureNames)) {
             throw new ModelLoadingException(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELD_NAMES);
         }
 
@@ -338,18 +403,18 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
     }
 
     /**
-     * Gets the feature names from schema.
+     * Gets the feature names from the given fields.
      *
      * @implNote The space character is replaced with underscore
      * to comply with LightGBM's model features representation.
      *
-     * @param schema Schema
+     * @param fields List of field schemas.
      * @return Feature names from the schema.
      * @since 1.0.18
      */
-    private static String[] getFeatureNamesFrom(final DatasetSchema schema) {
+    private static String[] getFeatureNamesFrom(final List<FieldSchema> fields) {
 
-        return schema.getPredictiveFields().stream()
+        return fields.stream()
                 .map(FieldSchema::getFieldName)
                 .map(fieldName -> fieldName.replace(" ", "_"))
                 .toArray(String[]::new);
@@ -357,18 +422,19 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
     /**
      * Performs a one-by-one feature name comparison between a
-     * {@link DatasetSchema} and an array of feature names.
-     * This way the first mismatch is logged, improving debug.
+     * given list of {@link FieldSchema} and an array of feature
+     * names. This way the first mismatch is logged, improving debug.
      *
-     * @param schema Schema
+     * @param schemaRelevantFeatureNames Schema
      * @param featureNames Feature names to validate.
      * @return {@code true} if the schema predictive field names
      * match the provided array, {@code false} otherwise.
      * @since 1.0.18
      */
-    private boolean schemaMatchAllFeatures(final DatasetSchema schema, final String[] featureNames) {
+    private boolean schemaMatchAllFeatures(List<FieldSchema> schemaRelevantFeatureNames,
+                                           final String[] featureNames) {
 
-        final String[] schemaFeatureNames = getFeatureNamesFrom(schema);
+        final String[] schemaFeatureNames = getFeatureNamesFrom(schemaRelevantFeatureNames);
 
         boolean isMatch = true;
 
