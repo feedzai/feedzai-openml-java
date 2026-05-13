@@ -1,12 +1,22 @@
-package com.feedzai.openml.provider.lightgbm.parameters;
+/*
+ * The copyright of this file belongs to Feedzai. The file cannot be
+ * reproduced in whole or in part, stored in a retrieval system,
+ * transmitted in any form, or by any means electronic, mechanical,
+ * photocopying, or otherwise, without the prior permission of the owner.
+ *
+ * © 2026 Feedzai, Strictly Confidential
+ */
 
-import com.feedzai.openml.data.schema.DatasetSchema;
-import com.feedzai.openml.data.schema.FieldSchema;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package com.feedzai.openml.provider.lightgbm;
+
 
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
 
 /**
  * Utilities to compute fields/column indices.
@@ -29,7 +39,7 @@ public class SchemaFieldsUtil {
     public static Optional<Integer> getColumnIndex(final String fieldName,
                                                    final DatasetSchema schema) {
 
-        final List<FieldSchema> featureFields = schema.getPredictiveFields();
+        final List<FieldSchema> featureFields = schema.getFieldSchemas();
         Optional<FieldSchema> field = featureFields
                 .stream()
                 .filter(field_ -> field_.getFieldName().equalsIgnoreCase(fieldName))
@@ -64,7 +74,7 @@ public class SchemaFieldsUtil {
 
         // Compute column index in LightGBM-specific format (disregarding target column)
         final int targetIndex = schema.getTargetIndex()
-                .orElseThrow(RuntimeException::new); // Our model is supervised. It needs the target.
+                                      .orElseThrow(RuntimeException::new); // Our model is supervised. It needs the target.
 
         final int offsetIfFieldIsAfterLabel = fieldIndex.get() > targetIndex ? -1 : 0;
         return Optional.of(fieldIndex.get() + offsetIfFieldIsAfterLabel);
