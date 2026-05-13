@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SAMPLE_WEIGHT_COL_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_NON_BINARY_TARGET;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING;
@@ -333,6 +334,20 @@ public class LightGBMModelCreatorTest {
     }
 
     /**
+     * Assert that loading a model with a schema containing sample weights works.
+     */
+    @Test
+    public void loadModelFileWithSampleWeightDoesNotThrowTest() {
+
+        assertThatCode(() ->
+            modelLoader.loadModel(
+                    TestResources.getModelFilePath(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END
+            )
+        ).doesNotThrowAnyException();
+    }
+
+    /**
      * Assert that validate for fir doesn't return errors if inputs are Ok.
      */
     @Test
@@ -408,6 +423,44 @@ public class LightGBMModelCreatorTest {
         );
 
         assertThat(errors.size()).as("error count").isPositive();
+    }
+
+    /**
+     * Asserts that validateForFit returns an error when the sample weight parameter
+     * references a column that does not exist in the schema.
+     */
+    @Test
+    public void validateForFitSampleWeightColumnNotInSchemaReturnsErrorTest() {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "__sample_column__");
+
+        final List<ParamValidationError> errors = modelLoader.validateForFit(
+                tmpEmptyDir,
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                params
+        );
+
+        assertThat(errors).as("Should return error for nonexistent sample weight column").hasSize(1);
+        assertThat(errors.get(0).getMessage()).contains("doesn't exist in the dataset");
+    }
+
+    /**
+     * Assert that validateForFit returns an error when the sample weight parameter
+     * references a non-numeric column.
+     */
+    @Test
+    public void validateWeightColumnNonNumericReturnsErrorTest() {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "is_fraud_label_indexed");
+
+        final List<ParamValidationError> errors = modelLoader.validateForFit(
+                tmpEmptyDir,
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                params
+        );
+
+        assertThat(errors).as("Should return error for non-numeric sample weight column").hasSize(1);
+        assertThat(errors.get(0).getMessage()).isEqualTo("Sample weight must be a numeric field!");
     }
 
     /**
