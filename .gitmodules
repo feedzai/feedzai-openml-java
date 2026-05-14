@@ -1,3 +1,4 @@
 [submodule "openml-lightgbm/lightgbm-builder/make-lightgbm"]
 	path = openml-lightgbm/lightgbm-builder/make-lightgbm
-	url = https://github.com/feedzai/make-lightgbm
+	url = https://github.com/jpleitao/make-lightgbm.git
+	branch = ft-jl-amd64-manylinux_2_28
