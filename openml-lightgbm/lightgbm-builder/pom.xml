@@ -85,15 +85,16 @@
 
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <!-- this should happen after exec-maven-plugin -->
                         <phase>generate-resources</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <echo message="unzipping file" />
                                 <unzip src="${basedir}/make-lightgbm/build/lightgbmlib.jar" dest="${project.build.directory}/classes" />
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
