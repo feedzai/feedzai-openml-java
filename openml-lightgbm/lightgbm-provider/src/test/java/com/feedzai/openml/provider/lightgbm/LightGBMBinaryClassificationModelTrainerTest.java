@@ -342,6 +342,27 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     }
 
     /**
+     * Asserts that training with negative sample weights throws an error,
+     * as LightGBM does not support negative weights
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test(expected = RuntimeException.class)
+    public void fitWithNegativeSampleWeightThrows() throws URISyntaxException, IOException, ModelLoadingException {
+        final Map<String, String> params = new HashMap<>(MODEL_PARAMS);
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_NEGATIVE_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        fit(dataset, params, SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
+    }
+
+    /**
      * Test Feature Contributions with target at end.
      *
      * @throws URISyntaxException For errors when loading the dataset resource.

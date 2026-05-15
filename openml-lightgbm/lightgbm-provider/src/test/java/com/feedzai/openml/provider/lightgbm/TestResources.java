@@ -50,6 +50,11 @@ public class TestResources {
     public static final String INSTANCES_WITH_FRAUD_SAMPLE_WEIGHT_NAME = "instances_with_fraud_weight.csv";
 
     /**
+     * Name of the resource containing instances with negative sample weights.
+     */
+    public static final String INSTANCES_WITH_NEGATIVE_SAMPLE_WEIGHT_NAME = "instances_with_negative_weight.csv";
+
+    /**
      * Model folder resource name.
      */
     public static final String MODEL_FOLDER_RESOURCE_NAME = "example_model_folder/";
