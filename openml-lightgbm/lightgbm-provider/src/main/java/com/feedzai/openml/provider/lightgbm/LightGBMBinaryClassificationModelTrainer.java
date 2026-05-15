@@ -573,8 +573,16 @@ final class LightGBMBinaryClassificationModelTrainer {
                 swigTrainData.addConstraintGroupValue((int) instance.getValue(constraintGroupIndex));
             }
 
-            sampleWeightColIndex.ifPresent(integer -> swigTrainData.addSampleWeightValue((float) instance.getValue(
-                    integer)));
+            // Add sample weight and validate that it is non-negative
+            sampleWeightColIndex.ifPresent(integer -> {
+                final float weight = (float) instance.getValue(integer);
+                if (weight < 0) {
+                    throw new IllegalArgumentException(String.format(
+                            "Sample weight must be non-negative, but got: %f", weight
+                    ));
+                }
+                swigTrainData.addSampleWeightValue(weight);
+            });
 
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
                 // Don't add features for target and sample weight columns (in the case of sample weight,
