@@ -140,13 +140,13 @@ final class LightGBMBinaryClassificationModelTrainer {
         if (!sampleWeightColIndex.isPresent()) {
             numFeatures = numPredictiveFields;
         } else {
-            final boolean isSoftLabelSelectedAsFeature = schema.getPredictiveFields().stream().anyMatch(
+            final boolean isSampleWeightSelectedAsFeature = schema.getPredictiveFields().stream().anyMatch(
                     field -> field.getFieldName().equals(
                             SampleWeightParamParserUtil.getSampleWeightFieldName(params).get()
                     )
             );
 
-            numFeatures = numPredictiveFields - (isSoftLabelSelectedAsFeature ? 1 : 0);
+            numFeatures = numPredictiveFields - (isSampleWeightSelectedAsFeature ? 1 : 0);
         }
 
         // Parse train parameters to LightGBM format

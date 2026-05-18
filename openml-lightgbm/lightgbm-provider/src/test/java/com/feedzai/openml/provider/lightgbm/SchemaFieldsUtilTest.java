@@ -106,4 +106,20 @@ public class SchemaFieldsUtilTest {
         final Optional<Integer> result = SchemaFieldsUtil.getFieldIndexWithoutLabel("nonexistent", SCHEMA_LABEL_IN_MIDDLE);
         assertThat(result).isEmpty();
     }
+
+    /**
+     * Tests that {@link SchemaFieldsUtil#getFieldIndexWithoutLabel} throws
+     * a RuntimeException when no target is specified in the schema.
+     */
+    @Test(expected = RuntimeException.class)
+    public void testGetFieldIndexWithoutLabelNoTarget() {
+        // Schema without a target index
+        final DatasetSchema schemaNoTarget = new DatasetSchema(
+                ImmutableList.of(
+                        new FieldSchema("amount", 0, new NumericValueSchema(false)),
+                        new FieldSchema("num1", 1, new NumericValueSchema(false))
+                )
+        );
+        SchemaFieldsUtil.getFieldIndexWithoutLabel("amount", schemaNoTarget);
+    }
 }

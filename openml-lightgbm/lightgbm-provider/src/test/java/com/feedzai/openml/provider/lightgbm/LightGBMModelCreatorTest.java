@@ -17,12 +17,17 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
+import com.feedzai.openml.data.Dataset;
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import java.util.Random;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -461,6 +466,52 @@ public class LightGBMModelCreatorTest {
 
         assertThat(errors).as("Should return error for non-numeric sample weight column").hasSize(1);
         assertThat(errors.get(0).getMessage()).isEqualTo("Sample weight must be a numeric field!");
+    }
+
+    /**
+     * Tests training a LightGBM model via the LightGBMModelCreator class
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void fitWithSampleWeightViaModelCreator() throws URISyntaxException, IOException {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                5000
+        );
+
+        LightGBMBinaryClassificationModel model = modelLoader.fit(dataset, new Random(0), params);
+        assertThat(model.getBoosterNumFeatures()).isEqualTo(4);
+    }
+
+    /**
+     * Tests that loading a LightGBM model with an incompatible dataset schema throws an exception.
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws ModelLoadingException For errors loading the model
+     */
+    @Test(expected = ModelLoadingException.class)
+    public void loadModelWithWrongFieldCountThrowsException() throws URISyntaxException, ModelLoadingException {
+        // Schema with fewer fields than the model expects
+        final DatasetSchema wrongSchema = new DatasetSchema(
+                2,
+                ImmutableList.of(
+                        new FieldSchema("amount", 0, new NumericValueSchema(false)),
+                        new FieldSchema("num1_float", 1, new NumericValueSchema(false)),
+                        new FieldSchema("is_fraud_label_indexed", 2,
+                                        new CategoricalValueSchema(true, ImmutableSet.of("0.0", "1.0")))
+                )
+        );
+
+        LightGBMBinaryClassificationModel lightGBMBinaryClassificationModel = modelLoader.loadModel(
+                TestResources.getModelFilePath(),
+                wrongSchema
+        );
     }
 
     /**

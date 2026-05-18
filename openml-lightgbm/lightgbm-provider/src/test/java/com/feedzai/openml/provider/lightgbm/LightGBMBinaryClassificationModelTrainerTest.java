@@ -347,6 +347,7 @@ public class LightGBMBinaryClassificationModelTrainerTest {
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
      * @throws IOException        For errors when reading the dataset.
+     * @throws ModelLoadingException For errors training the model.
      */
     @Test(expected = RuntimeException.class)
     public void fitWithNegativeSampleWeightThrows() throws URISyntaxException, IOException, ModelLoadingException {
