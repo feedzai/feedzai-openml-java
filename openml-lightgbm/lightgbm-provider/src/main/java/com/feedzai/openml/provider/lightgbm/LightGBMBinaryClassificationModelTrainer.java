@@ -132,21 +132,14 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         final DatasetSchema schema = dataset.getSchema();
 
+        final Optional<String> sampleWeightFieldName = SampleWeightParamParserUtil.getSampleWeightFieldName(params);
+        int numFeatures = schema.getPredictiveFields().size();
+
+        // Check if the weight field exists and is explicitly part of the predictive fields
         final Optional<Integer> sampleWeightColIndex =
                 SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, schema);
-
-        final int numPredictiveFields = schema.getPredictiveFields().size();
-        final int numFeatures;
-        if (!sampleWeightColIndex.isPresent()) {
-            numFeatures = numPredictiveFields;
-        } else {
-            final boolean isSampleWeightSelectedAsFeature = schema.getPredictiveFields().stream().anyMatch(
-                    field -> field.getFieldName().equals(
-                            SampleWeightParamParserUtil.getSampleWeightFieldName(params).get()
-                    )
-            );
-
-            numFeatures = numPredictiveFields - (isSampleWeightSelectedAsFeature ? 1 : 0);
+        if (sampleWeightColIndex.isPresent()) {
+            numFeatures--;
         }
 
         // Parse train parameters to LightGBM format
@@ -562,6 +555,7 @@ final class LightGBMBinaryClassificationModelTrainer {
            ValidationUtils' validateCategoricalSchema:
          */
         final int targetIndex = datasetSchema.getTargetIndex().get();
+        final int sampleWeightIdx = sampleWeightColIndex.orElse(-1);
 
         final Iterator<Instance> iterator = dataset.getInstances();
         while (iterator.hasNext()) {
@@ -587,7 +581,7 @@ final class LightGBMBinaryClassificationModelTrainer {
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
                 // Don't add features for target and sample weight columns (in the case of sample weight,
                 // only if this is defined)
-                if ((colIdx != targetIndex) && (!sampleWeightColIndex.equals(Optional.of(colIdx))) ) {
+                if ((colIdx != targetIndex) && (colIdx != sampleWeightIdx)) {
                     swigTrainData.addFeatureValue(instance.getValue(colIdx));
                 }
             }
