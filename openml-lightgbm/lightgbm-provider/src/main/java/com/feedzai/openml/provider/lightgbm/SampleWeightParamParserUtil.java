@@ -39,10 +39,10 @@ public class SampleWeightParamParserUtil {
      *         otherwise empty Optional
      */
     public static Optional<String> getSampleWeightFieldName(final Map<String, String> params) {
-        final String softLabelFieldName = params.get(SAMPLE_WEIGHT_COL_PARAMETER_NAME);
+        final String sampleWeightFieldName = params.get(SAMPLE_WEIGHT_COL_PARAMETER_NAME);
 
-        return softLabelFieldName == null || softLabelFieldName.isEmpty() ?
-                Optional.empty() : Optional.of(softLabelFieldName.trim());
+        return sampleWeightFieldName == null || sampleWeightFieldName.isEmpty() ?
+                Optional.empty() : Optional.of(sampleWeightFieldName.trim());
     }
 
     /**

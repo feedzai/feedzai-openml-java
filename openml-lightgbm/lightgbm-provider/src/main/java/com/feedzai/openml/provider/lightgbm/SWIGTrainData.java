@@ -145,6 +145,8 @@ public class SWIGTrainData implements AutoCloseable {
      * @param numFeatures           The number of features.
      * @param numInstancesChunk     The number of instances per chunk of data.
      * @param fairnessConstrained   Whether this data will be used for a model with fairness (group) constraints.
+     * @param useSampleWeight       Whether this training data includes per-instance sample weights to be passed
+     *                              to LightGBM.
      */
     public SWIGTrainData(final int numFeatures, final long numInstancesChunk,
                          final boolean fairnessConstrained,
