@@ -148,7 +148,8 @@ public class SWIGTrainData implements AutoCloseable {
      * @param useSampleWeight       Whether this training data includes per-instance sample weights to be passed
      *                              to LightGBM.
      */
-    public SWIGTrainData(final int numFeatures, final long numInstancesChunk,
+    public SWIGTrainData(final int numFeatures,
+                         final long numInstancesChunk,
                          final boolean fairnessConstrained,
                          final boolean useSampleWeight) {
         this.numFeatures = numFeatures;
@@ -189,7 +190,7 @@ public class SWIGTrainData implements AutoCloseable {
         this.swigLabelsChunkedArray.add(value);
     }
 
-    public void addSampleWeightValue(float value) {
+    public void addSampleWeightValue(final float value) {
         assert this.useSampleWeight : "Attempting to set sample weight data with useSampleWeight=false";
         this.swigSampleWeightsChunkedArray.add(value);
     }
