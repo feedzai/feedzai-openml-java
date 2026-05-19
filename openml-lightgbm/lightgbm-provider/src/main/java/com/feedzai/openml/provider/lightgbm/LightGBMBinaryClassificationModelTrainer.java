@@ -148,33 +148,35 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
-        final SWIGTrainData swigTrainData = new SWIGTrainData(
+        try (SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk,
                 FairGBMParamParserUtil.isFairnessConstrained(params),
                 sampleWeightColIndex.isPresent()
-        );
-        final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
+        ); SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster()) {
+            /// Create LightGBM dataset
+            final int constraintGroupColIndex = FairGBMParamParserUtil.getConstraintGroupColumnIndex(params, schema)
+                                                                      .orElse(FairGBMParamParserUtil.NO_SPECIFIC);
 
-        /// Create LightGBM dataset
-        final int constraintGroupColIndex = FairGBMParamParserUtil.getConstraintGroupColumnIndex(params, schema).orElse(
-                FairGBMParamParserUtil.NO_SPECIFIC);
-        createTrainDataset(
-                dataset,
-                numFeatures,
-                trainParams,
-                constraintGroupColIndex,
-                sampleWeightColIndex,
-                swigTrainData
-        );
+            createTrainDataset(
+                    dataset,
+                    numFeatures,
+                    trainParams,
+                    constraintGroupColIndex,
+                    sampleWeightColIndex,
+                    swigTrainData
+            );
 
-        /// Create Booster from dataset
-        createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
-        trainBooster(swigTrainBooster.swigBoosterHandle, numIterations);
+            /// Create Booster from dataset
+            createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
+            trainBooster(swigTrainBooster.swigBoosterHandle, numIterations);
 
-        /// Save model
-        saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
-        swigTrainBooster.close(); // Explicitly release C++ resources right away. They're no longer needed.
+            /// Save model
+            saveModelFileToDisk(swigTrainBooster.swigBoosterHandle, outputModelFilePath);
+
+            // Note: By using try-with-resources, the call to both `swigTrainData.close()`
+            //       and `swigTrainBooster.close()` to release C++ resources is guaranteed
+        }
     }
 
     /**
