@@ -319,14 +319,18 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         // Check predictive fields size
         //  - In LightGBM, if the sample weights are provided then the trained model will not
         //    have this field, but the DatasetSchema will -- Need to exclude this field
-        //    In short, ensure all fields in model.getBoosterNumFeatures() exist in the DatasetSchema
+        //
+        //    Can only allow for the sample weight field to be extra in the DatasetSchema,
+        //    when compared with the model fields; any other additional field will need to
+        //    trigger an error
         final String[] boosterFeatureNames = model.getBoosterFeatureNames();
         final Set<String> modelFeatureSet = new HashSet<>(Arrays.asList(boosterFeatureNames));
         final List<FieldSchema> relevantFields = schema.getPredictiveFields().stream()
                 .filter(field -> modelFeatureSet.contains(sanitizeFieldName(field.getFieldName())))
                 .collect(Collectors.toList());
 
-        if (relevantFields.size() != boosterFeatureNames.length) {
+        if ((schema.getPredictiveFields().size() - relevantFields.size() > 1)
+                || (relevantFields.size() != boosterFeatureNames.length)) {
             throw new ModelLoadingException(ERROR_MSG_SCHEMA_WITH_WRONG_PREDICTIVE_FIELDS_SIZE);
         }
 
