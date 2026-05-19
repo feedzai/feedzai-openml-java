@@ -138,17 +138,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
                     dataset, params, tmpModelFilePath);
 
             // Build a schema without the weight column for model loading validation
-            final DatasetSchema schemaForLoading;
-            final Optional<Integer> weightColIdx =
-                    SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, dataset.getSchema());
-            if (weightColIdx.isPresent()) {
-                final List<FieldSchema> fieldsWithoutWeight = dataset.getSchema().getPredictiveFields().stream()
-                    .filter(field -> field.getFieldIndex() != weightColIdx.get())
-                    .collect(Collectors.toList());
-                schemaForLoading = new DatasetSchema(fieldsWithoutWeight);
-            } else {
-                schemaForLoading = dataset.getSchema();
-            }
+            final DatasetSchema schemaForLoading = getSchemaForLoading(params, dataset);
             return loadModel(tmpModelFilePath, schemaForLoading);
         } catch (final Exception e) {
             logger.error("Could not train the model.");
@@ -162,7 +152,32 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         }
     }
 
+    /**
+     * Retrieves the appropriate schema to be used to load a LightGBM model.
+     * If the model was trained with sample weight, then its schema will consist in the train
+     * data schema without the sample weight column; otherwise, the original raw schema of
+     * the train data will be considered.
+     *
+     * @param params   LightGBM model parameters.
+     * @param dataset  Train dataset.
+     * @return         A {@link DatasetSchema} instance excluding the sample weight field if present;
+     *                 otherwise, the original schema layout mapped to the dataset
+     */
+    private DatasetSchema getSchemaForLoading(Map<String, String> params, Dataset dataset) {
+        final DatasetSchema schemaForLoading;
 
+        final Optional<Integer> weightColIdx =
+                SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, dataset.getSchema());
+        if (weightColIdx.isPresent()) {
+            final List<FieldSchema> fieldsWithoutWeight = dataset.getSchema().getPredictiveFields().stream()
+                                                                 .filter(field -> field.getFieldIndex() != weightColIdx.get())
+                                                                 .collect(Collectors.toList());
+            schemaForLoading = new DatasetSchema(fieldsWithoutWeight);
+        } else {
+            schemaForLoading = dataset.getSchema();
+        }
+        return schemaForLoading;
+    }
 
     @Override
     public List<ParamValidationError> validateForFit(final Path pathToPersist,
