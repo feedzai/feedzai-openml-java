@@ -20,6 +20,8 @@ package com.feedzai.openml.provider.lightgbm;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
 import com.feedzai.openml.provider.descriptor.fieldtype.BooleanFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
+import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
+
 import com.google.common.collect.ImmutableSet;
 
 import java.util.Set;
@@ -51,6 +53,11 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
      * Bagging frequency parameter name.
      */
     public static final String BAGGING_FREQUENCY_PARAMETER_NAME = "bagging_freq";
+
+    /**
+     * Sample weight parameter name.
+     */
+    public static final String SAMPLE_WEIGHT_COL_PARAMETER_NAME = "sample_weight";
 
     /**
      * Global seed parameter name.
@@ -347,8 +354,17 @@ public class LightGBMDescriptorUtil extends AlgoDescriptorUtil {
                     "Set to true if training data is unbalanced. \nWhilst enabling this should increase the overall performance metric of the model, it will also result in poor estimates of the individual class probabilities. Cannot be used at the same time as 'scale_pos_weight'.", // TODO nam parameter in ui (scale_pos_weight)
                     NOT_MANDATORY,
                     new BooleanFieldType(false)
-            )
+            ),
             // TODO: https://lightgbm.readthedocs.io/en/latest/Parameters.html#scale_pos_weight ?? would require setting the pos label
-
+            new ModelParameter(
+                    SAMPLE_WEIGHT_COL_PARAMETER_NAME,
+                    "Sample Weight",
+                    "Name of the field containing per-instance weights for training. \n"
+                            + "Higher weights result in the model prioritizing training on those samples. \n"
+                            + "Values must be non-negative. \n"
+                            + "If this field is selected, it is automatically dropped from the selected features.",
+                    NOT_MANDATORY,
+                    new FreeTextFieldType("")
+            )
     );
 }

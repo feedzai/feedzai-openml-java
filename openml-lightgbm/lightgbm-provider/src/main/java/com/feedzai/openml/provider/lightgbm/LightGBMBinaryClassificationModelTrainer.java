@@ -22,6 +22,7 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+
 import com.google.common.collect.ImmutableSet;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_float;
 import com.microsoft.ml.lightgbm.SWIGTYPE_p_int;
@@ -43,6 +44,7 @@ import java.util.Map;
 
 import static com.feedzai.openml.provider.lightgbm.FairGBMDescriptorUtil.CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SAMPLE_WEIGHT_COL_PARAMETER_NAME;
 import static java.lang.Integer.parseInt;
 import static java.util.stream.Collectors.toList;
 
@@ -129,7 +131,16 @@ final class LightGBMBinaryClassificationModelTrainer {
                     final long instancesPerChunk) {
 
         final DatasetSchema schema = dataset.getSchema();
-        final int numFeatures = schema.getPredictiveFields().size();
+
+        final Optional<String> sampleWeightFieldName = SampleWeightParamParserUtil.getSampleWeightFieldName(params);
+        int numFeatures = schema.getPredictiveFields().size();
+
+        // Check if the weight field exists and is explicitly part of the predictive fields
+        final Optional<Integer> sampleWeightColIndex =
+                SampleWeightParamParserUtil.getSampleWeightColumnIndex(params, schema);
+        if (sampleWeightColIndex.isPresent()) {
+            numFeatures--;
+        }
 
         // Parse train parameters to LightGBM format
         final String trainParams = getLightGBMTrainParamsString(params, schema);
@@ -140,13 +151,22 @@ final class LightGBMBinaryClassificationModelTrainer {
         final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk,
-                FairGBMParamParserUtil.isFairnessConstrained(params));
+                FairGBMParamParserUtil.isFairnessConstrained(params),
+                sampleWeightColIndex.isPresent()
+        );
         final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster();
 
         /// Create LightGBM dataset
         final int constraintGroupColIndex = FairGBMParamParserUtil.getConstraintGroupColumnIndex(params, schema).orElse(
                 FairGBMParamParserUtil.NO_SPECIFIC);
-        createTrainDataset(dataset, numFeatures, trainParams, constraintGroupColIndex, swigTrainData);
+        createTrainDataset(
+                dataset,
+                numFeatures,
+                trainParams,
+                constraintGroupColIndex,
+                sampleWeightColIndex,
+                swigTrainData
+        );
 
         /// Create Booster from dataset
         createBoosterStructure(swigTrainBooster, swigTrainData, trainParams);
@@ -203,6 +223,7 @@ final class LightGBMBinaryClassificationModelTrainer {
                                            final int numFeatures,
                                            final String trainParams,
                                            final int constraintGroupColIndex,
+                                           final Optional<Integer> sampleWeightColIndex,
                                            final SWIGTrainData swigTrainData) {
 
         logger.info("Creating LightGBM dataset");
@@ -211,7 +232,8 @@ final class LightGBMBinaryClassificationModelTrainer {
         copyTrainDataToSWIGArrays(
                 dataset,
                 swigTrainData,
-                constraintGroupColIndex
+                constraintGroupColIndex,
+                sampleWeightColIndex
         );
 
         initializeLightGBMTrainDatasetFeatures(
@@ -224,13 +246,17 @@ final class LightGBMBinaryClassificationModelTrainer {
                 swigTrainData
         );
 
+        if (sampleWeightColIndex.isPresent()) {
+            setLightGBMDatasetSampleWeightData(swigTrainData);
+        }
+
         if (constraintGroupColIndex != FairGBMParamParserUtil.NO_SPECIFIC) {
             setLightGBMDatasetConstraintGroupData(
                     swigTrainData
             );
         }
 
-        setLightGBMDatasetFeatureNames(swigTrainData.swigDatasetHandle, dataset.getSchema());
+        setLightGBMDatasetFeatureNames(swigTrainData.swigDatasetHandle, dataset.getSchema(), sampleWeightColIndex);
 
         logger.info("Created LightGBM dataset.");
     }
@@ -309,6 +335,33 @@ final class LightGBMBinaryClassificationModelTrainer {
     }
 
     /**
+     * Sets the LightGBM dataset sample weight data.
+     *
+     * @param swigTrainData SWIGTrainData object.
+     */
+    private static void setLightGBMDatasetSampleWeightData(final SWIGTrainData swigTrainData) {
+        final long numInstances = swigTrainData.swigSampleWeightsChunkedArray.get_add_count();
+        // Init SWIG array and copy from chunked data.
+        SWIGTYPE_p_float swigSampleWeightsData = swigTrainData.coalesceChunkedSwigSampleWeightDataArray();
+        logger.debug("FTL: #weights={}", numInstances);
+
+        logger.debug("Setting sample weight data...");
+        final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetField(
+                swigTrainData.swigDatasetHandle,
+                "weight",  // LightGBM weight column type.
+                lightgbmlib.float_to_voidp_ptr(swigSampleWeightsData),
+                (int) numInstances,
+                lightgbmlibConstants.C_API_DTYPE_FLOAT32
+        );
+        if (returnCodeLGBM == -1) {
+            logger.error("Could not set sample weight data.");
+            throw new LightGBMException();
+        }
+
+        swigTrainData.destroySwigSampleWeightsDataArray();
+    }
+
+    /**
      * Sets the LightGBM dataset label data.
      *
      * @param swigTrainData SWIGTrainData object.
@@ -370,11 +423,16 @@ final class LightGBMBinaryClassificationModelTrainer {
      * @param swigDatasetHandle SWIG dataset handle
      * @param schema            Dataset schema
      */
-    private static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle, final DatasetSchema schema) {
+    private static void setLightGBMDatasetFeatureNames(final SWIGTYPE_p_void swigDatasetHandle,
+                                                       final DatasetSchema schema,
+                                                       final Optional<Integer> sampleWeightColIndex) {
 
-        final int numFeatures = schema.getPredictiveFields().size();
+        final List<FieldSchema> featureFields = schema.getPredictiveFields().stream()
+                .filter(field -> !sampleWeightColIndex.equals(Optional.of(field.getFieldIndex())))
+                .collect(toList());
+        final int numFeatures = featureFields.size();
 
-        final String[] featureNames = getFieldNames(schema.getPredictiveFields());
+        final String[] featureNames = getFieldNames(featureFields);
         logger.debug("featureNames {}", Arrays.toString(featureNames));
 
         final int returnCodeLGBM = lightgbmlib.LGBM_DatasetSetFeatureNames(swigDatasetHandle, featureNames, numFeatures);
@@ -482,12 +540,13 @@ final class LightGBMBinaryClassificationModelTrainer {
      */
     private static void copyTrainDataToSWIGArrays(final Dataset dataset,
                                                   final SWIGTrainData swigTrainData) {
-        copyTrainDataToSWIGArrays(dataset, swigTrainData, FairGBMParamParserUtil.NO_SPECIFIC);
+        copyTrainDataToSWIGArrays(dataset, swigTrainData, FairGBMParamParserUtil.NO_SPECIFIC, Optional.empty());
     }
 
     private static void copyTrainDataToSWIGArrays(final Dataset dataset,
                                                   final SWIGTrainData swigTrainData,
-                                                  final int constraintGroupIndex) {
+                                                  final int constraintGroupIndex,
+                                                  final Optional<Integer> sampleWeightColIndex) {
 
         final DatasetSchema datasetSchema = dataset.getSchema();
         final int numFields = datasetSchema.getFieldSchemas().size();
@@ -496,6 +555,7 @@ final class LightGBMBinaryClassificationModelTrainer {
            ValidationUtils' validateCategoricalSchema:
          */
         final int targetIndex = datasetSchema.getTargetIndex().get();
+        final int sampleWeightIdx = sampleWeightColIndex.orElse(-1);
 
         final Iterator<Instance> iterator = dataset.getInstances();
         while (iterator.hasNext()) {
@@ -507,8 +567,21 @@ final class LightGBMBinaryClassificationModelTrainer {
                 swigTrainData.addConstraintGroupValue((int) instance.getValue(constraintGroupIndex));
             }
 
+            // Add sample weight and validate that it is non-negative
+            sampleWeightColIndex.ifPresent(integer -> {
+                final float weight = (float) instance.getValue(integer);
+                if (weight < 0) {
+                    throw new IllegalArgumentException(String.format(
+                            "Sample weight must be non-negative, but got: %f", weight
+                    ));
+                }
+                swigTrainData.addSampleWeightValue(weight);
+            });
+
             for (int colIdx = 0; colIdx < numFields; ++colIdx) {
-                if (colIdx != targetIndex) {
+                // Don't add features for target and sample weight columns (in the case of sample weight,
+                // only if this is defined)
+                if ((colIdx != targetIndex) && (colIdx != sampleWeightIdx)) {
                     swigTrainData.addFeatureValue(instance.getValue(colIdx));
                 }
             }
@@ -519,6 +592,11 @@ final class LightGBMBinaryClassificationModelTrainer {
 
         if (swigTrainData.fairnessConstrained) {
             assert swigTrainData.swigConstraintGroupChunkedArray.get_add_count() ==
+                    swigTrainData.swigLabelsChunkedArray.get_add_count();
+        }
+
+        if (swigTrainData.useSampleWeight) {
+            assert swigTrainData.swigSampleWeightsChunkedArray.get_add_count() ==
                     swigTrainData.swigLabelsChunkedArray.get_add_count();
         }
 
@@ -559,8 +637,11 @@ final class LightGBMBinaryClassificationModelTrainer {
         constraintGroupColIdx.ifPresent(
                 integer -> preprocessedMapParams.put(CONSTRAINT_GROUP_COLUMN_PARAMETER_NAME, Integer.toString(integer)));
 
-        // Add all **other** parameters
-        mapParams.forEach(preprocessedMapParams::putIfAbsent);
+        // Add all **other** parameters - remove sample weight parameter as it is passed to LightGBM in a different way
+        // (via lightgbmlib.LGBM_DatasetSetField(..., "weight", ...))
+        mapParams.entrySet().stream()
+                 .filter(e -> !e.getKey().equals(SAMPLE_WEIGHT_COL_PARAMETER_NAME))
+                 .forEach(e -> preprocessedMapParams.putIfAbsent(e.getKey(), e.getValue()));
 
         // Build string containing params in LightGBM format
         final StringBuilder paramsBuilder = new StringBuilder();

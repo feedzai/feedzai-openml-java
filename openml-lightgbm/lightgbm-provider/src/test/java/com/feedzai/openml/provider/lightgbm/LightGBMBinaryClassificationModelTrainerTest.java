@@ -22,6 +22,8 @@ import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
+
+import java.util.Arrays;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -38,6 +40,7 @@ import java.util.Map;
 import java.util.Random;
 
 import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.NUM_ITERATIONS_PARAMETER_NAME;
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SAMPLE_WEIGHT_COL_PARAMETER_NAME;
 import static java.nio.file.Files.createTempFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -302,6 +305,65 @@ public class LightGBMBinaryClassificationModelTrainerTest {
     }
 
     /**
+     * Asserts that a model can be successfully trained with a sample weight column,
+     * and that the weight column is excluded from the model's features.
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void fitWithSampleWeight() throws URISyntaxException, IOException {
+        // Replace "sample_weight" key-value pair in default model params
+        final Map<String, String> params = new HashMap<>(MODEL_PARAMS);
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        try(final LightGBMBinaryClassificationModel model = fit(
+                dataset,
+                params,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
+        )) {
+            // Assert model trained successfully - sample weight column is not feature
+            assertThat(model.getBoosterNumFeatures())
+                    .as("Model features should not include sample weight")
+                    .isEqualTo(4);
+
+            assertThat(Arrays.asList(model.getBoosterFeatureNames()))
+                    .as("Model feature names should not contain the weight column")
+                    .doesNotContain("sample_weight_double");
+        } catch (final Exception e) {
+            throw new RuntimeException("Could not train model with sample weights: ", e);
+        }
+    }
+
+    /**
+     * Asserts that training with negative sample weights throws an error,
+     * as LightGBM does not support negative weights
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     * @throws ModelLoadingException For errors training the model.
+     */
+    @Test(expected = RuntimeException.class)
+    public void fitWithNegativeSampleWeightThrows() throws URISyntaxException, IOException, ModelLoadingException {
+        final Map<String, String> params = new HashMap<>(MODEL_PARAMS);
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_NEGATIVE_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        fit(dataset, params, SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
+    }
+
+    /**
      * Test Feature Contributions with target at end.
      *
      * @throws URISyntaxException For errors when loading the dataset resource.
@@ -350,6 +412,59 @@ public class LightGBMBinaryClassificationModelTrainerTest {
                 10000
         );
         ensureFeatureContributions(dataset, MODEL_PARAMS);
+    }
+
+    /**
+     * Asserts that sample weights affect model training by comparing recall between
+     * a model trained with high weights on fraud (10x) and a model trained without weights.
+     * The weighted model should achieve higher recall due to increased penalty on false negatives
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void testSampleWeightAffectsRecall() throws URISyntaxException, IOException {
+        // Train first model and compute its recall
+        final Map<String, String> unweightedParams = new HashMap<>(MODEL_PARAMS);
+        unweightedParams.put(NUM_ITERATIONS_PARAMETER_NAME, "10");
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        final double recallUnweighted;
+        try (final LightGBMBinaryClassificationModel model = fit(
+                dataset, unweightedParams, SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
+        )) {
+            recallUnweighted = computeRecall(dataset, model);
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // Train second model and compute its recall
+        final Map<String, String> weightedParams = new HashMap<>(MODEL_PARAMS);
+        weightedParams.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+        weightedParams.put(NUM_ITERATIONS_PARAMETER_NAME, "10");
+
+        final Dataset weightedDataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_FRAUD_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        final double recallWeighted;
+        try (final LightGBMBinaryClassificationModel model = fit(
+                weightedDataset, weightedParams, SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
+        )){
+            recallWeighted = computeRecall(dataset, model);
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        // Assert that the recall of the second model (weighted samples) is higher
+        assertThat(recallWeighted)
+                .as("Weighted model (high weight on fraud) should have higher recall")
+                .isGreaterThan(recallUnweighted);
     }
 
     /**
@@ -532,5 +647,32 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         list.add(new LinkedList<>());
         list.add(new LinkedList<>());
         return list;
+    }
+
+    /**
+     * Computes recall (true positive rate) for the positive class using a 0.5 threshold
+     *
+     * @param dataset Dataset with labeled instances.
+     * @param model Trained model to evaluate.
+     * @return Recall value.
+     */
+    static double computeRecall(final Dataset dataset, final LightGBMBinaryClassificationModel model) {
+        final int targetIndex = dataset.getSchema().getTargetIndex().get();
+        int truePositives = 0;
+        int actualPositives = 0;
+
+        final Iterator<Instance> iterator = dataset.getInstances();
+        while (iterator.hasNext()) {
+            final Instance instance = iterator.next();
+            final int actualClass = (int) instance.getValue(targetIndex);
+            if (actualClass == 1) {
+                actualPositives++;
+                final double[] scores = model.getClassDistribution(instance);
+                if (scores[1] > 0.5) {
+                    truePositives++;
+                }
+            }
+        }
+        return actualPositives > 0 ? (double) truePositives / actualPositives : 0.0;
     }
 }

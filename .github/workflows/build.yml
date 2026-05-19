@@ -36,7 +36,7 @@ jobs:
           distribution: 'zulu'
 
       - name: Cache Maven packages
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -70,6 +70,8 @@ jobs:
           cd /feedzai-openml-java && \
           mvn test -B -Dsurefire.failIfNoSpecifiedTests=false -Dtest=!ClassifyUnknownCategoryTest#test,!H2OModelProviderTrainTest#trainModelsForAllAlgorithms'
 
-      - uses: codecov/codecov-action@v1
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
+          use_oidc: true
           fail_ci_if_error: true

@@ -17,12 +17,17 @@
 
 package com.feedzai.openml.provider.lightgbm;
 
+import com.feedzai.openml.data.Dataset;
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
 import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import java.util.Random;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.feedzai.openml.provider.lightgbm.LightGBMDescriptorUtil.SAMPLE_WEIGHT_COL_PARAMETER_NAME;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_NON_BINARY_TARGET;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_PREFIX_CANNOT_FIND_MODEL_FILE;
 import static com.feedzai.openml.provider.lightgbm.LightGBMModelCreator.ERROR_MSG_RANDOM_FOREST_REQUIRES_BAGGING;
@@ -333,6 +339,20 @@ public class LightGBMModelCreatorTest {
     }
 
     /**
+     * Assert that loading a model with a schema containing sample weights works.
+     */
+    @Test
+    public void loadModelFileWithSampleWeightDoesNotThrowTest() {
+
+        assertThatCode(() ->
+            modelLoader.loadModel(
+                    TestResources.getModelFilePath(),
+                    TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END
+            )
+        ).doesNotThrowAnyException();
+    }
+
+    /**
      * Assert that validate for fir doesn't return errors if inputs are Ok.
      */
     @Test
@@ -408,6 +428,90 @@ public class LightGBMModelCreatorTest {
         );
 
         assertThat(errors.size()).as("error count").isPositive();
+    }
+
+    /**
+     * Asserts that validateForFit returns an error when the sample weight parameter
+     * references a column that does not exist in the schema.
+     */
+    @Test
+    public void validateForFitSampleWeightColumnNotInSchemaReturnsErrorTest() {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "__sample_column__");
+
+        final List<ParamValidationError> errors = modelLoader.validateForFit(
+                tmpEmptyDir,
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                params
+        );
+
+        assertThat(errors).as("Should return error for nonexistent sample weight column").hasSize(1);
+        assertThat(errors.get(0).getMessage()).contains("doesn't exist in the dataset");
+    }
+
+    /**
+     * Assert that validateForFit returns an error when the sample weight parameter
+     * references a non-numeric column.
+     */
+    @Test
+    public void validateWeightColumnNonNumericReturnsErrorTest() {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "is_fraud_label_indexed");
+
+        final List<ParamValidationError> errors = modelLoader.validateForFit(
+                tmpEmptyDir,
+                TestSchemas.NUMERICALS_SCHEMA_WITH_LABEL_AT_END,
+                params
+        );
+
+        assertThat(errors).as("Should return error for non-numeric sample weight column").hasSize(1);
+        assertThat(errors.get(0).getMessage()).isEqualTo("Sample weight must be a numeric field!");
+    }
+
+    /**
+     * Tests training a LightGBM model via the LightGBMModelCreator class
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void fitWithSampleWeightViaModelCreator() throws URISyntaxException, IOException {
+        final Map<String, String> params = TestParameters.getDefaultLightGBMParameters();
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_SAMPLE_WEIGHT_NAME),
+                TestSchemas.NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END,
+                5000
+        );
+
+        LightGBMBinaryClassificationModel model = modelLoader.fit(dataset, new Random(0), params);
+        assertThat(model.getBoosterNumFeatures()).isEqualTo(4);
+    }
+
+    /**
+     * Tests that loading a LightGBM model with an incompatible dataset schema throws an exception.
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws ModelLoadingException For errors loading the model
+     */
+    @Test(expected = ModelLoadingException.class)
+    public void loadModelWithWrongFieldCountThrowsException() throws URISyntaxException, ModelLoadingException {
+        // Schema with fewer fields than the model expects
+        final DatasetSchema wrongSchema = new DatasetSchema(
+                2,
+                ImmutableList.of(
+                        new FieldSchema("amount", 0, new NumericValueSchema(false)),
+                        new FieldSchema("num1_float", 1, new NumericValueSchema(false)),
+                        new FieldSchema("is_fraud_label_indexed", 2,
+                                        new CategoricalValueSchema(true, ImmutableSet.of("0.0", "1.0")))
+                )
+        );
+
+        LightGBMBinaryClassificationModel lightGBMBinaryClassificationModel = modelLoader.loadModel(
+                TestResources.getModelFilePath(),
+                wrongSchema
+        );
     }
 
     /**

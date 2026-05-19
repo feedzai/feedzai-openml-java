@@ -103,6 +103,20 @@ public class TestSchemas {
     );
 
     /**
+     * Schema with numerical features, a numeric sample weight column, and binary label at end.
+     * Fields: amount(0), num1_float(1), num2_double(2), num3_int(3), sample_weight_double(4),
+     * is_fraud_label_indexed(5).
+     */
+    public static final DatasetSchema NUMERICALS_SCHEMA_WITH_WEIGHT_LABEL_AT_END = new DatasetSchema(
+            5,
+            ImmutableList.<FieldSchema>builder()
+            .addAll(NUMERICAL_SCHEMA_FEATURES)
+            .add(new FieldSchema("sample_weight_double", 4, new NumericValueSchema(false)))
+            .add(SchemaUtils.getFieldCopyWithIndex(FRAUD_LABEL_INDEXED_FIELD, 5))
+            .build()
+    );
+
+    /**
      * Test schema with categoricals and label as last field in instance.
      *
      * Raw data columns @ test_data/in_train_val.csv: "card","amount","event_timestamp","is_fraud_label",

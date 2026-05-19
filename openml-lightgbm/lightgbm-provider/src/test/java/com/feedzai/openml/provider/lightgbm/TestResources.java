@@ -39,6 +39,22 @@ public class TestResources {
     public static final String SCORED_INSTANCES_NAME = "scored_instances.csv";
 
     /**
+     * Name of the resource containing instances with random sample weights, between 0 and 2.
+     */
+    public static final String INSTANCES_WITH_SAMPLE_WEIGHT_NAME = "instances_with_weight.csv";
+
+    /**
+     * Name of the resource containing instances with sample weights where fraud instances (class 1) have
+     * weight 10, and non-fraud instances (class 0) have weight 1.
+     */
+    public static final String INSTANCES_WITH_FRAUD_SAMPLE_WEIGHT_NAME = "instances_with_fraud_weight.csv";
+
+    /**
+     * Name of the resource containing instances with negative sample weights.
+     */
+    public static final String INSTANCES_WITH_NEGATIVE_SAMPLE_WEIGHT_NAME = "instances_with_negative_weight.csv";
+
+    /**
      * Model folder resource name.
      */
     public static final String MODEL_FOLDER_RESOURCE_NAME = "example_model_folder/";

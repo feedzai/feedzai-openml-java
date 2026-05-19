@@ -48,7 +48,7 @@ public enum LightGBMAlgorithms implements MLAlgorithmEnum {
             "FairGBM (LightGBM with Fairness)",
             FairGBMDescriptorUtil.PARAMS,
             MachineLearningAlgorithmType.SUPERVISED_BINARY_CLASSIFICATION,
-            "https://lightgbm.readthedocs.io/"  // TODO: link to our documentation
+            "https://cam.feedzai.com/pulse/latest/docs/common/pulse/understanding-pulse/core-concepts/models/model-training/feedzai-fairgbm"
     )),
     ;
 
