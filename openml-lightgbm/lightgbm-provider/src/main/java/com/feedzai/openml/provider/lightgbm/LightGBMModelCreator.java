@@ -289,6 +289,17 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         return ((Math.abs(freq - 0) < epsilon) || (Math.abs(1 - fraction) < epsilon));
     }
 
+    /**
+     * Sanitizes a field name to match LightGBM's internal feature name format,
+     * replacing spaces with underscores.
+     *
+     * @param fieldName The original field name.
+     * @return The sanitized field name.
+     */
+    static String sanitizeFieldName(final String fieldName) {
+        return fieldName.replace(" ", "_");
+    }
+
     @Override
     public LightGBMBinaryClassificationModel loadModel(final Path modelPath,
                                                        final DatasetSchema schema)  throws ModelLoadingException {
@@ -312,7 +323,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
         final String[] boosterFeatureNames = model.getBoosterFeatureNames();
         final Set<String> modelFeatureSet = new HashSet<>(Arrays.asList(boosterFeatureNames));
         final List<FieldSchema> relevantFields = schema.getPredictiveFields().stream()
-                .filter(field -> modelFeatureSet.contains(field.getFieldName().replace(" ", "_")))
+                .filter(field -> modelFeatureSet.contains(sanitizeFieldName(field.getFieldName())))
                 .collect(Collectors.toList());
 
         if (relevantFields.size() != boosterFeatureNames.length) {
@@ -431,7 +442,7 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
         return fields.stream()
                 .map(FieldSchema::getFieldName)
-                .map(fieldName -> fieldName.replace(" ", "_"))
+                .map(LightGBMModelCreator::sanitizeFieldName)
                 .toArray(String[]::new);
     }
 
