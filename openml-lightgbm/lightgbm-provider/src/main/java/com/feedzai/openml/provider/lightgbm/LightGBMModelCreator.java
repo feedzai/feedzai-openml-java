@@ -437,19 +437,23 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
 
     /**
      * Performs a one-by-one feature name comparison between a
-     * given list of {@link FieldSchema} and an array of feature
+     * given list of {@link FieldSchema} (containing only the
+     * relevant schema fields for comparison), and an array of feature
      * names. This way the first mismatch is logged, improving debug.
+     * The provided list of relevant fields contains the fields from
+     * the model schema without the sample weight field, if it is
+     * considered for model training.
      *
-     * @param schemaRelevantFeatureNames Schema
-     * @param featureNames Feature names to validate.
-     * @return {@code true} if the schema predictive field names
-     * match the provided array, {@code false} otherwise.
+     * @param schemaRelevantFields List containing the relevant model feature fields.
+     * @param featureNames         Feature names to validate.
+     * @return                     {@code true} if the schema predictive field names
+     *                             match the provided array, {@code false} otherwise.
      * @since 1.0.18
      */
-    private boolean schemaMatchAllFeatures(List<FieldSchema> schemaRelevantFeatureNames,
+    private boolean schemaMatchAllFeatures(final List<FieldSchema> schemaRelevantFields,
                                            final String[] featureNames) {
 
-        final String[] schemaFeatureNames = getFeatureNamesFrom(schemaRelevantFeatureNames);
+        final String[] schemaFeatureNames = getFeatureNamesFrom(schemaRelevantFields);
 
         boolean isMatch = true;
 
