@@ -21,6 +21,7 @@
 
     <groupId>com.feedzai.openml.lightgbm</groupId>
     <artifactId>openml-lightgbm-module</artifactId>
+    <name>OpenML LightGBM</name>
     <description>OpenML LightGBM Machine Learning Model and Classifier</description>
 
     <modules>
