@@ -148,12 +148,12 @@ final class LightGBMBinaryClassificationModelTrainer {
         final int numIterations = parseInt(params.get(NUM_ITERATIONS_PARAMETER_NAME));
         logger.debug("LightGBM model trainParams: {}", trainParams);
 
-        try (SWIGTrainData swigTrainData = new SWIGTrainData(
+        try (final SWIGTrainData swigTrainData = new SWIGTrainData(
                 numFeatures,
                 instancesPerChunk,
                 FairGBMParamParserUtil.isFairnessConstrained(params),
                 sampleWeightColIndex.isPresent()
-        ); SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster()) {
+        ); final SWIGTrainBooster swigTrainBooster = new SWIGTrainBooster()) {
             /// Create LightGBM dataset
             final int constraintGroupColIndex = FairGBMParamParserUtil.getConstraintGroupColumnIndex(params, schema)
                                                                       .orElse(FairGBMParamParserUtil.NO_SPECIFIC);
