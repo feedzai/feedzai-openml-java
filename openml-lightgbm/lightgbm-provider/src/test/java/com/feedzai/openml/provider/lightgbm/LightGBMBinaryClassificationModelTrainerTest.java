@@ -19,10 +19,15 @@ package com.feedzai.openml.provider.lightgbm;
 
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.NumericValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -361,6 +366,60 @@ public class LightGBMBinaryClassificationModelTrainerTest {
         );
 
         fit(dataset, params, SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE);
+    }
+
+    /**
+     * Asserts that training with sample weights works correctly when the target field
+     * is NOT the last field in the schema. This catches a bug where getPredictiveFields()
+     * returns fields with non-sequential indices (gap at the target position), which would
+     * cause DatasetSchema construction to fail if fields aren't re-indexed.
+     *
+     * @throws URISyntaxException For errors when loading the dataset resource.
+     * @throws IOException        For errors when reading the dataset.
+     */
+    @Test
+    public void fitWithSampleWeightAndTargetNotAtEnd() throws URISyntaxException, IOException {
+        final Map<String, String> params = new HashMap<>(MODEL_PARAMS);
+        params.put(SAMPLE_WEIGHT_COL_PARAMETER_NAME, "sample_weight_double");
+
+        // Schema with target in the middle: amount(0), num1(1), label(2), num2(3), num3(4), sample_weight(5)
+        final DatasetSchema schemaWithTargetInMiddle = new DatasetSchema(
+                2,
+                ImmutableList.of(
+                        new FieldSchema("amount", 0, new NumericValueSchema(false)),
+                        new FieldSchema("num1_float", 1, new NumericValueSchema(false)),
+                        new FieldSchema("is_fraud_label_indexed", 2,
+                                        new CategoricalValueSchema(true, ImmutableSet.of("0.0", "1.0"))),
+                        new FieldSchema("num2_double", 3, new NumericValueSchema(false)),
+                        new FieldSchema("num3_int", 4, new NumericValueSchema(false)),
+                        new FieldSchema("sample_weight_double", 5, new NumericValueSchema(false))
+                )
+        );
+
+        final Dataset dataset = CSVUtils.getDatasetWithSchema(
+                TestResources.getResourcePath(TestResources.INSTANCES_WITH_SAMPLE_WEIGHT_NAME),
+                schemaWithTargetInMiddle,
+                MAX_NUMBER_OF_INSTANCES_TO_TRAIN
+        );
+
+        try (final LightGBMBinaryClassificationModel model = fit(
+                dataset,
+                params,
+                SMALL_TRAIN_DATA_CHUNK_INSTANCES_SIZE
+        )) {
+            // Model should have 4 features (6 fields - target - sample_weight)
+            assertThat(model.getBoosterNumFeatures())
+                    .as("Model features should exclude both target and sample weight")
+                    .isEqualTo(4);
+
+            assertThat(Arrays.asList(model.getBoosterFeatureNames()))
+                    .as("Model feature names should not contain the weight column")
+                    .doesNotContain("sample_weight_double");
+        } catch (ModelLoadingException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**

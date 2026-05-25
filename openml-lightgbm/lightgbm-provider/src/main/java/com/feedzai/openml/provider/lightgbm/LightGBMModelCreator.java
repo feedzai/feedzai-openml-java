@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -172,7 +173,15 @@ public class LightGBMModelCreator implements MachineLearningModelTrainer<LightGB
             final List<FieldSchema> fieldsWithoutWeight = dataset.getSchema().getPredictiveFields().stream()
                                                                  .filter(field -> field.getFieldIndex() != weightColIdx.get())
                                                                  .collect(Collectors.toList());
-            schemaForLoading = new DatasetSchema(fieldsWithoutWeight);
+
+            final List<FieldSchema> fieldsWithoutWeightReindexed = IntStream.range(0, fieldsWithoutWeight.size())
+                .mapToObj(i -> new FieldSchema(
+                        fieldsWithoutWeight.get(i).getFieldName(),
+                        i,
+                        fieldsWithoutWeight.get(i).getValueSchema()
+                )).collect(Collectors.toList());
+
+            schemaForLoading = new DatasetSchema(fieldsWithoutWeightReindexed);
         } else {
             schemaForLoading = dataset.getSchema();
         }
