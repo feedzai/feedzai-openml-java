@@ -133,7 +133,7 @@ public final class H2OAlgorithmTestParams {
                 .put("lambda", "1")
                 .put("lambda_search", "true")
                 .put("standardize", "true")
-                .put("non_negative", "true")
+                .put("non_negative", "false")
                 .put("obj_reg", "-1")
                 .put("theta", "1e-10")      // default value
                 .put("HGLM", "false")       // default value

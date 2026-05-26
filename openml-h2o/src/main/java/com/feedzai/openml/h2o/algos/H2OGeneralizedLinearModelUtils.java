@@ -59,15 +59,16 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OA
      */
     public static final Set<ModelParameter> PARAMETERS =
             ParametersBuilderUtil.getParametersFor(GLMParametersV3.class, water.bindings.pojos.GLMParametersV3.class)
-                    .stream()
-                    // Excluded since we "hard-code" to classification.
-                    .filter(modelParam -> !FAMILY.equals(modelParam.getName()))
-                    // H2O UI excludes these in a hard-coded way...so do we.
-                    .filter(modelParameter -> !"tweedie_link_power".equals(modelParameter.getName()) &&
-                            !"tweedie_variance_power".equals(modelParameter.getName()) &&
-                            !"nlambdas".equals(modelParameter.getName()) && !"early_stopping".equals(modelParameter.getName())
-                    )
-                    .collect(Collectors.toSet());
+                             .stream()
+                             // Excluded since we "hard-code" to classification.
+                             .filter(modelParam -> !FAMILY.equals(modelParam.getName()))
+                             // H2O UI excludes these in a hard-coded way...so do we.
+                             .filter(modelParameter -> !"tweedie_link_power".equals(modelParameter.getName()) &&
+                                     !"tweedie_variance_power".equals(modelParameter.getName()) &&
+                                     !"nlambdas".equals(modelParameter.getName()) && !"early_stopping".equals(modelParameter.getName()) &&
+                                     !"influence".equals(modelParameter.getName())
+                             )
+                             .collect(Collectors.toSet());
 
     /**
      * The complete collection of model parameter names of an H2O GLM model.

@@ -243,7 +243,29 @@ public final class ParametersBuilderUtil {
         if (apiAnnot.values().length > 0) {
             final Set<String> possibleValues = Arrays.stream(apiAnnot.values()).collect(Collectors.toSet());
             final Enum<?> defaultValue = getDefaultChoiceValue(paramsClass, fieldName);
-            paramType = new ChoiceFieldType(possibleValues, defaultValue.name());
+            String defaultValueName = defaultValue != null ? defaultValue.name() : "";
+            if (!possibleValues.contains(defaultValueName)) {
+                final String finalDefaultName = defaultValueName;
+
+                // Check if there is a match
+                final Optional<String> match = possibleValues.stream()
+                                                             .filter(val -> val.equalsIgnoreCase(finalDefaultName))
+                                                             .findFirst();
+
+                if (match.isPresent()) {
+                    defaultValueName = match.get();
+                } else if (!possibleValues.isEmpty()) {
+                    // Fallback to the first allowed choice if the default is missing or null
+                    defaultValueName = possibleValues.iterator().next();
+                    logger.warn(
+                            "Default value name `{}` is not present on possible values set `{}`. Falling back to `{}`",
+                            finalDefaultName,
+                            possibleValues,
+                            defaultValueName
+                    );
+                }
+            }
+            paramType = new ChoiceFieldType(possibleValues, defaultValueName);
 
         } else if (fieldType.equals(String.class)) {
             final String defaultValue = getDefaultStringValue(paramsClass, fieldName);
