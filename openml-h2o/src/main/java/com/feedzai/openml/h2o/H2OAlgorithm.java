@@ -95,8 +95,6 @@ public enum H2OAlgorithm implements MLAlgorithmEnum {
 
     /**
      * Generalized Linear Models (GLM) estimate regression models for outcomes following exponential distributions.
-     * <p>
-     * We enforce it to always have a family parameter Binomial that causes it to be a classification algorithm.
      */
     GENERALIZED_LINEAR_MODEL(createDescriptor(
             "Generalized Linear Modeling",

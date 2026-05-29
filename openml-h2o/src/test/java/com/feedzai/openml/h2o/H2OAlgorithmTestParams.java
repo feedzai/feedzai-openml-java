@@ -133,6 +133,8 @@ public final class H2OAlgorithmTestParams {
                 .put("lambda", "1")
                 .put("lambda_search", "true")
                 .put("standardize", "true")
+                 // non_negative does not work with multinomial/ordinal families and GLM
+                 // fails on init if set to true (see https://github.com/h2oai/h2o-3/issues/7055)
                 .put("non_negative", "false")
                 .put("obj_reg", "-1")
                 .put("theta", "1e-10")      // default value
