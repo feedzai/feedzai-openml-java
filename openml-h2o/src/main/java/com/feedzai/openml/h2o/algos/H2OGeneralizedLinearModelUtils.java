@@ -65,7 +65,8 @@ public final class H2OGeneralizedLinearModelUtils extends AbstractSupervisedH2OA
                     // H2O UI excludes these in a hard-coded way...so do we.
                     .filter(modelParameter -> !"tweedie_link_power".equals(modelParameter.getName()) &&
                             !"tweedie_variance_power".equals(modelParameter.getName()) &&
-                            !"nlambdas".equals(modelParameter.getName()) && !"early_stopping".equals(modelParameter.getName())
+                            !"nlambdas".equals(modelParameter.getName()) && !"early_stopping".equals(modelParameter.getName()) &&
+                            !"influence".equals(modelParameter.getName())
                     )
                     .collect(Collectors.toSet());
 

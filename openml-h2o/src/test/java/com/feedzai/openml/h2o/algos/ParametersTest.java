@@ -32,6 +32,8 @@ import com.feedzai.openml.h2o.algos.mocks.PrivateFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.RegularParameters;
 import com.feedzai.openml.h2o.params.ParametersBuilderUtil;
 import com.feedzai.openml.provider.descriptor.ModelParameter;
+import com.feedzai.openml.provider.descriptor.fieldtype.ChoiceFieldType;
+
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
@@ -176,5 +178,97 @@ public class ParametersTest {
         // addAppender is outdated now
         classLogger.addAppender(listAppender);
         return listAppender;
+    }
+
+    /**
+     * Tests that a case-mismatched enum name is still resolved.
+     */
+    @Test
+    public void choiceFieldCaseMismatchCorrection() {
+        final Set<ModelParameter> parameters = ParametersBuilderUtil.getParametersFor(
+                MockCaseMismatchSchema.class,
+                MockCaseMismatchBinding.class
+        );
+
+        assertThat(parameters).as("The choice parameter descriptor should be resolved successfully").hasSize(1);
+
+        final ModelParameter parameter = parameters.iterator().next();
+
+        assertThat(parameter.getName()).as("The parameter name should match the target field").isEqualTo("dummyField");
+
+        final ChoiceFieldType fieldType = (ChoiceFieldType) parameter.getFieldType();
+
+        assertThat(fieldType.getDefaultValue()).as("The enum 'VALUE_ONE' should match the schema's 'value_one' choice")
+                                               .isEqualTo("value_one");
+    }
+
+    /**
+     * Tests that when an enum field evaluates to null or does not match any valid choices, we fall back to the first
+     * available choice.
+     */
+    @Test
+    public void choiceFieldNullOrMissingFallback() {
+        final ListAppender<ILoggingEvent> listAppender = appendLogger(ParametersBuilderUtil.class);
+
+        final Set<ModelParameter> parameters = ParametersBuilderUtil.getParametersFor(
+                MockFallbackSchema.class,
+                MockFallbackBinding.class
+        );
+
+        assertThat(parameters).as("The parameter descriptor should be built using a fallback strategy").hasSize(1);
+
+        final ModelParameter parameter = parameters.iterator().next();
+
+        assertThat(parameter.getName()).as("The parameter name should match the target field").isEqualTo("dummyField");
+
+        final ChoiceFieldType fieldType = (ChoiceFieldType) parameter.getFieldType();
+
+        assertThat(fieldType.getDefaultValue()).as(
+                "A null value should fall back safely to the first choice in the schema").isEqualTo("value_one");
+
+        final List<ILoggingEvent> loggingList = listAppender.list;
+        assertThat(loggingList).as("A fallback must log an explicit warning").isNotEmpty();
+
+        final ILoggingEvent warningEvent = loggingList.get(0);
+        assertThat(warningEvent.getLevel()).isEqualTo(Level.WARN);
+        assertThat(warningEvent.getMessage()).as("The warning message should detail the fallback replacement")
+                                             .containsIgnoringCase("is not present on possible values set");
+    }
+
+    /**
+     * Dummy enum to simulate parameter choices.
+     */
+    public enum DummyEnum {
+        VALUE_ONE, VALUE_TWO;
+    }
+
+    /**
+     * Schema where the annotation choices are lowercase.
+     */
+    public static class MockCaseMismatchSchema extends water.api.schemas3.ModelParametersSchemaV3 {
+        @water.api.API(help = "Case mismatch", values = {"value_one", "value_two"})
+        public DummyEnum dummyField;
+    }
+
+    /**
+     * Fallback schema to be used when client binding POJO is null.
+     */
+    public static class MockFallbackSchema extends water.api.schemas3.ModelParametersSchemaV3 {
+        @water.api.API(help = "Fallback", values = {"value_one"})
+        public DummyEnum dummyField;
+    }
+
+    /**
+     * Client binding POJO where the runtime field resolves to uppercase.
+     */
+    public static class MockCaseMismatchBinding extends water.bindings.pojos.ModelParametersSchemaV3 {
+        public DummyEnum dummyField = DummyEnum.VALUE_ONE;
+    }
+
+    /**
+     * Client binding POJO where the enum initializes as null.
+     */
+    public static class MockFallbackBinding extends water.bindings.pojos.ModelParametersSchemaV3 {
+        public DummyEnum dummyField = null;
     }
 }
