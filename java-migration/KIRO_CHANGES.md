@@ -29,9 +29,9 @@
 - Exception handling: `InstantiationException | IllegalAccessException` → broad `Exception` (covers `NoSuchMethodException`, `InvocationTargetException`)
 
 ### `.github/workflows/build.yml`
-- Main build JDK: `8` (Zulu) → `25` (Temurin)
-- musl Docker test: `openjdk8` → `openjdk21` (Alpine doesn't package JDK 25 yet)
-- arm64 Docker test: `maven:3.8-openjdk-8-slim` → `maven:3.9-eclipse-temurin-25`
+- Main build JDK: `8` (Zulu) → `17` (Temurin) — H2O 3.46 hard-rejects JDK 18+ at runtime
+- musl Docker test: `openjdk8` → `openjdk17`
+- arm64 Docker test: `maven:3.8-openjdk-8-slim` → `maven:3.9-eclipse-temurin-17`
 
 ## Version Bump Summary Table
 
