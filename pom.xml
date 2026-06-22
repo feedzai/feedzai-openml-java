@@ -226,6 +226,7 @@
                     <version>3.5.2</version>
                     <configuration>
                         <argLine>
+                            @{argLine}
                             -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
                             --add-opens java.base/java.lang=ALL-UNNAMED
                             --add-opens java.base/java.lang.reflect=ALL-UNNAMED

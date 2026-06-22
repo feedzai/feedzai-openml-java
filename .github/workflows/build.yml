@@ -79,6 +79,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           use_oidc: true
-          fail_ci_if_error: true
-          disable_search: true
-          files: openml-java-utils/target/site/jacoco/jacoco.xml,openml-datarobot/target/site/jacoco/jacoco.xml,openml-h2o/target/site/jacoco/jacoco.xml,openml-lightgbm/lightgbm-provider/target/site/jacoco/jacoco.xml
+          fail_ci_if_error: false
