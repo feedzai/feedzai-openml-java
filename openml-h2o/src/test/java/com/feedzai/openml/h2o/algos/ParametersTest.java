@@ -27,6 +27,7 @@ import com.feedzai.openml.h2o.algos.mocks.BindingNoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingPrivateFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.BindingRegularParameters;
 import com.feedzai.openml.h2o.algos.mocks.FieldsNotArrayParameters;
+import com.feedzai.openml.h2o.algos.mocks.NoDefaultConstructorParameters;
 import com.feedzai.openml.h2o.algos.mocks.NoFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.PrivateFieldsFieldParameters;
 import com.feedzai.openml.h2o.algos.mocks.RegularParameters;
@@ -270,5 +271,17 @@ public class ParametersTest {
      */
     public static class MockFallbackBinding extends water.bindings.pojos.ModelParametersSchemaV3 {
         public DummyEnum dummyField = null;
+    }
+
+    /**
+     * Tests that a {@link RuntimeException} is thrown when the binding parameters class
+     * has no default (no-arg) constructor.
+     */
+    @Test(expected = RuntimeException.class)
+    public void noDefaultConstructorThrows() {
+        ParametersBuilderUtil.getParametersFor(
+                RegularParameters.class,
+                NoDefaultConstructorParameters.class
+        );
     }
 }
