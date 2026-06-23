@@ -284,4 +284,16 @@ public class ParametersTest {
                 NoDefaultConstructorParameters.class
         );
     }
+
+    /**
+     * Tests that a {@link RuntimeException} is thrown when the binding parameters class
+     * constructor throws an exception, exercising the catch block in {@code getParamsInstance}.
+     */
+    @Test(expected = RuntimeException.class)
+    public void failingConstructorThrows() {
+        ParametersBuilderUtil.getParametersFor(
+                RegularParameters.class,
+                com.feedzai.openml.h2o.algos.mocks.FailingConstructorParameters.class
+        );
+    }
 }

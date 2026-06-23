@@ -21,12 +21,33 @@ import org.junit.Test;
 
 import java.net.URLClassLoader;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests for {@link JavaFileUtils}.
  */
 public class JavaFileUtilsTest {
+
+    /**
+     * Validates that {@link JavaFileUtils#createNewInstanceFromClassLoader} successfully
+     * loads a class and creates a new instance via getDeclaredConstructor().newInstance().
+     */
+    @Test
+    public void testCreateNewInstanceFromClassLoaderSuccess() throws ModelLoadingException {
+        final URLClassLoader classLoader = URLClassLoader.newInstance(
+                new java.net.URL[0], getClass().getClassLoader()
+        );
+
+        // Use format "%s" with model path basename "java.lang.Object" to load java.lang.Object
+        final Object instance = JavaFileUtils.createNewInstanceFromClassLoader(
+                "/fake/path/java.lang.Object.jar",
+                "%s",
+                classLoader
+        );
+
+        assertThat(instance).isNotNull();
+    }
 
     /**
      * Validates that {@link JavaFileUtils#createNewInstanceFromClassLoader} throws
