@@ -24,8 +24,7 @@ LIGHTGBMLIB_VERSION="$3"
 
 # git submodule
 echo "Checking out make-lightgbm project"
-# Skipping submodule update to preserve local Dockerfile changes
-# git submodule update --init
+git submodule update --init
 
 echo "Building LightGBM $LIGHTGBM_COMMIT_REF as lightgbmlib $LIGHTGBMLIB_VERSION"
 cd make-lightgbm
