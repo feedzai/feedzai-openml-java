@@ -39,3 +39,4 @@ target
 
 openml-h2o/dependency-reduced-pom.xml
 openml-lightgbm/openml-lightgbm-builder/lightgbmlib_build/
+/*.zip

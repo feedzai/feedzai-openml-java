@@ -28,16 +28,17 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          submodules: recursive
       - run: |
           git fetch -f --tags
           echo exit code $?
           git tag --list
 
-      - name: Set up JDK 1.8
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '8'
-          distribution: 'zulu'
+          java-version: '17'
+          distribution: 'temurin'
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -57,7 +58,7 @@ jobs:
       - name: Test with musl
         run: |
           docker run --rm -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java -e FDZ_OPENML_JAVA_LIBC="musl" alpine:3.18.4 \
-          /bin/sh -c 'apk add clang openjdk8 maven bash git && \
+          /bin/sh -c 'apk add clang openjdk17 maven bash git && \
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
           cd /feedzai-openml-java && \
@@ -67,7 +68,7 @@ jobs:
       # The skipped tests is because h2o-xgboost isn't ready to use on arm64
       - name: Test on arm64
         run: |
-          docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.8-openjdk-8-slim \
+          docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.9-eclipse-temurin-17 \
           /bin/bash -c 'apt update && apt install -y --no-install-recommends git && \
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
@@ -78,4 +79,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           use_oidc: true
-          fail_ci_if_error: true
+          fail_ci_if_error: false

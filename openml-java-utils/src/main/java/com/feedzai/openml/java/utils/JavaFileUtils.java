@@ -108,7 +108,8 @@ public class JavaFileUtils {
                                                           final URLClassLoader urlClassLoader) throws ModelLoadingException {
         try {
             final String simpleNameJar = FilenameUtils.getBaseName(modelPath);
-            return urlClassLoader.loadClass(String.format(simpleNameFormat, simpleNameJar)).newInstance();
+            return urlClassLoader.loadClass(String.format(simpleNameFormat, simpleNameJar))
+                    .getDeclaredConstructor().newInstance();
         } catch (final Exception e) {
             logger.error("Could not load the model [{}].", modelPath, e);
             throw new ModelLoadingException(

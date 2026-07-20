@@ -472,8 +472,8 @@ public final class ParametersBuilderUtil {
      */
     private static water.bindings.pojos.ModelParametersSchemaV3 getParamsInstance(final Class<? extends water.bindings.pojos.ModelParametersSchemaV3> paramsClass) {
         try {
-            return paramsClass.newInstance();
-        } catch (final InstantiationException | IllegalAccessException e) {
+            return paramsClass.getDeclaredConstructor().newInstance();
+        } catch (final Exception e) {
             throw new RuntimeException(e);
         }
     }
