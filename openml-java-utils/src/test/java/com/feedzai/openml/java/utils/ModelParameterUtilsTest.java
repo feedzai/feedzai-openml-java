@@ -24,29 +24,32 @@ import com.feedzai.openml.provider.descriptor.fieldtype.FreeTextFieldType;
 import com.feedzai.openml.provider.descriptor.fieldtype.NumericFieldType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.integration.junit4.JMockit;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Validates the behaviour of {@link ModelParameterUtils}.
  */
-@RunWith(JMockit.class)
 public class ModelParameterUtilsTest {
 
     /**
-     * Validates that effective model parameters are being correctly calculated.s
-     *
-     * @param mlAlgorithmDescriptor The mocked ML algorithm.
+     * Validates that effective model parameters are being correctly calculated.
      */
     @Test
-    public final void effectiveModelParameterValues(@Mocked final MLAlgorithmDescriptor mlAlgorithmDescriptor) {
+    public final void effectiveModelParameterValues() {
+
+        final MLAlgorithmDescriptor mlAlgorithmDescriptor = mock(MLAlgorithmDescriptor.class);
+        when(mlAlgorithmDescriptor.getParameters()).thenReturn(ImmutableSet.of(
+                new ModelParameter("param0", "", "", true, new BooleanFieldType(false)),
+                new ModelParameter("param1", "", "", true, new FreeTextFieldType("1")),
+                new ModelParameter("param2", "", "", true, NumericFieldType.min(0d, NumericFieldType.ParameterConfigType.INT, 2d)),
+                new ModelParameter("param3", "", "", true, new ChoiceFieldType(ImmutableSet.of("1", "2", "3"), "3"))
+        ));
 
         final Map<String, String> expectedParams = ImmutableMap.of(
                 "param0", "false",
@@ -55,16 +58,6 @@ public class ModelParameterUtilsTest {
                 "param4", "53",
                 "param1", "99"
         );
-
-        new Expectations() {{
-            mlAlgorithmDescriptor.getParameters();
-            result = ImmutableSet.of(
-                    new ModelParameter("param0", "", "", true, new BooleanFieldType(false)),
-                    new ModelParameter("param1", "", "", true, new FreeTextFieldType("1")),
-                    new ModelParameter("param2", "", "", true, NumericFieldType.min(0d, NumericFieldType.ParameterConfigType.INT, 2d)),
-                    new ModelParameter("param3", "", "", true, new ChoiceFieldType(ImmutableSet.of("1", "2", "3"), "3"))
-            );
-        }};
 
         final Map<String, String> effectiveParams = ModelParameterUtils.getEffectiveModelParameterValues(
                 mlAlgorithmDescriptor,
