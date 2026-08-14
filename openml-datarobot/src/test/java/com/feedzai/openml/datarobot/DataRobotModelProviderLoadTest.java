@@ -30,7 +30,6 @@ import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import mockit.Mocked;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -51,6 +50,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 /**
  * Tests for loading models with {@link DataRobotModelProvider}.
@@ -375,13 +375,12 @@ public class DataRobotModelProviderLoadTest extends AbstractDataRobotModelProvid
     /**
      * Tests that fetching the labels from a model that does not contain them yields a default value.
      *
-     * @param mockedPredictor The mocked predictor.
-     *
      * @since 0.5.8
      */
     @Test
-    public void readUnexistingTargetLabelsTest(final @Mocked Predictor mockedPredictor) {
-        assertThat(new DataRobotModelCreator().getTargetModelValues(mockedPredictor))
+    public void readUnexistingTargetLabelsTest() {
+        final Predictor predictor = mock(Predictor.class);
+        assertThat(new DataRobotModelCreator().getTargetModelValues(predictor))
                 .as("The target labels")
                 .containsExactlyInAnyOrder("0", "1");
     }
