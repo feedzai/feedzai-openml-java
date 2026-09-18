@@ -30,6 +30,7 @@
         <module>openml-h2o</module>
         <module>openml-java-utils</module>
         <module>openml-lightgbm</module>
+        <module>openml-xgboost</module>
     </modules>
 
     <name>Java OpenML Main</name>
