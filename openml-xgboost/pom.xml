@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2026 Feedzai
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  ~
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.feedzai</groupId>
+        <artifactId>openml-java</artifactId>
+        <version>0.0.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>openml-xgboost</artifactId>
+    <name>OpenML XGBoost</name>
+    <description>Provider that imports, scores and trains XGBoost models using the native xgboost4j JVM package.</description>
+
+    <properties>
+        <!--
+          xgboost4j is the pure-JVM core of XGBoost. The published jar bundles the native library for
+          linux/x86_64, linux/aarch64, macos/x86_64, macos/aarch64 and windows/x86_64, so it works on
+          ARM (AWS Graviton / Apple Silicon) out of the box - unlike H2O-XGBoost (AMD64 only).
+          It is a thin JNI wrapper (no H2O-style JDK version gate), so it runs on Java 8-25.
+        -->
+        <xgboost.version>3.4.0</xgboost.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.feedzai</groupId>
+            <artifactId>openml-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.feedzai</groupId>
+            <artifactId>openml-utils</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!--
+          xgboost4j core (Java API: ml.dmlc.xgboost4j.java.{XGBoost,Booster,DMatrix}).
+          The artifact carries a Scala suffix, but we only use the pure-Java API; scala-compiler is
+          not needed at all, so it is excluded to keep the classpath lean. scala-library is kept as a
+          harmless transitive runtime dependency.
+        -->
+        <dependency>
+            <groupId>ml.dmlc</groupId>
+            <artifactId>xgboost4j_2.13</artifactId>
+            <version>${xgboost.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-compiler</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.auto.service</groupId>
+            <artifactId>auto-service</artifactId>
+        </dependency>
+
+        <!--Testing-->
+        <dependency>
+            <groupId>com.feedzai</groupId>
+            <artifactId>openml-utils</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- allow to reuse the objects created in test directory from outside of this module -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
