@@ -23,14 +23,19 @@ import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
+import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import ml.dmlc.xgboost4j.java.DMatrix;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -66,11 +71,36 @@ public class XgboostModelProviderTest {
     private static DatasetSchema schema;
 
     /**
-     * Sets up the shared schema.
+     * Whether the native {@code xgboost4j} library can be loaded on this platform. Tests that train or
+     * score are skipped when it cannot (e.g. musl/Alpine, for which XGBoost ships no native library).
+     */
+    private static boolean nativeAvailable;
+
+    /**
+     * Sets up the shared schema and detects native library availability.
      */
     @BeforeClass
     public static void setUp() {
         schema = MockDataset.generateDefaultSchema(TARGET_VALUES, NUM_FEATURES);
+        nativeAvailable = xgboostNativeAvailable();
+    }
+
+    /**
+     * Probes whether the native XGBoost library can be loaded on the current platform.
+     *
+     * <p>The published {@code xgboost4j} jar bundles glibc Linux (x86_64, aarch64), macOS (x86_64,
+     * Apple Silicon) and Windows natives, but no musl build - so on Alpine/musl the load fails.
+     *
+     * @return {@code true} if the native library initializes successfully.
+     */
+    private static boolean xgboostNativeAvailable() {
+        try {
+            new DMatrix(new float[]{0f}, 1, 1, Float.NaN).dispose();
+            return true;
+        } catch (final Throwable t) {
+            // UnsatisfiedLinkError / NoClassDefFoundError / XGBoostError: native unsupported here.
+            return false;
+        }
     }
 
     /**
@@ -125,6 +155,8 @@ public class XgboostModelProviderTest {
      */
     @Test
     public void trainsAndScoresInProcess() throws Exception {
+        Assume.assumeTrue("XGBoost native library unavailable on this platform (e.g. musl/Alpine).", nativeAvailable);
+
         final XgboostModelCreator creator = new XgboostModelCreator();
         final Dataset trainDataset = new MockDataset(schema, 200, new Random(0));
 
@@ -152,6 +184,8 @@ public class XgboostModelProviderTest {
      */
     @Test
     public void savedModelReloadsWithIdenticalScores() throws Exception {
+        Assume.assumeTrue("XGBoost native library unavailable on this platform (e.g. musl/Alpine).", nativeAvailable);
+
         final XgboostModelCreator creator = new XgboostModelCreator();
         final Dataset trainDataset = new MockDataset(schema, 200, new Random(1));
 
@@ -183,5 +217,59 @@ public class XgboostModelProviderTest {
         assertThatThrownBy(() -> creator.fit(emptyDataset, new Random(0), trainParams()))
                 .isInstanceOf(ModelTrainingException.class)
                 .hasMessageContaining("empty");
+    }
+
+    /**
+     * {@code validateForLoad} runs its validations and reports an error when no model exists in the
+     * given directory. This path does not touch the native library.
+     *
+     * @throws Exception If the temporary directory cannot be created.
+     */
+    @Test
+    public void validateForLoadReportsMissingModel() throws Exception {
+        final Path emptyDir = Files.createTempDirectory("xgb_no_model_");
+
+        final List<ParamValidationError> errors =
+                new XgboostModelCreator().validateForLoad(emptyDir, schema, ImmutableMap.of());
+
+        assertThat(errors).isNotEmpty();
+    }
+
+    /**
+     * Loading an invalid (non-XGBoost) model file raises a {@link ModelLoadingException}.
+     *
+     * @throws Exception If file operations fail.
+     */
+    @Test
+    public void loadModelThrowsOnInvalidModelFile() throws Exception {
+        Assume.assumeTrue("XGBoost native library unavailable on this platform (e.g. musl/Alpine).", nativeAvailable);
+
+        final Path root = Files.createTempDirectory("xgb_bad_model_");
+        final Path modelDir = Files.createDirectory(root.resolve("model"));
+        Files.write(modelDir.resolve(XgboostModelCreator.MODEL_BINARY_RESOURCE_FILE_NAME),
+                "this is not a valid xgboost model".getBytes(StandardCharsets.UTF_8));
+
+        assertThatThrownBy(() -> new XgboostModelCreator().loadModel(root, schema))
+                .isInstanceOf(ModelLoadingException.class);
+    }
+
+    /**
+     * {@link XgboostClassificationModel#save(Path, String)} returns {@code false} when persistence
+     * fails (e.g. an unwritable target path).
+     *
+     * @throws Exception If training fails.
+     */
+    @Test
+    public void saveReturnsFalseWhenPersistenceFails() throws Exception {
+        Assume.assumeTrue("XGBoost native library unavailable on this platform (e.g. musl/Alpine).", nativeAvailable);
+
+        final XgboostModelCreator creator = new XgboostModelCreator();
+        final XgboostClassificationModel model =
+                creator.fit(new MockDataset(schema, 50, new Random(0)), new Random(0), trainParams());
+
+        final boolean saved = model.save(Paths.get("/this/path/does/not/exist/xyz"), "model");
+
+        assertThat(saved).isFalse();
+        model.close();
     }
 }

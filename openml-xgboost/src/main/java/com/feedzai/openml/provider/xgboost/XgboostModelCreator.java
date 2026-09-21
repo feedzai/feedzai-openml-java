@@ -112,7 +112,7 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
      * @return The path of the model file to load.
      * @throws ModelLoadingException If the model file cannot be located within the model folder layout.
      */
-    private static Path resolveModelFile(final Path modelPath) throws ModelLoadingException {
+    static Path resolveModelFile(final Path modelPath) throws ModelLoadingException {
         if (!Files.isDirectory(modelPath)) {
             return modelPath;
         }
@@ -237,7 +237,7 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
      * @param random The source of randomness.
      * @return The XGBoost booster parameters.
      */
-    private static Map<String, Object> toBoosterParams(final Map<String, String> params, final Random random) {
+    static Map<String, Object> toBoosterParams(final Map<String, String> params, final Random random) {
         final Map<String, Object> boosterParams = new HashMap<>();
 
         params.forEach((name, value) -> {
@@ -258,7 +258,7 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
      * @param params The Pulse model parameters.
      * @return The number of boosting rounds.
      */
-    private static int numRoundOf(final Map<String, String> params) {
+    static int numRoundOf(final Map<String, String> params) {
         final String numRound = params.get(XgboostDescriptorUtil.NUM_ROUND_PARAMETER_NAME);
         if (numRound == null || numRound.isEmpty()) {
             return DEFAULT_NUM_ROUND;

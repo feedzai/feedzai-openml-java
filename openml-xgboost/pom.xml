@@ -53,13 +53,13 @@
 
         <!--
           xgboost4j core (Java API: ml.dmlc.xgboost4j.java.{XGBoost,Booster,DMatrix}).
-          The artifact carries a Scala suffix, but we only use the pure-Java API; scala-compiler is
-          not needed at all, so it is excluded to keep the classpath lean. scala-library is kept as a
-          harmless transitive runtime dependency.
+          The artifact carries a Scala suffix; we use the _2.12 build to match Pulse's Scala 2.12
+          classpath, even though this provider only uses the pure-Java API. scala-compiler is not
+          needed at all, so it is excluded to keep the classpath lean.
         -->
         <dependency>
             <groupId>ml.dmlc</groupId>
-            <artifactId>xgboost4j_2.13</artifactId>
+            <artifactId>xgboost4j_2.12</artifactId>
             <version>${xgboost.version}</version>
             <exclusions>
                 <exclusion>

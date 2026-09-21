@@ -144,7 +144,7 @@ public class XgboostClassificationModel implements ClassificationMLModel {
      * @param prediction The raw prediction row for a single instance.
      * @return The class distribution.
      */
-    private static double[] toClassDistribution(final float[] prediction) {
+    static double[] toClassDistribution(final float[] prediction) {
         if (prediction.length == 1) {
             final double positiveProbability = prediction[0];
             return new double[]{1.0 - positiveProbability, positiveProbability};
