@@ -56,6 +56,14 @@
           The artifact carries a Scala suffix; we use the _2.12 build to match Pulse's Scala 2.12
           classpath, even though this provider only uses the pure-Java API. scala-compiler is not
           needed at all, so it is excluded to keep the classpath lean.
+
+          kryo is excluded because xgboost4j (via its parent pom) pulls Kryo 5, whose
+          com.esotericsoftware.kryo.Kryo would clash on the class path with the Kryo 4 (kryo-shaded)
+          that Pulse and Spark rely on (Kryo 5 removed the nested Kryo.DefaultInstantiatorStrategy).
+          xgboost4j's Booster implements com.esotericsoftware.kryo.KryoSerializable, so kryo classes
+          must still be present at runtime - Pulse supplies them via kryo-shaded 4. To keep this module
+          self-contained for its own build/tests, kryo is re-declared below in 'provided' scope, which
+          is NOT propagated transitively to consumers.
         -->
         <dependency>
             <groupId>ml.dmlc</groupId>
@@ -66,7 +74,22 @@
                     <groupId>org.scala-lang</groupId>
                     <artifactId>scala-compiler</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>com.esotericsoftware</groupId>
+                    <artifactId>kryo</artifactId>
+                </exclusion>
             </exclusions>
+        </dependency>
+        <!--
+          Needed only so xgboost4j's Booster (implements KryoSerializable) can load during this module's
+          own compilation and tests. 'provided' scope keeps it off consumers' transitive class paths so
+          it never clashes with the host's Kryo (e.g. Pulse's kryo-shaded 4).
+        -->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>5.6.2</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>

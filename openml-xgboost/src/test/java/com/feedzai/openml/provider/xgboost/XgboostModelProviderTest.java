@@ -18,13 +18,17 @@
 package com.feedzai.openml.provider.xgboost;
 
 import com.feedzai.openml.data.Dataset;
+import com.feedzai.openml.data.schema.CategoricalValueSchema;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.FieldSchema;
+import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.mocks.MockDataset;
 import com.feedzai.openml.mocks.MockInstance;
 import com.feedzai.openml.provider.descriptor.MLAlgorithmDescriptor;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import ml.dmlc.xgboost4j.java.DMatrix;
@@ -128,8 +132,8 @@ public class XgboostModelProviderTest {
         assertThat(provider.getName()).isEqualTo("XGBoost");
         assertThat(provider.getAlgorithms())
                 .extracting(MLAlgorithmDescriptor::getAlgorithmName)
-                .contains("XGBoost Binary Classifier");
-        assertThat(provider.getModelCreator("XGBoost Binary Classifier")).isPresent();
+                .contains("DMLC - XGBoost");
+        assertThat(provider.getModelCreator("DMLC - XGBoost")).isPresent();
         assertThat(provider.getModelCreator("Non Existing Algorithm")).isEmpty();
     }
 
@@ -254,22 +258,44 @@ public class XgboostModelProviderTest {
     }
 
     /**
-     * {@link XgboostClassificationModel#save(Path, String)} returns {@code false} when persistence
-     * fails (e.g. an unwritable target path).
+     * A schema containing a free-text (string) feature field, which XGBoost cannot consume.
+     */
+    private static DatasetSchema schemaWithStringField() {
+        return new DatasetSchema(1, ImmutableList.of(
+                new FieldSchema("stringFeature", 0, new StringValueSchema(false)),
+                new FieldSchema("target", 1, new CategoricalValueSchema(false, ImmutableSet.of("0", "1")))
+        ));
+    }
+
+    /**
+     * {@code validateForFit} rejects schemas with string fields.
      *
-     * @throws Exception If training fails.
+     * @throws Exception If the temporary directory cannot be created.
      */
     @Test
-    public void saveReturnsFalseWhenPersistenceFails() throws Exception {
-        Assume.assumeTrue("XGBoost native library unavailable on this platform (e.g. musl/Alpine).", nativeAvailable);
+    public void validateForFitRejectsStringFields() throws Exception {
+        final Path tmpDir = Files.createTempDirectory("xgb_fit_string_");
 
-        final XgboostModelCreator creator = new XgboostModelCreator();
-        final XgboostClassificationModel model =
-                creator.fit(new MockDataset(schema, 50, new Random(0)), new Random(0), trainParams());
+        final List<ParamValidationError> errors =
+                new XgboostModelCreator().validateForFit(tmpDir, schemaWithStringField(), trainParams());
 
-        final boolean saved = model.save(Paths.get("/this/path/does/not/exist/xyz"), "model");
+        assertThat(errors).extracting(ParamValidationError::getMessage)
+                .contains(XgboostModelCreator.ERROR_MSG_SCHEMA_HAS_STRING_FIELDS);
+    }
 
-        assertThat(saved).isFalse();
-        model.close();
+    /**
+     * {@code validateForLoad} rejects schemas with string fields.
+     *
+     * @throws Exception If the temporary directory cannot be created.
+     */
+    @Test
+    public void validateForLoadRejectsStringFields() throws Exception {
+        final Path emptyDir = Files.createTempDirectory("xgb_load_string_");
+
+        final List<ParamValidationError> errors =
+                new XgboostModelCreator().validateForLoad(emptyDir, schemaWithStringField(), ImmutableMap.of());
+
+        assertThat(errors).extracting(ParamValidationError::getMessage)
+                .contains(XgboostModelCreator.ERROR_MSG_SCHEMA_HAS_STRING_FIELDS);
     }
 }

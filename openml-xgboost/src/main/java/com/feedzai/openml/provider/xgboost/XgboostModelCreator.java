@@ -20,6 +20,7 @@ package com.feedzai.openml.provider.xgboost;
 import com.feedzai.openml.data.Dataset;
 import com.feedzai.openml.data.Instance;
 import com.feedzai.openml.data.schema.DatasetSchema;
+import com.feedzai.openml.data.schema.StringValueSchema;
 import com.feedzai.openml.provider.descriptor.fieldtype.ParamValidationError;
 import com.feedzai.openml.provider.exception.ModelLoadingException;
 import com.feedzai.openml.provider.exception.ModelTrainingException;
@@ -82,6 +83,12 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
      */
     private static final int DEFAULT_NUM_ROUND = 100;
 
+    /**
+     * Error reported when the schema contains free-text (string) fields, which XGBoost cannot consume.
+     */
+    static final String ERROR_MSG_SCHEMA_HAS_STRING_FIELDS =
+            "XGBoost only supports numeric and categorical fields; the schema contains string fields.";
+
     @Override
     public XgboostClassificationModel loadModel(final Path modelPath, final DatasetSchema schema)
             throws ModelLoadingException {
@@ -136,6 +143,9 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
         errorBuilder.addAll(ValidationUtils.baseLoadValidations(schema, params));
         errorBuilder.addAll(ValidationUtils.validateModelInDir(modelPath));
         ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        if (schemaHasStringFields(schema)) {
+            errorBuilder.add(new ParamValidationError(ERROR_MSG_SCHEMA_HAS_STRING_FIELDS));
+        }
 
         return errorBuilder.build();
     }
@@ -181,8 +191,24 @@ public class XgboostModelCreator implements MachineLearningModelTrainer<XgboostC
         errorBuilder.addAll(ValidationUtils.checkParams(
                 XgboostAlgorithms.XGBOOST_BINARY_CLASSIFIER.getAlgorithmDescriptor(), params));
         ValidationUtils.validateCategoricalSchema(schema).ifPresent(errorBuilder::add);
+        if (schemaHasStringFields(schema)) {
+            errorBuilder.add(new ParamValidationError(ERROR_MSG_SCHEMA_HAS_STRING_FIELDS));
+        }
 
         return errorBuilder.build();
+    }
+
+    /**
+     * Checks whether the schema contains any free-text (string) field. XGBoost consumes only numeric
+     * input, and Pulse encodes categorical values as numeric indices, so numeric and categorical fields
+     * are supported but {@link StringValueSchema} fields are not.
+     *
+     * @param schema The schema to inspect.
+     * @return {@code true} if at least one field uses a {@link StringValueSchema}.
+     */
+    private static boolean schemaHasStringFields(final DatasetSchema schema) {
+        return schema.getFieldSchemas().stream()
+                .anyMatch(field -> field.getValueSchema() instanceof StringValueSchema);
     }
 
     /**

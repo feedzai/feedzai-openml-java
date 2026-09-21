@@ -34,7 +34,7 @@ public enum XgboostAlgorithms implements MLAlgorithmEnum {
      * XGBoost binary classifier.
      */
     XGBOOST_BINARY_CLASSIFIER(createDescriptor(
-            "XGBoost Binary Classifier",
+            "DMLC - XGBoost",
             XgboostDescriptorUtil.PARAMS,
             MachineLearningAlgorithmType.SUPERVISED_BINARY_CLASSIFICATION,
             "https://xgboost.readthedocs.io/"
