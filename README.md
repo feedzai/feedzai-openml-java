@@ -27,6 +27,20 @@ must be set to `musl`.  This variable can take the values `glibc` and `musl`. H2
 
 For all releases, as the hotfix branch is ready all that's needed to actually release is to create an annotated tag pointing to the hotfix branch head.
 
+### Release lineages
+
+The project is maintained in two parallel release lineages, each tracked by its own branch, so that clients
+on different Java baselines can keep receiving features:
+
+| Lineage | Branch | Java baseline | Purpose |
+|---|---|---|---|
+| **3.X** | `master` | Java 25 | Default lineage. Carries the Java 25 changes. |
+| **2.X** | `hf-2.X` | pre-Java 25 (Java 8+) | Hotfix lineage for clients that cannot yet run Java 25. |
+
+Both lineages ship the same providers (for example, the native XGBoost provider); the only difference is the
+Java baseline each one targets. When preparing a release, make the tag on the branch that matches the lineage:
+`master` for `3.x.y` tags and `hf-2.X` for `2.x.y` tags.
+
 ### Public Release
 
 For a public release you need to create and push an annotated tag. See the example below for releasing version 1.2.29:
