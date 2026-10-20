@@ -67,7 +67,7 @@ jobs:
       # The skipped tests is because h2o-xgboost isn't ready to use on arm64
       - name: Test on arm64
         run: |
-          docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.8-openjdk-8-slim \
+          docker run --rm --platform=arm64 -t -v ~/.m2:/root/.m2 -v $(pwd):/feedzai-openml-java maven:3.9-eclipse-temurin-8 \
           /bin/bash -c 'apt update && apt install -y --no-install-recommends git && \
           git config --global --add safe.directory /feedzai-openml-java && \
           git config --global --add safe.directory /feedzai-openml-java/openml-lightgbm/lightgbm-builder/make-lightgbm && \
