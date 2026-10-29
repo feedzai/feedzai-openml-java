@@ -53,9 +53,12 @@
 
         <!--
           xgboost4j core (Java API: ml.dmlc.xgboost4j.java.{XGBoost,Booster,DMatrix}).
-          The artifact carries a Scala suffix; we use the _2.12 build to match Pulse's Scala 2.12
-          classpath, even though this provider only uses the pure-Java API. scala-compiler is not
-          needed at all, so it is excluded to keep the classpath lean.
+          The artifact carries a Scala suffix and must match the host's Scala binary version, because
+          scala-library is binary-incompatible across 2.12/2.13. This is the 3.x release line
+          (consumed by the Pulse Java 25 branch, Scala 2.13), so we use the _2.13 build. The 2.x line
+          (hf-2.X, consumed by Pulse Java 8 / Scala 2.12) keeps the _2.12 build on its own branch.
+          This provider only uses the pure-Java API; scala-compiler is not needed at all, so it is
+          excluded to keep the classpath lean.
 
           kryo is excluded because xgboost4j (via its parent pom) pulls Kryo 5, whose
           com.esotericsoftware.kryo.Kryo would clash on the class path with the Kryo 4 (kryo-shaded)
@@ -67,7 +70,7 @@
         -->
         <dependency>
             <groupId>ml.dmlc</groupId>
-            <artifactId>xgboost4j_2.12</artifactId>
+            <artifactId>xgboost4j_2.13</artifactId>
             <version>${xgboost.version}</version>
             <exclusions>
                 <exclusion>
