@@ -23,6 +23,19 @@ jobs:
           echo exit code $?
           git tag --list
 
+      # jgitver only treats annotated tags as releases. A tag created in the GitHub Releases page is lightweight and
+      # would be built as a snapshot, so annotate the plain x.y.z tags (locally, on the runner only). Tags with a
+      # suffix (e.g. 1.5.0-xp, experimental releases) are intentionally left lightweight.
+      - name: Annotate the release tag
+        if: github.ref_type == 'tag'
+        run: |
+          if [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              tag -f -a "$GITHUB_REF_NAME" -m "Release $GITHUB_REF_NAME" "$GITHUB_REF_NAME^{commit}"
+          else
+            echo "Tag $GITHUB_REF_NAME is not a plain x.y.z version: left as it is (experimental release)."
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
