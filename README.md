@@ -52,14 +52,18 @@ git tag -a 1.2.29
 # Your EDITOR will open. Write a good message and save as it is used on Github as a release message
 git push origin 1.2.29
 ```
-Then you need to [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) with this tag.
+Alternatively, [create a new release](https://github.com/feedzai/feedzai-openml-java/releases/new) directly in GitHub, choosing
+"Create new tag on publish": the tag it creates is lightweight, so the [deploy workflow](.github/workflows/deploy.yml) annotates
+plain `x.y.z` tags before building (on the runner only; the tag in the repository is not changed).
+In both cases create (or edit) the release for this tag on GitHub to publish the release notes.
 There is a "Generate release notes" button available to create the release notes, just organize them according [to the previous ones](https://github.com/feedzai/feedzai-openml-java/releases).
 
 ### Experimental Release
 
-For experimental releases, the process is the same as above but with a lightweight tag instead of annotated.
+For experimental releases, the process is the same as above but with a lightweight tag instead of annotated. The tag name must have a
+suffix (for example `1.5.0-xp`): the deploy workflow annotates plain `x.y.z` tags, which makes them public releases.
 ```bash
-#the xp part is not needed, what matters is that the tag is not annotated, but is a good indicator for others that this was a tag for an experimental release
+#the xp suffix is needed: a plain x.y.z tag is turned into a public release by the deploy workflow. The tag must not be annotated
 git tag 1.5.0-xp 
 git push origin 1.5.0-xp
 ```
